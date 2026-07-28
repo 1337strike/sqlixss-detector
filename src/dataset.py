@@ -198,22 +198,128 @@ def load_owasp_payloads(csv_path: Path | None = None) -> pd.DataFrame:
     return pd.read_csv(csv_path)
 
 
-def load_combined_dataset(use_real_data: bool = False, seed: int = 42) -> pd.DataFrame:
+# --------------------------------------------------------------------------
+# Newer, more widely-used Kaggle datasets (recommended over raw CSIC2010):
+#   - "SQL Injection Dataset" by Syed Saqlain Hussain Shah (2021, ~33.7k rows)
+#     https://www.kaggle.com/datasets/syedsaqlainhussain/sql-injection-dataset
+#   - "Cross Site Scripting (XSS) dataset for Deep Learning" by the same
+#     author (2020, ~13.7k rows, sourced from PortSwigger + OWASP Cheat Sheets)
+#     https://www.kaggle.com/datasets/syedsaqlainhussain/cross-site-scripting-xss-dataset-for-deep-learning
+#
+# These are cited across several 2024-2025 papers referenced in Chapter 2
+# and are much easier to work with than raw CSIC2010 (single flat CSV,
+# already payload+label). Column names vary slightly between re-uploads of
+# these datasets, so this loader auto-detects them instead of assuming one
+# fixed schema.
+# --------------------------------------------------------------------------
+
+_PAYLOAD_COL_CANDIDATES = ["payload", "query", "sentence", "text", "sql_query", "input"]
+_LABEL_COL_CANDIDATES = ["label", "Label", "type", "class"]
+
+
+def _autodetect_columns(df: pd.DataFrame) -> tuple[str, str]:
+    cols_lower = {c.lower(): c for c in df.columns}
+    payload_col = next((cols_lower[c] for c in _PAYLOAD_COL_CANDIDATES if c in cols_lower), None)
+    label_col = next((cols_lower[c.lower()] for c in _LABEL_COL_CANDIDATES if c.lower() in cols_lower), None)
+    if payload_col is None or label_col is None:
+        raise ValueError(
+            f"Could not auto-detect payload/label columns from {list(df.columns)}. "
+            f"Rename them to 'payload' and 'label' manually, or edit "
+            f"_PAYLOAD_COL_CANDIDATES / _LABEL_COL_CANDIDATES in src/dataset.py."
+        )
+    return payload_col, label_col
+
+
+def load_kaggle_sqli(csv_path: Path | None = None) -> pd.DataFrame:
     """
-    Main entry point. If use_real_data=True and the raw CSVs exist under
-    data/raw/, merges CSIC2010 + OWASP payload lists. Otherwise (default)
-    falls back to the synthetic generator so the pipeline always runs.
+    Loads the Syed Saqlain Hussain Shah 'SQL Injection Dataset' from Kaggle.
+    Download the CSV manually (Kaggle requires login) and place it at
+    data/raw/kaggle_sqli.csv -- see README.md.
+
+    Handles both common label encodings seen in re-uploads of this dataset:
+    binary (0=benign, 1=sqli) or already-string ("SQLi"/"Normal" etc.).
+    """
+    csv_path = csv_path or (RAW_DIR / "kaggle_sqli.csv")
+    if not csv_path.exists():
+        raise FileNotFoundError(
+            f"{csv_path} not found. Download from "
+            f"https://www.kaggle.com/datasets/syedsaqlainhussain/sql-injection-dataset "
+            f"and save as data/raw/kaggle_sqli.csv -- see README.md."
+        )
+    raw = pd.read_csv(csv_path, encoding="utf-8", encoding_errors="replace")
+    payload_col, label_col = _autodetect_columns(raw)
+
+    def _normalize_label(v) -> str:
+        s = str(v).strip().lower()
+        if s in ("1", "sqli", "sql injection", "malicious", "attack", "true"):
+            return "sqli"
+        return "benign"
+
+    out = pd.DataFrame({
+        "payload": raw[payload_col].astype(str),
+        "label": raw[label_col].map(_normalize_label),
+    })
+    return out.dropna(subset=["payload"]).reset_index(drop=True)
+
+
+def load_kaggle_xss(csv_path: Path | None = None) -> pd.DataFrame:
+    """
+    Loads the Syed Saqlain Hussain Shah 'Cross Site Scripting (XSS) dataset
+    for Deep Learning' from Kaggle. Download manually and place at
+    data/raw/kaggle_xss.csv -- see README.md.
+    """
+    csv_path = csv_path or (RAW_DIR / "kaggle_xss.csv")
+    if not csv_path.exists():
+        raise FileNotFoundError(
+            f"{csv_path} not found. Download from "
+            f"https://www.kaggle.com/datasets/syedsaqlainhussain/cross-site-scripting-xss-dataset-for-deep-learning "
+            f"and save as data/raw/kaggle_xss.csv -- see README.md."
+        )
+    raw = pd.read_csv(csv_path, encoding="utf-8", encoding_errors="replace")
+    payload_col, label_col = _autodetect_columns(raw)
+
+    def _normalize_label(v) -> str:
+        s = str(v).strip().lower()
+        if s in ("1", "xss", "malicious", "attack", "true"):
+            return "xss"
+        return "benign"
+
+    out = pd.DataFrame({
+        "payload": raw[payload_col].astype(str),
+        "label": raw[label_col].map(_normalize_label),
+    })
+    return out.dropna(subset=["payload"]).reset_index(drop=True)
+
+
+def load_combined_dataset(use_real_data: bool = False, seed: int = 42, source: str = "kaggle") -> pd.DataFrame:
+    """
+    Main entry point. If use_real_data=True, loads real data and merges it.
+
+    source="kaggle" (recommended, default): loads data/raw/kaggle_sqli.csv +
+        data/raw/kaggle_xss.csv (the newer, actively-used datasets above).
+    source="csic": loads data/raw/csic2010.csv + data/raw/owasp_payloads.csv
+        (the original CSIC2010 + OWASP-payload-list combination).
+
+    Falls back to the synthetic generator if the requested files aren't
+    found, so the pipeline always runs regardless.
     """
     if use_real_data:
         frames = []
-        try:
-            frames.append(load_csic2010())
-        except FileNotFoundError as e:
-            print(f"[dataset] {e}")
-        try:
-            frames.append(load_owasp_payloads())
-        except FileNotFoundError as e:
-            print(f"[dataset] {e}")
+        if source == "kaggle":
+            for loader in (load_kaggle_sqli, load_kaggle_xss):
+                try:
+                    frames.append(loader())
+                except FileNotFoundError as e:
+                    print(f"[dataset] {e}")
+        elif source == "csic":
+            for loader in (load_csic2010, load_owasp_payloads):
+                try:
+                    frames.append(loader())
+                except FileNotFoundError as e:
+                    print(f"[dataset] {e}")
+        else:
+            raise ValueError(f"Unknown source={source!r}, expected 'kaggle' or 'csic'")
+
         if frames:
             df = pd.concat(frames, ignore_index=True)
             df = df[df["label"].isin(["benign", "sqli", "xss"])]
@@ -234,6 +340,7 @@ def build_dataset(
     use_real_data: bool = False,
     test_size: float = 0.25,
     seed: int = 42,
+    source: str = "kaggle",
 ) -> dict[str, pd.DataFrame]:
     """
     Produces three partitions, matching Section 3.4 of the thesis:
@@ -247,7 +354,7 @@ def build_dataset(
     contains sqli/xss rows plus the same benign rows as test_clean, keeping
     class balance comparable between the two test partitions.
     """
-    df = load_combined_dataset(use_real_data=use_real_data, seed=seed)
+    df = load_combined_dataset(use_real_data=use_real_data, seed=seed, source=source)
     rng = random.Random(seed)
 
     df = df.sample(frac=1.0, random_state=seed).reset_index(drop=True)

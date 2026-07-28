@@ -34,6 +34,18 @@ def test_obfuscation_changes_payload():
     print(f"[ok] obfuscation applied {techniques}")
 
 
+def test_obfuscation_is_deterministic():
+    """Regression test: obfuscation functions must use the seeded rng
+    (not the global `random` module), or results won't be reproducible
+    across runs -- this exact bug was caught and fixed once already."""
+    payload = "' OR 1=1 --"
+    for seed in range(10):
+        a, _ = random_obfuscate(payload, seed=seed)
+        b, _ = random_obfuscate(payload, seed=seed)
+        assert a == b, f"seed={seed} produced non-deterministic output: {a!r} vs {b!r}"
+    print("[ok] obfuscation is deterministic across repeated calls with the same seed")
+
+
 def test_dataset_has_three_classes():
     parts = build_dataset(seed=1)
     labels = set(parts["train"]["label"].unique())
@@ -72,6 +84,7 @@ def test_metrics_computation():
 if __name__ == "__main__":
     test_tokenizer_preserves_special_chars()
     test_obfuscation_changes_payload()
+    test_obfuscation_is_deterministic()
     test_dataset_has_three_classes()
     test_models_train_and_predict()
     test_baseline_predicts()

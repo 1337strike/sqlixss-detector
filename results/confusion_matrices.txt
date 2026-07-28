@@ -7,8 +7,8 @@ xss            0         0       125
 === logistic_regression :: OBFUSCATED test set ===
           benign      sqli       xss
 benign       268         0         0
-sqli          39        81         0
-xss           59        12        54
+sqli          38        82         0
+xss           69        22        34
 
 ============================================================
 
@@ -22,7 +22,7 @@ xss            0         0       125
           benign      sqli       xss
 benign       268         0         0
 sqli          18       102         0
-xss           50        10        65
+xss           50        24        51
 
 ============================================================
 
@@ -36,7 +36,7 @@ xss            0         0       125
           benign      sqli       xss
 benign       268         0         0
 sqli          37        83         0
-xss           59        12        54
+xss           68        22        35
 
 ============================================================
 
@@ -49,7 +49,7 @@ xss            6         0       119
 === signature_baseline :: OBFUSCATED test set ===
           benign      sqli       xss
 benign       268         0         0
-sqli          35        85         0
-xss           65         0        60
+sqli          37        83         0
+xss           82         0        43
 
 ============================================================

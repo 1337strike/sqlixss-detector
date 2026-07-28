@@ -136,28 +136,59 @@ front of it — that's an explicit, documented limitation, not a bug.
 
 ---
 
-## 4. Swapping in the real CSIC 2010 / OWASP dataset
+## 4. Swapping in real data (recommended datasets)
 
 The synthetic generator in `src/dataset.py` exists so the whole pipeline
 runs immediately with zero downloads. For your actual thesis results,
-replace it with real data:
+replace it with real data. Two options — **Option A is recommended**,
+it's newer, larger, and much easier to work with than raw CSIC 2010.
 
-1. **CSIC 2010**: download from Kaggle
-   (`ispangler/csic-2010-web-application-attacks`) or another mirror,
-   convert to CSV with columns `payload,label` (`label` ∈
-   `benign,sqli,xss,other`), and save as `data/raw/csic2010.csv`.
+### Option A (recommended): newer Kaggle datasets
+
+These are the datasets actually used in several 2024–2025 published papers
+referenced in Chapter 2, and they're already flat CSVs (no ARFF/XML
+conversion needed like CSIC 2010):
+
+1. **SQL Injection Dataset** (Syed Saqlain Hussain Shah, 2021, ~33.7k rows)
+   https://www.kaggle.com/datasets/syedsaqlainhussain/sql-injection-dataset
+   → download, save as `data/raw/kaggle_sqli.csv`
+2. **Cross-Site Scripting (XSS) dataset for Deep Learning** (same author,
+   2020, ~13.7k rows, sourced from PortSwigger + OWASP Cheat Sheets)
+   https://www.kaggle.com/datasets/syedsaqlainhussain/cross-site-scripting-xss-dataset-for-deep-learning
+   → download, save as `data/raw/kaggle_xss.csv`
+
+(Kaggle requires a free account to download — click "Download" on each
+page, no API key needed for a manual download.)
+
+Then run:
+```powershell
+python scripts\01_build_dataset.py --real-data --source kaggle
+python scripts\02_train_models.py
+python scripts\03_evaluate_offline.py
+```
+
+The loader (`src/dataset.py: load_kaggle_sqli / load_kaggle_xss`)
+auto-detects common column-name variants (`Query`/`Sentence`/`payload` for
+the text, `Label`/`label`/`class` for 0/1 or string labels), so it should
+work even if your downloaded copy has slightly different headers.
+
+### Option B: classic CSIC 2010 + OWASP payload lists
+
+1. **CSIC 2010**: download from Kaggle (`ispangler/csic-2010-web-application-attacks`)
+   or another mirror, convert to CSV with columns `payload,label` (`label`
+   ∈ `benign,sqli,xss,other`), save as `data/raw/csic2010.csv`.
 2. **OWASP payload lists**: e.g. the `payloadbox/sql-injection-payload-list`
    and `payloadbox/xss-payload-list` GitHub repos. Convert each line to a
-   row `payload,label` and save as `data/raw/owasp_payloads.csv`.
-3. Re-run with the real-data flag:
-   ```bash
-   python scripts/01_build_dataset.py --real-data
-   python scripts/02_train_models.py
-   python scripts/03_evaluate_offline.py
+   row `payload,label`, save as `data/raw/owasp_payloads.csv`.
+3. Run with `--source csic`:
+   ```powershell
+   python scripts\01_build_dataset.py --real-data --source csic
+   python scripts\02_train_models.py
+   python scripts\03_evaluate_offline.py
    ```
 
-No other code changes are needed — `src/dataset.py:load_combined_dataset()`
-already merges these two sources with the same `payload,label` schema the
+No other code changes are needed either way — `src/dataset.py` already
+merges whichever source you pick with the same `payload,label` schema the
 rest of the pipeline expects.
 
 ---
