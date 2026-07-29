@@ -70,6 +70,9 @@ from src.rate_limiter import build_rate_limiter
 from src.waf_stats import build_stats
 from src.waf_logging import WafLogger
 from src.recon_detection import classify_recon
+from src.request_validation import validate_request_integrity, is_websocket_upgrade
+from src.json_extraction import extract_json_string_values
+from src.anomaly_detection import AnomalyDetector
 
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "waf_config.yaml"
 
@@ -117,6 +120,8 @@ def build_detectors(model_names: list[str]) -> dict[str, Any]:
     for name in model_names:
         if name == "signature_baseline":
             detectors[name] = SignatureBaseline()
+        elif name == "anomaly":
+            detectors[name] = AnomalyDetector()
         else:
             try:
                 detectors[name] = load_model(name)
@@ -221,6 +226,7 @@ class WafProxy:
         self.trusted_proxies = config.get("trusted_proxies", [])
         self.static_allow = set(config.get("static_allow_ips", []))
         self.static_deny = set(config.get("static_deny_ips", []))
+        self.allow_websocket_paths = set(config.get("allow_websocket_paths", []))
 
         self.admin_allowed_ips = set(config.get("admin_allowed_ips", ["127.0.0.1", "::1"]))
         self.logger = WafLogger(
@@ -302,6 +308,20 @@ class WafProxy:
         if self._is_admin_request(request):
             return await self._handle_admin(request)
 
+        try:
+            return await self._handle_request_inner(request)
+        except Exception as e:
+            # Safety net for any unexpected bug in the classification/proxy
+            # path: never let a Python traceback or exception string reach
+            # the client (that's itself an information-disclosure bug in a
+            # piece of software whose whole job is to be a security
+            # control). Full detail is logged server-side only.
+            import traceback
+            print(f"[waf] UNEXPECTED ERROR handling request: {type(e).__name__}: {e}")
+            traceback.print_exc()
+            return web.json_response({"error": "Internal error"}, status=500)
+
+    async def _handle_request_inner(self, request: web.Request) -> web.Response:
         client_ip = resolve_client_ip(request, self.trusted_proxies)
         t0 = time.perf_counter()
 
@@ -347,9 +367,69 @@ class WafProxy:
             )
             return web.json_response({"error": "Request blocked by WAF", "reason": "recon"}, status=403)
 
+        # 1.6. Request-smuggling-class header validation -- ambiguous
+        #      Content-Length/Transfer-Encoding combinations are rejected
+        #      outright rather than guessed at (see request_validation.py
+        #      for why this matters specifically in a Caddy -> WAF ->
+        #      backend topology).
+        integrity = validate_request_integrity(request.headers)
+        if not integrity.valid:
+            self.stats.increment("blocked")
+            self.rate_limiter.record_offense(client_ip, weight=2)
+            self.logger.log_event(
+                decision="blocked_malformed", client_ip=client_ip, method=request.method,
+                path=str(request.rel_url), label="malformed_request", triggered_by=[integrity.reason],
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+            return web.json_response({"error": "Malformed request"}, status=400)
+
+        # 1.7. WebSocket upgrades are explicitly rejected by default -- this
+        #      WAF inspects request/response BODIES, which has no meaning
+        #      once a connection upgrades to a binary WS frame stream.
+        #      Silently proxying it through would give a false impression
+        #      of protection. Add specific paths to
+        #      config.allow_websocket_paths if you need WS support (those
+        #      paths are then proxied WITHOUT payload inspection).
+        if is_websocket_upgrade(request.headers):
+            path = request.path
+            if path not in self.allow_websocket_paths:
+                self.stats.increment("blocked")
+                self.logger.log_event(
+                    decision="blocked_websocket", client_ip=client_ip, method=request.method,
+                    path=path, label="websocket_not_allowed", triggered_by=["websocket_upgrade"],
+                    latency_ms=(time.perf_counter() - t0) * 1000,
+                )
+                return web.json_response(
+                    {"error": "WebSocket not supported on this path"}, status=400
+                )
+            # Explicitly allow-listed: proxy through untouched, no
+            # payload inspection (documented gap, operator opt-in only).
+            self.stats.increment("allowed")
+            self.logger.log_event(
+                decision="allowed_websocket_passthrough", client_ip=client_ip, method=request.method,
+                path=path, label="benign", triggered_by=[],
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+            return await self._proxy_to_backend(request, b"")
+
         body_bytes = await request.read()
         content_type = request.headers.get("Content-Type", "")
-        body_texts = extract_inspectable_texts(str(request.rel_url), body_bytes, content_type)
+
+        if "application/json" in content_type:
+            json_result = extract_json_string_values(body_bytes)
+            body_texts = [urllib.parse.unquote(str(request.rel_url))] + json_result.string_values
+            if not json_result.was_valid_json:
+                # Malformed JSON despite the declared Content-Type -- log
+                # it as a distinct signal without auto-blocking (plenty of
+                # legitimate clients send slightly wrong JSON).
+                self.logger.log_event(
+                    decision="note_malformed_json", client_ip=client_ip, method=request.method,
+                    path=str(request.rel_url), label="malformed_json", triggered_by=["json_extraction"],
+                    latency_ms=0.0,
+                )
+        else:
+            body_texts = extract_inspectable_texts(str(request.rel_url), body_bytes, content_type)
+
         header_texts = extract_header_texts(request.headers)
 
         worst_verdict = None
@@ -412,7 +492,13 @@ class WafProxy:
                     headers={k: v for k, v in backend_resp.headers.items() if k.lower() != "content-length"},
                 )
         except Exception as e:
-            return web.json_response({"error": "backend unreachable", "detail": str(e)}, status=502)
+            # Deliberately generic message to the CLIENT -- the exception
+            # string can contain internal hostnames, ports, or stack
+            # details (e.g. connection-refused to a backend IP) that have
+            # no business being visible to whoever sent the request.
+            # Full detail still goes to the server-side log for debugging.
+            print(f"[waf] backend request failed: {type(e).__name__}: {e}")
+            return web.json_response({"error": "Upstream server error"}, status=502)
 
 
 def build_ssl_context(config: dict) -> ssl.SSLContext | None:

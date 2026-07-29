@@ -345,22 +345,29 @@ default — tune `log_max_bytes`/`log_backup_count` in the config).
 
 ### Honest limitations (read before deploying this anywhere real)
 
-- This is a research-grade reverse proxy that has been hardened for real
-  deployment, but it has not been through a professional security audit.
-  Treat it accordingly for anything high-stakes.
-- Doesn't (yet) handle HTTP/2 end-to-end (Caddy-to-WAF hop is HTTP/1.1,
-  which is fine — Caddy does HTTP/2 with clients), WebSockets, or exotic
-  request-smuggling edge cases at the parser level.
-- JSON body inspection classifies the raw body text rather than doing a
-  full JSON-aware parse — this still catches SQLi/XSS strings embedded in
-  JSON field values (the common case) but a deeply escaped/nested payload
-  could theoretically evade it. A JSON-aware extractor is a reasonable
-  "future work" item.
-- The rate limiter/stats Redis keys have no authentication configured by
-  default (`redis://127.0.0.1:6379/0` with no password) — that's fine
-  when Redis only listens on localhost (the default, and what
-  `deploy/waf.service` assumes), but set a `requirepass` and update
-  `redis_url` accordingly if Redis is reachable from anywhere else.
+Full self-audit, threat model, and a list of specific bugs found and fixed
+during development are in **[`SECURITY.md`](SECURITY.md)** — read that
+before deploying this anywhere that matters. Short version:
+
+- Request-smuggling-class header ambiguity (conflicting/malformed
+  Content-Length + Transfer-Encoding), WebSocket upgrades (rejected by
+  default rather than silently mis-proxied), JSON-aware body inspection
+  (proper parsing instead of raw-text matching, so unicode-escaped
+  payloads like `\u0027` are caught), and a Redis-without-auth startup
+  warning have all been addressed — see `SECURITY.md` for exactly what
+  changed and why.
+- HTTP/2/3 is deliberately deferred to Caddy (the WAF itself speaks
+  HTTP/1.1 to Caddy, which is fine — Caddy handles HTTP/2/3 with clients).
+- ML-based detection has an inherent limitation shared by every trained
+  classifier: a sufficiently careful adversarial payload crafted to sit
+  outside the training distribution can potentially evade it. A
+  non-learned statistical anomaly check (`src/anomaly_detection.py`, add
+  `anomaly` to `config.models`) provides an independent second signal
+  against this, but doesn't eliminate the underlying limitation.
+- **This has not been through a professional, independent security audit,
+  and has not been battle-tested against sustained real-world traffic.**
+  Both are real gaps that internal self-review and manual testing cannot
+  substitute for, no matter how thorough.
 - Treat this the same way you'd treat any single security control: as one
   layer, not the only layer. Keep your backend's own input validation,
   parameterized queries, and output encoding regardless.
@@ -429,6 +436,7 @@ rest of the pipeline expects.
 ```
 sqlixss-detector/
 ├── requirements.txt
+├── SECURITY.md                  # threat model, self-audit, honest known limitations
 ├── config/
 │   └── waf_config.yaml         # WAF proxy config (backend, TLS, Redis, rate-limit, allow/deny)
 ├── deploy/
@@ -451,6 +459,9 @@ sqlixss-detector/
 │   ├── realtime_sniffer.py     # Scapy live capture -> classify -> log (passive)
 │   ├── ensemble.py             # combines all detectors with a voting policy
 │   ├── recon_detection.py       # scanner UA / sensitive-path / IP-spoofing pre-filter
+│   ├── request_validation.py    # request-smuggling header checks + WebSocket detection
+│   ├── json_extraction.py       # JSON-aware body parsing (decodes unicode-escaped payloads)
+│   ├── anomaly_detection.py     # non-ML statistical anomaly check (defense-in-depth vs. ML evasion)
 │   ├── rate_limiter.py         # sliding-window offense counter + auto-ban (memory or Redis)
 │   ├── waf_stats.py             # request counters, shared across workers via Redis
 │   ├── waf_logging.py          # structured, rotating JSON-lines logging
@@ -494,6 +505,14 @@ hand-crafted Scapy packets), and the full WAF proxy stack:
   also caught and fixed a real false-positive bug (see "Recon/scanner
   defense" above) where the ML ensemble misclassified a normal User-Agent
   string as SQLi due to training-data domain shift.
+- **Additional hardening from a self-audit pass** (full details in
+  `SECURITY.md`): request-smuggling-class header validation, WebSocket
+  upgrade rejection, JSON-aware body extraction (verified to correctly
+  decode a `\u0027`-escaped SQLi payload that raw-text matching would
+  miss), the non-ML anomaly detector (verified to independently block a
+  payload with zero recognizable SQL/XSS keywords, isolated from every
+  other detector), a Redis-without-auth startup warning, and removal of
+  internal exception details from error responses.
 
 The only things that genuinely require *your* machine/domain: the live
 `sniff()` call in §3 (needs a real network interface + raw-socket

@@ -186,11 +186,13 @@ def build_rate_limiter(config: dict):
 
     backend = config.get("backend", "memory")
     if backend == "redis":
+        redis_url = config.get("redis_url", "redis://127.0.0.1:6379/0")
+        _warn_if_redis_url_looks_insecure(redis_url)
         try:
             import redis as redis_lib
-            client = redis_lib.from_url(config.get("redis_url", "redis://127.0.0.1:6379/0"))
+            client = redis_lib.from_url(redis_url)
             client.ping()
-            print(f"[rate_limiter] connected to Redis at {config.get('redis_url')}")
+            print(f"[rate_limiter] connected to Redis at {redis_url}")
             return RedisRateLimiter(client, limiter_config, key_prefix=config.get("key_prefix", "waf:"))
         except Exception as e:
             print(f"[rate_limiter] WARNING: could not connect to Redis ({e}); "
@@ -199,6 +201,30 @@ def build_rate_limiter(config: dict):
             return RateLimiter(limiter_config)
 
     return RateLimiter(limiter_config)
+
+
+def _warn_if_redis_url_looks_insecure(redis_url: str) -> None:
+    """
+    Loudly warns (does not block startup -- the operator may have network-
+    level isolation instead of Redis auth, e.g. a firewalled private VLAN)
+    when Redis is reachable at a non-loopback address without any
+    credentials in the URL. `redis://127.0.0.1:6379/0` with no password is
+    the expected, safe default for the single-host deployment this project
+    documents; anything else deserves a human's attention before going live.
+    """
+    has_credentials = "@" in redis_url.split("://", 1)[-1]
+    is_loopback = any(host in redis_url for host in ("127.0.0.1", "localhost", "::1"))
+
+    if not has_credentials and not is_loopback:
+        print(
+            "[rate_limiter] \033[91mSECURITY WARNING\033[0m: rate_limit.redis_url "
+            f"({redis_url}) points to a non-loopback address with no credentials "
+            "in the URL. If this Redis instance is reachable from anywhere other "
+            "than this host, set a password (`requirepass` in redis.conf) and use "
+            "redis://:password@host:port/db, or restrict network access to it. "
+            "Anyone who can reach an unauthenticated Redis can read/forge ban "
+            "state and request counters."
+        )
 
 
 if __name__ == "__main__":

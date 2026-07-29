@@ -196,6 +196,68 @@ def test_header_content_uses_signature_only_not_ml_ensemble():
           "and still catches SQLi injected into a header")
 
 
+def test_request_smuggling_defense():
+    from multidict import CIMultiDict
+    from src.request_validation import validate_request_integrity, is_websocket_upgrade
+
+    normal = CIMultiDict({"Content-Length": "10"})
+    assert validate_request_integrity(normal).valid is True
+
+    smuggling = CIMultiDict({"Content-Length": "10", "Transfer-Encoding": "chunked"})
+    assert validate_request_integrity(smuggling).valid is False
+
+    obfuscated_te = CIMultiDict({"Transfer-Encoding": "chunked, identity"})
+    assert validate_request_integrity(obfuscated_te).valid is False
+
+    conflicting_cl = CIMultiDict()
+    conflicting_cl.add("Content-Length", "10")
+    conflicting_cl.add("Content-Length", "20")
+    assert validate_request_integrity(conflicting_cl).valid is False
+
+    assert is_websocket_upgrade(CIMultiDict({"Connection": "Upgrade", "Upgrade": "websocket"})) is True
+    assert is_websocket_upgrade(CIMultiDict()) is False
+
+    print("[ok] request-smuggling-class header validation rejects ambiguous Content-Length/Transfer-Encoding")
+
+
+def test_json_aware_extraction_decodes_unicode_escapes():
+    from src.json_extraction import extract_json_string_values
+
+    # The whole point: a raw-text classifier never sees a literal "'"
+    # here, only \u0027 -- proper JSON parsing must decode it.
+    result = extract_json_string_values(b'{"q": "\\u0027 OR 1=1--"}')
+    assert result.was_valid_json is True
+    assert "' OR 1=1--" in result.string_values
+
+    nested = extract_json_string_values(b'{"a": {"b": ["<script>alert(1)</script>"]}}')
+    assert "<script>alert(1)</script>" in nested.string_values
+
+    malformed = extract_json_string_values(b"not json { broken")
+    assert malformed.was_valid_json is False
+
+    print("[ok] JSON-aware extraction correctly decodes unicode-escaped payloads and handles nesting/malformed input")
+
+
+def test_anomaly_detector_catches_statistically_unusual_payloads():
+    from src.anomaly_detection import AnomalyDetector
+
+    detector = AnomalyDetector()
+    # Normal, short, low-special-char-density text must pass
+    assert detector.predict(["q=laptop&sort=asc"])[0] == "benign"
+
+    # A payload with no recognizable SQL/XSS keywords at all, but
+    # statistically bizarre (dense special characters) -- this is exactly
+    # the class of adversarial input that could evade a trained ML/
+    # signature classifier while still being obviously abnormal.
+    noise = "!@#$%^&*()_+-={}[]|;:,.<>?~`" * 3
+    assert detector.predict([noise])[0] == "anomalous"
+
+    # Absurdly long single value
+    assert detector.predict(["a" * 5000])[0] == "anomalous"
+
+    print("[ok] anomaly detector (non-ML, statistical) independently flags payloads outside normal-looking bounds")
+
+
 if __name__ == "__main__":
     test_tokenizer_preserves_special_chars()
     test_obfuscation_changes_payload()
@@ -210,4 +272,7 @@ if __name__ == "__main__":
     test_trusted_proxy_ip_resolution()
     test_recon_detection_flags_known_scanner_tools()
     test_header_content_uses_signature_only_not_ml_ensemble()
+    test_request_smuggling_defense()
+    test_json_aware_extraction_decodes_unicode_escapes()
+    test_anomaly_detector_catches_statistically_unusual_payloads()
     print("\nALL SMOKE TESTS PASSED")

@@ -36,11 +36,17 @@ trusted_proxies: []
 
 # --- Detection -----------------------------------------------------------
 # Which detectors to load (must have been trained already via
-# scripts/02_train_models.py). "signature_baseline" needs no training.
+# scripts/02_train_models.py). "signature_baseline" and "anomaly" need no
+# training. "anomaly" is a non-ML statistical heuristic (length, percent-
+# encoding density, special-character ratio) that acts as an independent
+# check against adversarial payloads specifically crafted to evade the
+# trained ML models -- add it to the list below for that extra layer of
+# defense-in-depth (see README "Recon/scanner defense").
 models:
   - logistic_regression
   - naive_bayes
   - signature_baseline
+  # - anomaly   # uncomment to add the non-ML statistical anomaly check
 
 # Voting policy across the models above: "any" | "majority" | "all"
 # "any" = block if ANY detector flags it (security-first, recommended default)
@@ -52,6 +58,17 @@ voting_policy: "any"
 # known-bad range without waiting for the rate limiter to catch it.
 static_allow_ips: []
 static_deny_ips: []
+
+# --- WebSocket -------------------------------------------------------------
+# WebSocket upgrade requests are REJECTED by default -- this WAF inspects
+# request/response bodies, which has no meaning for a WS binary frame
+# stream once the connection upgrades. List specific paths here ONLY if
+# you deliberately want them proxied through WITHOUT payload inspection
+# (a conscious trade-off, not a silent default).
+allow_websocket_paths: []
+# example:
+# allow_websocket_paths:
+#   - "/ws/chat"
 
 # --- Rate limiting / auto-ban --------------------------------------------
 rate_limit:

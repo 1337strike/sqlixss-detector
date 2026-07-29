@@ -72,6 +72,10 @@ class WafLogger:
                 "blocked": "\033[91mBLOCK\033[0m",
                 "blocked_static_deny": "\033[91mDENY \033[0m",
                 "blocked_recon": "\033[95mRECON\033[0m",
+                "blocked_malformed": "\033[91mMALFD\033[0m",
+                "blocked_websocket": "\033[93mWS   \033[0m",
+                "allowed_websocket_passthrough": "\033[96mWS-OK\033[0m",
+                "note_malformed_json": "\033[93mJSON?\033[0m",
                 "blocked_ratelimit": "\033[93mBAN  \033[0m",
             }.get(decision, decision)
             print(f"{tag} {client_ip:>15} {method:6} {path[:60]:60} "
