@@ -146,6 +146,56 @@ def test_trusted_proxy_ip_resolution():
     print("[ok] trusted-proxy IP resolution only trusts X-Forwarded-For from configured proxies")
 
 
+def test_recon_detection_flags_known_scanner_tools():
+    from src.recon_detection import classify_recon
+
+    # Normal browser must NEVER be flagged
+    v = classify_recon("/search?q=laptop", {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}, "203.0.113.5", [])
+    assert v.flagged is False
+
+    # Known pentest-tool signatures (sqlmap, and HexStrike's own hardcoded UA)
+    v = classify_recon("/search?q=1", {"User-Agent": "sqlmap/1.7.2#stable (http://sqlmap.org)"}, "203.0.113.5", [])
+    assert v.flagged is True
+    v = classify_recon("/", {"User-Agent": "HexStrike-HTTP-Framework/1.0 (Advanced Security Testing)"}, "203.0.113.5", [])
+    assert v.flagged is True
+
+    # Sensitive-path probing (what gobuster/dirb/ffuf/dirsearch wordlists always hit)
+    v = classify_recon("/.git/config", {"User-Agent": "Mozilla/5.0"}, "203.0.113.5", [])
+    assert v.flagged is True
+
+    # Spoofed X-Forwarded-For from an UNtrusted source -> flagged (this is
+    # the exact IP-spoofing technique HexStrike's own code uses)
+    v = classify_recon("/admin", {"User-Agent": "Mozilla/5.0", "X-Forwarded-For": "127.0.0.1"}, "203.0.113.5", [])
+    assert v.flagged is True
+
+    # Same header, but the source IS a configured trusted proxy -> NOT flagged
+    v = classify_recon("/admin", {"User-Agent": "Mozilla/5.0", "X-Forwarded-For": "198.51.100.9"}, "127.0.0.1", ["127.0.0.1"])
+    assert v.flagged is False
+
+    print("[ok] recon detection flags known scanner UAs, sensitive paths, and untrusted IP-spoofing attempts")
+
+
+def test_header_content_uses_signature_only_not_ml_ensemble():
+    """
+    Regression test for a real bug found during development: the ML
+    ensemble, trained on query/body-shaped text, misclassified an ordinary
+    browser User-Agent as SQLi (false positive from domain shift). Header
+    content must be checked with the signature baseline only.
+    """
+    from src.baseline_signature import SignatureBaseline
+
+    sig = SignatureBaseline()
+    normal_ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    assert sig.predict([normal_ua])[0] == "benign"
+
+    # A genuine SQLi payload placed in a header (sqlmap --level 3+ style)
+    # must still be caught
+    assert sig.predict(["' OR SLEEP(5)-- -"])[0] == "sqli"
+
+    print("[ok] header inspection (signature-only) has no false positive on a normal User-Agent, "
+          "and still catches SQLi injected into a header")
+
+
 if __name__ == "__main__":
     test_tokenizer_preserves_special_chars()
     test_obfuscation_changes_payload()
@@ -158,4 +208,6 @@ if __name__ == "__main__":
     test_rate_limiter_bans_after_threshold()
     test_inmemory_stats_counts_correctly()
     test_trusted_proxy_ip_resolution()
+    test_recon_detection_flags_known_scanner_tools()
+    test_header_content_uses_signature_only_not_ml_ensemble()
     print("\nALL SMOKE TESTS PASSED")

@@ -220,6 +220,52 @@ Add/remove entries under `models:` in the config to change which
 detectors vote (`logistic_regression`, `naive_bayes`, `svm`,
 `signature_baseline`).
 
+### Recon/scanner defense
+
+A payload-only WAF has a real blind spot: automated pentest frameworks
+(sqlmap, nikto, nuclei, gobuster/dirb/ffuf/dirsearch/feroxbuster, wpscan,
+dalfox/xsstrike, wafw00f, and orchestrators that wrap all of the above
+like HexStrike AI) generate a lot of hostile traffic that doesn't
+necessarily look like a SQLi/XSS string in the query or body. `src/
+recon_detection.py` closes that gap with three cheap, pre-classification
+checks, run before any model inference:
+
+1. **Known scanner User-Agent signatures** — sqlmap, nikto, nuclei,
+   wpscan, dalfox, xsstrike, wafw00f, whatweb, hydra, dirsearch, gobuster,
+   feroxbuster, ffuf, masscan, and a couple of vulnerability-scanner
+   product names all identify themselves by default unless the operator
+   deliberately spoofs a browser UA. `curl`/`python-requests` UAs are
+   flagged at low confidence only (too many legitimate API clients use
+   them to block on that alone).
+2. **Sensitive-path probing** — `/.git/config`, `/.env`, `/wp-config.php.bak`,
+   `/.htpasswd`, `id_rsa`, `/phpinfo.php`, backup files, etc. A real user
+   or application essentially never requests these; every directory
+   brute-forcer's default wordlist does.
+3. **Forwarded-IP spoofing detection** — some frameworks send
+   `X-Forwarded-For: 127.0.0.1` (or `X-Real-IP`/`X-Originating-IP`)
+   hoping a naive app/WAF trusts it and treats the request as coming from
+   localhost, bypassing IP-based checks. The WAF only ever trusts these
+   headers from a source listed in `trusted_proxies` (§ above) — from
+   anywhere else, their mere presence is itself a red flag.
+
+A flagged recon hit counts as **2 offenses** toward the rate-limiter ban
+threshold (vs. 1 for an ambiguous ML classification), since it's much
+stronger evidence of hostile intent — a couple of scanner-signature hits
+auto-bans the source well before a full directory brute-force completes.
+
+**Header content is also inspected** (`User-Agent`, `Referer`, `Cookie`,
+`X-Forwarded-For`) since sqlmap's `--level 3`+ deliberately injects
+payloads there, not just into URL parameters — but header text is checked
+with the **signature baseline only**, never the ML ensemble. This isn't
+an arbitrary choice: during development, feeding a completely ordinary
+User-Agent string through the ML models caused all three to misclassify
+it as SQLi, purely from its punctuation density — the models were trained
+on query/body-shaped text and had never seen header-shaped benign
+examples. The signature baseline has no such domain-shift problem since
+it matches actual injection syntax regardless of where it appears, so
+it's the safe choice for this specific job. (`tests/test_pipeline.py` has
+a regression test for exactly this.)
+
 ### Production deployment (internet-facing)
 
 Everything above is enough for local dev/testing. For anything that will
@@ -404,6 +450,7 @@ sqlixss-detector/
 │   ├── evaluate.py             # metrics + latency/CPU/memory benchmarking
 │   ├── realtime_sniffer.py     # Scapy live capture -> classify -> log (passive)
 │   ├── ensemble.py             # combines all detectors with a voting policy
+│   ├── recon_detection.py       # scanner UA / sensitive-path / IP-spoofing pre-filter
 │   ├── rate_limiter.py         # sliding-window offense counter + auto-ban (memory or Redis)
 │   ├── waf_stats.py             # request counters, shared across workers via Redis
 │   ├── waf_logging.py          # structured, rotating JSON-lines logging
@@ -439,6 +486,14 @@ hand-crafted Scapy packets), and the full WAF proxy stack:
   *all* workers rather than just whichever one answered.
 - Config validation fails fast with a clear message on missing keys or a
   missing TLS cert file, instead of an obscure crash mid-request.
+- **Recon/scanner defense**, verified against real patterns from a
+  published pentest-automation framework (sqlmap-style User-Agent and
+  header injection, a hardcoded custom framework User-Agent, `/.git/config`
+  probing, and the `X-Forwarded-For: 127.0.0.1` IP-spoofing technique) —
+  all correctly blocked, while an ordinary browser request is not. This
+  also caught and fixed a real false-positive bug (see "Recon/scanner
+  defense" above) where the ML ensemble misclassified a normal User-Agent
+  string as SQLi due to training-data domain shift.
 
 The only things that genuinely require *your* machine/domain: the live
 `sniff()` call in §3 (needs a real network interface + raw-socket

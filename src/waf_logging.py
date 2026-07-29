@@ -71,6 +71,7 @@ class WafLogger:
                 "allowed": "\033[92mALLOW\033[0m",
                 "blocked": "\033[91mBLOCK\033[0m",
                 "blocked_static_deny": "\033[91mDENY \033[0m",
+                "blocked_recon": "\033[95mRECON\033[0m",
                 "blocked_ratelimit": "\033[93mBAN  \033[0m",
             }.get(decision, decision)
             print(f"{tag} {client_ip:>15} {method:6} {path[:60]:60} "

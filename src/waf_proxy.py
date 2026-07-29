@@ -65,10 +65,11 @@ from aiohttp import web, ClientSession, ClientTimeout
 
 from src.models import load_model
 from src.baseline_signature import SignatureBaseline
-from src.ensemble import EnsembleDetector
+from src.ensemble import EnsembleDetector, Verdict
 from src.rate_limiter import build_rate_limiter
 from src.waf_stats import build_stats
 from src.waf_logging import WafLogger
+from src.recon_detection import classify_recon
 
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "waf_config.yaml"
 
@@ -178,6 +179,19 @@ def extract_inspectable_texts(path_qs: str, body_bytes: bytes, content_type: str
     return texts
 
 
+# Headers some SQLi scanners deliberately target once past the basic
+# URL-parameter test level -- e.g. sqlmap's `--level 3` explicitly adds
+# User-Agent and Referer as injection points, and `--level 5` adds Cookie.
+# A hand-written app almost never puts SQL/JS-special characters in these
+# headers, so classifying them costs little and closes a real gap in a
+# query/body-only WAF.
+_INSPECTABLE_HEADERS = ("User-Agent", "Referer", "Cookie", "X-Forwarded-For")
+
+
+def extract_header_texts(headers) -> list[str]:
+    return [headers[h] for h in _INSPECTABLE_HEADERS if h in headers and headers[h]]
+
+
 class WafProxy:
     def __init__(self, config: dict):
         self.config = config
@@ -186,6 +200,21 @@ class WafProxy:
 
         self.detectors = build_detectors(config.get("models", ["logistic_regression", "signature_baseline"]))
         self.ensemble = EnsembleDetector(self.detectors, policy=self.policy)
+
+        # Header content (User-Agent, Referer, Cookie, X-Forwarded-For) is
+        # classified with the SIGNATURE baseline only, never the full ML
+        # ensemble. The ML models were trained on query/body-shaped text
+        # (e.g. "id=5&sort=asc") and were never shown legitimate
+        # header-shaped text during training -- in testing, a completely
+        # ordinary browser User-Agent like "Mozilla/5.0 (Windows NT 10.0;
+        # Win64; x64)" got misclassified as SQLi by all three ML models,
+        # purely because of its punctuation density, not its content. The
+        # signature baseline has no such domain-shift problem since it
+        # matches actual injection syntax (UNION SELECT, <script>, sleep(),
+        # etc.) regardless of what kind of string it's embedded in, so it's
+        # the safe, false-positive-resistant choice specifically for
+        # inspecting header values.
+        self._header_detector = SignatureBaseline()
 
         self.rate_limiter = build_rate_limiter(config.get("rate_limit", {}))
 
@@ -300,18 +329,47 @@ class WafProxy:
                 status=429,
             )
 
+        # 1.5. Recon/scanner pre-filter -- cheap (no body read needed),
+        #      catches known pentest-tool signatures, sensitive-path
+        #      probing, and IP-spoofing attempts BEFORE spending a model
+        #      inference on the request. High-confidence recon signals
+        #      count double toward the ban threshold (see rate_limiter.py).
+        recon_verdict = classify_recon(str(request.rel_url), request.headers, client_ip, self.trusted_proxies)
+        if recon_verdict.flagged:
+            self.stats.increment("blocked")
+            just_banned = self.rate_limiter.record_offense(client_ip, weight=2)
+            if just_banned:
+                self.stats.increment("banned_ips_triggered")
+            self.logger.log_event(
+                decision="blocked_recon", client_ip=client_ip, method=request.method,
+                path=str(request.rel_url), label="recon", triggered_by=recon_verdict.reasons,
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+            return web.json_response({"error": "Request blocked by WAF", "reason": "recon"}, status=403)
+
         body_bytes = await request.read()
         content_type = request.headers.get("Content-Type", "")
-        texts = extract_inspectable_texts(str(request.rel_url), body_bytes, content_type)
+        body_texts = extract_inspectable_texts(str(request.rel_url), body_bytes, content_type)
+        header_texts = extract_header_texts(request.headers)
 
         worst_verdict = None
-        for text in texts:
+        for text in body_texts:
             if not text:
                 continue
             verdict = self.ensemble.classify(text)
             if verdict.blocked:
                 worst_verdict = verdict
                 break
+
+        if worst_verdict is None:
+            for text in header_texts:
+                if not text:
+                    continue
+                label = self._header_detector.predict([text])[0]
+                if label != "benign":
+                    worst_verdict = Verdict(blocked=True, final_label=label, votes={"signature_baseline": label},
+                                             triggered_by=["signature_baseline"])
+                    break
 
         latency_ms = (time.perf_counter() - t0) * 1000
 

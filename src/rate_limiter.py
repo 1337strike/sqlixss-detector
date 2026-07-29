@@ -55,16 +55,23 @@ class RateLimiter:
             return False
         return True
 
-    def record_offense(self, ip: str) -> bool:
+    def record_offense(self, ip: str, weight: int = 1) -> bool:
         """
         Call this once per malicious request from `ip`. Returns True if this
         offense just pushed the IP over the threshold and triggered a new ban.
+
+        `weight` lets higher-confidence signals count for more than a single
+        offense -- e.g. a known-scanner User-Agent or a probe of /.git/config
+        is much stronger evidence of hostile intent than one ambiguous ML
+        classification, so recon_detection.py's callers pass weight=2 to
+        reach the ban threshold faster than ordinary payload matches do.
         """
         now = time.time()
         window_start = now - self.config.offense_window_seconds
 
         offenses = self._offenses[ip]
-        offenses.append(now)
+        for _ in range(max(1, weight)):
+            offenses.append(now)
         while offenses and offenses[0] < window_start:
             offenses.popleft()
 
@@ -124,13 +131,14 @@ class RedisRateLimiter:
     def is_blocked(self, ip: str) -> bool:
         return bool(self.redis.exists(self._banned_key(ip)))
 
-    def record_offense(self, ip: str) -> bool:
+    def record_offense(self, ip: str, weight: int = 1) -> bool:
         now = time.time()
         window_start = now - self.config.offense_window_seconds
         key = self._offense_key(ip)
 
         pipe = self.redis.pipeline()
-        pipe.rpush(key, now)
+        for _ in range(max(1, weight)):
+            pipe.rpush(key, now)
         pipe.expire(key, self.config.offense_window_seconds)
         pipe.execute()
 
