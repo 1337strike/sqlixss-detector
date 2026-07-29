@@ -1,0 +1,45 @@
+# deploy/Caddyfile
+#
+# Recommended production topology:
+#
+#   Internet --(HTTPS)--> Caddy (this file, TLS via Let's Encrypt) --(HTTP,
+#   localhost only)--> WAF proxy (gunicorn, config/waf_config.yaml) -->
+#   your real backend
+#
+# Why Caddy in front instead of the WAF's own built-in TLS mode
+# (config/waf_config.yaml tls.enabled): Caddy automatically obtains and
+# renews a real Let's Encrypt certificate with zero extra tooling, handles
+# HTTP/2 and HTTP/3, and is a single, well-audited binary whose only job is
+# being the internet-facing edge. Reinventing ACME/cert renewal inside the
+# WAF itself would be a lot of extra surface area for something Caddy
+# already does correctly. The WAF's own tls.enabled option still exists
+# for standalone deployments where you don't want a second process, or
+# already have a cert from elsewhere.
+#
+# Install Caddy on Arch:
+#   sudo pacman -S caddy
+# Then:
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+#   # edit the domain name below first!
+#   sudo systemctl enable --now caddy
+
+your-domain.com {
+    # Caddy gets a real cert for this domain automatically (make sure
+    # your-domain.com's DNS A/AAAA record already points at this server,
+    # and that ports 80+443 are reachable from the internet -- Caddy needs
+    # port 80 briefly during the ACME HTTP-01 challenge).
+
+    reverse_proxy 127.0.0.1:8443 {
+        # Caddy sets X-Forwarded-For automatically. The WAF only trusts
+        # this header from IPs listed in config/waf_config.yaml's
+        # trusted_proxies -- make sure 127.0.0.1 is in that list, since
+        # that's what Caddy connects from here.
+        header_up X-Forwarded-For {remote_host}
+    }
+
+    # Optional: Caddy's own access log, separate from the WAF's structured
+    # JSON log -- useful for raw edge-level traffic analysis.
+    log {
+        output file /var/log/caddy/access.log
+    }
+}

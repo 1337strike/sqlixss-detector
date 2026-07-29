@@ -81,6 +81,71 @@ def test_metrics_computation():
     print(f"[ok] metrics computed: accuracy={metrics['accuracy']:.2f}")
 
 
+def test_ensemble_any_policy_blocks_on_single_vote():
+    from src.ensemble import EnsembleDetector
+
+    class _Fake:
+        def __init__(self, label): self.label = label
+        def predict(self, payloads): return [self.label] * len(payloads)
+
+    ensemble = EnsembleDetector(
+        {"a": _Fake("benign"), "b": _Fake("sqli")}, policy="any"
+    )
+    verdict = ensemble.classify("' OR 1=1 --")
+    assert verdict.blocked is True
+    assert verdict.final_label == "sqli"
+    assert "b" in verdict.triggered_by
+    print("[ok] ensemble 'any' policy blocks when at least one detector flags malicious")
+
+
+def test_rate_limiter_bans_after_threshold():
+    from src.rate_limiter import RateLimiter, RateLimiterConfig
+
+    rl = RateLimiter(RateLimiterConfig(offense_window_seconds=30, offense_threshold=3, ban_duration_seconds=10))
+    ip = "198.51.100.23"
+    assert rl.is_blocked(ip) is False
+    for _ in range(2):
+        assert rl.record_offense(ip) is False   # not banned yet
+    assert rl.record_offense(ip) is True        # 3rd offense triggers the ban
+    assert rl.is_blocked(ip) is True
+    print("[ok] rate limiter auto-bans an IP after crossing the offense threshold")
+
+
+def test_inmemory_stats_counts_correctly():
+    from src.waf_stats import InMemoryStats
+
+    s = InMemoryStats()
+    s.increment("allowed")
+    s.increment("allowed")
+    s.increment("blocked")
+    result = s.get_all()
+    assert result["allowed"] == 2
+    assert result["blocked"] == 1
+    print("[ok] in-memory stats counter accumulates correctly")
+
+
+def test_trusted_proxy_ip_resolution():
+    from unittest.mock import MagicMock
+    from src.waf_proxy import resolve_client_ip
+
+    # Case 1: no trusted proxies configured -> always use the direct IP,
+    # NEVER trust a client-supplied X-Forwarded-For (anti-spoofing default)
+    req = MagicMock(remote="203.0.113.9", headers={"X-Forwarded-For": "9.9.9.9"})
+    assert resolve_client_ip(req, trusted_proxies=[]) == "203.0.113.9"
+
+    # Case 2: request comes from a configured trusted proxy -> trust
+    # X-Forwarded-For's left-most (original client) address
+    req2 = MagicMock(remote="127.0.0.1", headers={"X-Forwarded-For": "198.51.100.5, 127.0.0.1"})
+    assert resolve_client_ip(req2, trusted_proxies=["127.0.0.1"]) == "198.51.100.5"
+
+    # Case 3: direct connection is NOT in trusted_proxies -> ignore
+    # X-Forwarded-For even if present (don't let a random client spoof it)
+    req3 = MagicMock(remote="203.0.113.9", headers={"X-Forwarded-For": "9.9.9.9"})
+    assert resolve_client_ip(req3, trusted_proxies=["127.0.0.1"]) == "203.0.113.9"
+
+    print("[ok] trusted-proxy IP resolution only trusts X-Forwarded-For from configured proxies")
+
+
 if __name__ == "__main__":
     test_tokenizer_preserves_special_chars()
     test_obfuscation_changes_payload()
@@ -89,4 +154,8 @@ if __name__ == "__main__":
     test_models_train_and_predict()
     test_baseline_predicts()
     test_metrics_computation()
+    test_ensemble_any_policy_blocks_on_single_vote()
+    test_rate_limiter_bans_after_threshold()
+    test_inmemory_stats_counts_correctly()
+    test_trusted_proxy_ip_resolution()
     print("\nALL SMOKE TESTS PASSED")

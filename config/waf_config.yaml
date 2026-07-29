@@ -1,0 +1,81 @@
+# waf_config.yaml
+# Configuration for the inline reverse-proxy WAF (src/waf_proxy.py).
+# Copy this file (e.g. to config/waf_config.prod.yaml) and adjust for your
+# own deployment rather than editing this one directly.
+
+# --- Network -----------------------------------------------------------
+# For a single-process dev/test run (scripts/05_run_waf.py), the WAF binds
+# directly here. For production (see README "Production deployment"), bind
+# this to 127.0.0.1 and let gunicorn + a TLS-terminating reverse proxy
+# (Caddy/nginx) be the only thing actually exposed to the internet.
+listen_host: "127.0.0.1"
+listen_port: 8443
+backend_url: "http://127.0.0.1:8080"   # the REAL application this WAF protects
+backend_timeout_seconds: 10
+max_request_size_bytes: 10485760   # 10 MB cap on request bodies the WAF will buffer/inspect
+
+# --- TLS -----------------------------------------------------------------
+# Only used by scripts/05_run_waf.py's single-process mode. In the
+# gunicorn/production mode, TLS is terminated by Caddy/nginx in front, and
+# this section is ignored.
+tls:
+  enabled: false
+  certfile: "config/certs/waf.crt"
+  keyfile: "config/certs/waf.key"
+
+# --- Trusted proxies -------------------------------------------------------
+# If the WAF sits behind a load balancer / Caddy / nginx / CDN, list its
+# IP(s) here so X-Forwarded-For is trusted ONLY when it comes from a
+# connection that is actually one of these. Leave empty if clients connect
+# directly to the WAF (nothing in front of it) -- an empty list means
+# X-Forwarded-For is never trusted, which is the safe default.
+trusted_proxies: []
+# example if Caddy runs on the same host:
+# trusted_proxies:
+#   - "127.0.0.1"
+
+# --- Detection -----------------------------------------------------------
+# Which detectors to load (must have been trained already via
+# scripts/02_train_models.py). "signature_baseline" needs no training.
+models:
+  - logistic_regression
+  - naive_bayes
+  - signature_baseline
+
+# Voting policy across the models above: "any" | "majority" | "all"
+# "any" = block if ANY detector flags it (security-first, recommended default)
+voting_policy: "any"
+
+# --- Static IP allow/deny lists --------------------------------------------
+# Independent of the dynamic rate-limiter bans below. Useful for e.g.
+# always allowing your own monitoring probe, or permanently blocking a
+# known-bad range without waiting for the rate limiter to catch it.
+static_allow_ips: []
+static_deny_ips: []
+
+# --- Rate limiting / auto-ban --------------------------------------------
+rate_limit:
+  # "memory" : zero dependencies, fine for a single-process/dev deployment.
+  # "redis"  : REQUIRED if you run more than one WAF process/worker/replica
+  #            (see README "Running multiple workers") -- otherwise each
+  #            process tracks offenses independently and an attacker can
+  #            just spray requests across workers to dodge the threshold.
+  backend: "memory"
+  redis_url: "redis://127.0.0.1:6379/0"
+  key_prefix: "waf:"
+  offense_window_seconds: 60     # sliding window to count malicious requests in
+  offense_threshold: 5           # this many malicious requests within the window...
+  ban_duration_seconds: 300      # ...triggers a temporary ban of this length
+
+# --- Admin API -------------------------------------------------------------
+# /__waf/health, /__waf/stats, /__waf/metrics are only served to these
+# source IPs. If running behind a trusted proxy, this is checked AFTER
+# X-Forwarded-For resolution.
+admin_allowed_ips:
+  - "127.0.0.1"
+  - "::1"
+
+# --- Logging ---------------------------------------------------------------
+log_path: "logs/waf.log"       # structured JSON-lines log, one event per request
+log_max_bytes: 10485760          # rotate at 10 MB
+log_backup_count: 5              # keep this many rotated log files

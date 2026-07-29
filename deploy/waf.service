@@ -1,0 +1,52 @@
+# deploy/waf.service
+# Systemd unit for running the WAF proxy under gunicorn (multi-worker,
+# production mode) on Arch Linux.
+#
+# Install:
+#   sudo cp deploy/waf.service /etc/systemd/system/waf.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now waf.service
+#
+# EDIT THE PATHS AND USER BELOW to match your actual deployment before
+# installing this -- the values here are examples, not defaults that will
+# just work as-is.
+#
+# This runs the WAF listening on 127.0.0.1 only (see config/waf_config.yaml
+# listen_host) -- it is NOT meant to be exposed directly to the internet.
+# Put Caddy (or nginx) in front for TLS termination + automatic Let's
+# Encrypt certs; see README.md "Production deployment".
+
+[Unit]
+Description=SQLi/XSS Detection WAF (reverse proxy)
+After=network.target redis.service
+Wants=redis.service
+
+[Service]
+Type=simple
+User=waf
+Group=waf
+WorkingDirectory=/opt/sqlixss-detector
+Environment=WAF_CONFIG=/opt/sqlixss-detector/config/waf_config.yaml
+ExecStart=/opt/sqlixss-detector/.venv/bin/gunicorn src.waf_proxy:make_gunicorn_app \
+    --worker-class aiohttp.GunicornWebWorker \
+    --workers 4 \
+    --bind 127.0.0.1:8443 \
+    --access-logfile - \
+    --error-logfile -
+
+Restart=on-failure
+RestartSec=3
+
+# --- Hardening -------------------------------------------------------------
+# Reasonable systemd sandboxing defaults for a network-facing Python
+# service. Loosen only what you specifically need (e.g. ReadWritePaths if
+# your logs/models paths differ from the ones below).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/sqlixss-detector/logs /opt/sqlixss-detector/data /opt/sqlixss-detector/models
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
