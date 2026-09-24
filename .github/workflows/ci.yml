@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Tests & Reproducibility
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest scipy
+
+      - name: Download corpus
+        run: python scripts/00_download_payloads.py
+
+      - name: Build grouped dataset
+        run: python scripts/01c_build_grouped_dataset.py
+
+      - name: Split integrity tests
+        run: python -m pytest tests/test_split_integrity.py -v
+
+      - name: Train models
+        run: python scripts/02_train_models.py
+
+      - name: Pipeline regression tests (G1/M2)
+        run: python -m pytest tests/test_pipeline_regression.py -v
+
+      - name: Integration tests (G2)
+        run: python -m pytest tests/integration/test_end_to_end.py -v
+
+      - name: Semantic validation smoke test (D3)
+        run: python scripts/validate_semantics.py --label sqli
+
+      - name: Offline evaluation
+        run: python scripts/03_evaluate_offline.py
+
+      - name: All tests summary
+        run: python -m pytest tests/ -v --tb=short 2>&1 | tail -20

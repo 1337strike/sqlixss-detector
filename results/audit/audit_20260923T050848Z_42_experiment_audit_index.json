@@ -1,0 +1,41 @@
+{
+  "run_id": "audit_20260923T050848Z_42",
+  "timestamp": "2026-09-23T05:08:48.125416+00:00",
+  "seed": 42,
+  "n_folds": 5,
+  "n_reps": 3,
+  "n_samples": 1012,
+  "bugs_found": {
+    "double_canonicalization_sig_norm": {
+      "description": "scripts/08_final_experiment.py L164 passed Xte_obf_n (already canonicalized) to NormalizedSignatureBaseline.predict(), which calls canonicalize() internally. This caused double canonicalization for the signature_normalized/obf condition.",
+      "status": "FIXED in audit_run.py \u2014 passing raw Xte_obf instead",
+      "effect": "Inflated signature_normalized obf F1 in prior runs"
+    },
+    "obfuscation_technique_count_mismatch": {
+      "description": "_TECHNIQUES has 7 entries (['case_toggle', 'comment_insertion', 'double_url_encode', 'partial_url_encode', 'unicode_substitution', 'url_encode', 'whitespace']), but paper and experiment scripts claim 6 techniques. partial_url_encode is the undisclosed 7th.",
+      "status": "DOCUMENTED \u2014 not removing, but paper must acknowledge"
+    },
+    "sd_triangle_violation_in_paper_table": {
+      "description": "Paper Table I claimed SD_raw=0.046, SD_norm=0.008, SD_diff=0.027 for LR. This violates |SD_raw-SD_norm|<=SD_diff<=SD_raw+SD_norm (0.038 <= 0.027 is false). Numbers came from a different run/dataset.",
+      "status": "REPLACED \u2014 actual values from this run recorded in cv_summary"
+    }
+  },
+  "artefacts": {
+    "environment": "/home/claude/sqli/results/audit/audit_20260923T050848Z_42_environment.json",
+    "dataset_manifest": "/home/claude/sqli/results/audit/audit_20260923T050848Z_42_dataset_manifest.json",
+    "fold_metadata": "/home/claude/sqli/results/audit/audit_20260923T050848Z_42_fold_metadata.csv",
+    "predictions": "/home/claude/sqli/results/audit/audit_20260923T050848Z_42_predictions.csv",
+    "fold_scores": "/home/claude/sqli/results/audit/audit_20260923T050848Z_42_fold_scores.json",
+    "cv_summary": "/home/claude/sqli/results/audit/audit_20260923T050848Z_42_cv_summary.json",
+    "single_split": "/home/claude/sqli/results/audit/audit_20260923T050848Z_42_single_split.json",
+    "semantic_validation": "/home/claude/sqli/results/audit/audit_20260923T050848Z_42_semantic_validation.json"
+  },
+  "n_predictions": 36432,
+  "open_work": [
+    "Independent test dataset (CSIC 2010) not yet integrated",
+    "Realistic benign traffic not yet collected",
+    "XSS validation requires headless browser \u2014 not implemented",
+    "SQLi oracle limited to single equality-template context",
+    "VM benchmark (E7) pending aiohttp installation on WAF VM"
+  ]
+}

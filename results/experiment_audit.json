@@ -1,0 +1,578 @@
+{
+  "logistic_regression_norm_clean": {
+    "tag": "logistic_regression_norm_clean",
+    "n": 263,
+    "n_correct": 263,
+    "n_wrong": 0,
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "p_benign": 1.0,
+    "p_sqli": 1.0,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 1.0,
+    "r_xss": 1.0,
+    "f_benign": 1.0,
+    "f_sqli": 1.0,
+    "f_xss": 1.0,
+    "xss_correct": 34,
+    "xss_total": 34,
+    "benign_fp": 0,
+    "errors": [],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        0,
+        84,
+        0
+      ],
+      [
+        0,
+        0,
+        34
+      ]
+    ]
+  },
+  "logistic_regression_norm_obf": {
+    "tag": "logistic_regression_norm_obf",
+    "n": 263,
+    "n_correct": 262,
+    "n_wrong": 1,
+    "accuracy": 0.996198,
+    "macro_f1": 0.993052,
+    "p_benign": 1.0,
+    "p_sqli": 0.988235,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 1.0,
+    "r_xss": 0.970588,
+    "f_benign": 1.0,
+    "f_sqli": 0.994083,
+    "f_xss": 0.985075,
+    "xss_correct": 33,
+    "xss_total": 34,
+    "benign_fp": 0,
+    "errors": [
+      [
+        "xss",
+        "sqli"
+      ]
+    ],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        0,
+        84,
+        0
+      ],
+      [
+        0,
+        1,
+        33
+      ]
+    ]
+  },
+  "naive_bayes_norm_clean": {
+    "tag": "naive_bayes_norm_clean",
+    "n": 263,
+    "n_correct": 261,
+    "n_wrong": 2,
+    "accuracy": 0.992395,
+    "macro_f1": 0.993701,
+    "p_benign": 0.986395,
+    "p_sqli": 1.0,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 0.97619,
+    "r_xss": 1.0,
+    "f_benign": 0.993151,
+    "f_sqli": 0.987952,
+    "f_xss": 1.0,
+    "xss_correct": 34,
+    "xss_total": 34,
+    "benign_fp": 2,
+    "errors": [
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ]
+    ],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        2,
+        82,
+        0
+      ],
+      [
+        0,
+        0,
+        34
+      ]
+    ]
+  },
+  "naive_bayes_norm_obf": {
+    "tag": "naive_bayes_norm_obf",
+    "n": 263,
+    "n_correct": 260,
+    "n_wrong": 3,
+    "accuracy": 0.988593,
+    "macro_f1": 0.986754,
+    "p_benign": 0.986395,
+    "p_sqli": 0.987952,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 0.97619,
+    "r_xss": 0.970588,
+    "f_benign": 0.993151,
+    "f_sqli": 0.982036,
+    "f_xss": 0.985075,
+    "xss_correct": 33,
+    "xss_total": 34,
+    "benign_fp": 2,
+    "errors": [
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "xss",
+        "sqli"
+      ]
+    ],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        2,
+        82,
+        0
+      ],
+      [
+        0,
+        1,
+        33
+      ]
+    ]
+  },
+  "svm_norm_clean": {
+    "tag": "svm_norm_clean",
+    "n": 263,
+    "n_correct": 263,
+    "n_wrong": 0,
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "p_benign": 1.0,
+    "p_sqli": 1.0,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 1.0,
+    "r_xss": 1.0,
+    "f_benign": 1.0,
+    "f_sqli": 1.0,
+    "f_xss": 1.0,
+    "xss_correct": 34,
+    "xss_total": 34,
+    "benign_fp": 0,
+    "errors": [],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        0,
+        84,
+        0
+      ],
+      [
+        0,
+        0,
+        34
+      ]
+    ]
+  },
+  "svm_norm_obf": {
+    "tag": "svm_norm_obf",
+    "n": 263,
+    "n_correct": 262,
+    "n_wrong": 1,
+    "accuracy": 0.996198,
+    "macro_f1": 0.993052,
+    "p_benign": 1.0,
+    "p_sqli": 0.988235,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 1.0,
+    "r_xss": 0.970588,
+    "f_benign": 1.0,
+    "f_sqli": 0.994083,
+    "f_xss": 0.985075,
+    "xss_correct": 33,
+    "xss_total": 34,
+    "benign_fp": 0,
+    "errors": [
+      [
+        "xss",
+        "sqli"
+      ]
+    ],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        0,
+        84,
+        0
+      ],
+      [
+        0,
+        1,
+        33
+      ]
+    ]
+  },
+  "sig_norm_clean": {
+    "tag": "sig_norm_clean",
+    "n": 263,
+    "n_correct": 205,
+    "n_wrong": 58,
+    "accuracy": 0.779468,
+    "macro_f1": 0.756342,
+    "p_benign": 0.714286,
+    "p_sqli": 1.0,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 0.416667,
+    "r_xss": 0.735294,
+    "f_benign": 0.833333,
+    "f_sqli": 0.588235,
+    "f_xss": 0.847458,
+    "xss_correct": 25,
+    "xss_total": 34,
+    "benign_fp": 58,
+    "errors": [
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ]
+    ],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        49,
+        35,
+        0
+      ],
+      [
+        9,
+        0,
+        25
+      ]
+    ]
+  },
+  "sig_norm_obf": {
+    "tag": "sig_norm_obf",
+    "n": 263,
+    "n_correct": 204,
+    "n_wrong": 59,
+    "accuracy": 0.775665,
+    "macro_f1": 0.751558,
+    "p_benign": 0.710784,
+    "p_sqli": 1.0,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 0.404762,
+    "r_xss": 0.735294,
+    "f_benign": 0.830946,
+    "f_sqli": 0.576271,
+    "f_xss": 0.847458,
+    "xss_correct": 25,
+    "xss_total": 34,
+    "benign_fp": 59,
+    "errors": [
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ]
+    ],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        50,
+        34,
+        0
+      ],
+      [
+        9,
+        0,
+        25
+      ]
+    ]
+  },
+  "sig_raw_clean": {
+    "tag": "sig_raw_clean",
+    "n": 263,
+    "n_correct": 203,
+    "n_wrong": 60,
+    "accuracy": 0.771863,
+    "macro_f1": 0.746711,
+    "p_benign": 0.707317,
+    "p_sqli": 1.0,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 0.392857,
+    "r_xss": 0.735294,
+    "f_benign": 0.828571,
+    "f_sqli": 0.564103,
+    "f_xss": 0.847458,
+    "xss_correct": 25,
+    "xss_total": 34,
+    "benign_fp": 60,
+    "errors": [
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ]
+    ],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        51,
+        33,
+        0
+      ],
+      [
+        9,
+        0,
+        25
+      ]
+    ]
+  },
+  "sig_raw_obf": {
+    "tag": "sig_raw_obf",
+    "n": 263,
+    "n_correct": 173,
+    "n_wrong": 90,
+    "accuracy": 0.657795,
+    "macro_f1": 0.492751,
+    "p_benign": 0.617021,
+    "p_sqli": 1.0,
+    "p_xss": 1.0,
+    "r_benign": 1.0,
+    "r_sqli": 0.261905,
+    "r_xss": 0.176471,
+    "f_benign": 0.763158,
+    "f_sqli": 0.415094,
+    "f_xss": 0.3,
+    "xss_correct": 6,
+    "xss_total": 34,
+    "benign_fp": 90,
+    "errors": [
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ],
+      [
+        "xss",
+        "benign"
+      ],
+      [
+        "sqli",
+        "benign"
+      ]
+    ],
+    "cm": [
+      [
+        145,
+        0,
+        0
+      ],
+      [
+        62,
+        22,
+        0
+      ],
+      [
+        28,
+        0,
+        6
+      ]
+    ]
+  }
+}

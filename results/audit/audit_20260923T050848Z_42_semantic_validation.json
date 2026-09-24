@@ -1,0 +1,66 @@
+{
+  "run_id": "audit_20260923T050848Z_42",
+  "oracle_type": "SQLite_string_interpolation",
+  "oracle_controls_pass": false,
+  "positive_controls": [
+    {
+      "name": "classic OR",
+      "payload": "' OR '1'='1",
+      "result": "invalid_in_context",
+      "pass": false
+    },
+    {
+      "name": "OR with comment",
+      "payload": "' OR 1=1 --",
+      "result": "valid_attack",
+      "pass": true
+    },
+    {
+      "name": "comment bypass",
+      "payload": "admin' --",
+      "result": "valid_attack",
+      "pass": true
+    },
+    {
+      "name": "string comparison",
+      "payload": "' OR 'a'='a",
+      "result": "invalid_in_context",
+      "pass": false
+    }
+  ],
+  "negative_controls": [
+    {
+      "name": "safe username",
+      "payload": "admin",
+      "result": "invalid_in_context",
+      "pass": true
+    },
+    {
+      "name": "safe username 2",
+      "payload": "alice",
+      "result": "invalid_in_context",
+      "pass": true
+    },
+    {
+      "name": "destructive \u2014 syntax error expected",
+      "payload": "'; DROP TABLE",
+      "result": "error:ProgrammingError",
+      "pass": true
+    }
+  ],
+  "sqli_oracle_counts": {
+    "valid_attack": 3,
+    "invalid_in_context": 234,
+    "syntax_error": 68,
+    "error": 2,
+    "total": 307
+  },
+  "sqli_limitation": "Oracle uses a single equality-template query. Many SQLi payloads (UNION SELECT, stacked queries) require a different query structure. 'invalid_in_context' does NOT mean the payload is inert against all targets.",
+  "xss_pattern_counts": {
+    "structurally_plausible": 108,
+    "structurally_implausible": 27,
+    "total": 135
+  },
+  "xss_limitation": "Structural pattern check only; not browser execution.",
+  "n_payload_results_sqli": 307
+}

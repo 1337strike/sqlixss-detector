@@ -1,0 +1,31 @@
+{
+  "run_id": "definitive_20260923T145813Z_42",
+  "timestamp": "2026-09-23T14:58:13.079968+00:00",
+  "seed": 42,
+  "n_folds": 5,
+  "n_reps": 3,
+  "python": "3.12.3",
+  "sklearn": "1.8.0",
+  "n_obf_techniques": 7,
+  "obf_techniques": [
+    "case_toggle",
+    "comment_insertion",
+    "double_url_encode",
+    "partial_url_encode",
+    "unicode_substitution",
+    "url_encode",
+    "whitespace"
+  ],
+  "paper_claims_6_techniques_code_has_7": true,
+  "double_canonicalization_bug": "FIXED in this script (see audit_run.py)",
+  "output_files": {
+    "environment": "/home/claude/sqli/results/definitive_20260923T145813Z_42/environment.json",
+    "single_split": "/home/claude/sqli/results/definitive_20260923T145813Z_42/single_split.json",
+    "fold_scores": "/home/claude/sqli/results/definitive_20260923T145813Z_42/fold_scores.json",
+    "predictions": "/home/claude/sqli/results/definitive_20260923T145813Z_42/predictions.csv",
+    "cv_stats": "/home/claude/sqli/results/definitive_20260923T145813Z_42/cv_stats.json",
+    "per_technique": "/home/claude/sqli/results/definitive_20260923T145813Z_42/per_technique.csv",
+    "tables_json": "/home/claude/sqli/results/definitive_20260923T145813Z_42/tables.json",
+    "tables_md": "/home/claude/sqli/results/definitive_20260923T145813Z_42/tables.md"
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "run_id": "audit_20260923T050848Z_42",
+  "cv_summary": {
+    "logistic_regression_raw": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.990948,
+      "f1_clean_sd": 0.007585,
+      "f1_obf_mean": 0.790514,
+      "f1_obf_sd": 0.039389,
+      "f1_obf_ci95_lo": 0.768701,
+      "f1_obf_ci95_hi": 0.812327,
+      "obf_drop": 0.200434
+    },
+    "naive_bayes_raw": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.98311,
+      "f1_clean_sd": 0.012887,
+      "f1_obf_mean": 0.812117,
+      "f1_obf_sd": 0.037975,
+      "f1_obf_ci95_lo": 0.791088,
+      "f1_obf_ci95_hi": 0.833147,
+      "obf_drop": 0.170993
+    },
+    "svm_raw": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.99314,
+      "f1_clean_sd": 0.005811,
+      "f1_obf_mean": 0.859188,
+      "f1_obf_sd": 0.038081,
+      "f1_obf_ci95_lo": 0.838099,
+      "f1_obf_ci95_hi": 0.880276,
+      "obf_drop": 0.133953
+    },
+    "logistic_regression_normalized": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.993684,
+      "f1_clean_sd": 0.006967,
+      "f1_obf_mean": 0.993404,
+      "f1_obf_sd": 0.006777,
+      "f1_obf_ci95_lo": 0.989651,
+      "f1_obf_ci95_hi": 0.997156,
+      "obf_drop": 0.000281
+    },
+    "naive_bayes_normalized": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.984344,
+      "f1_clean_sd": 0.009685,
+      "f1_obf_mean": 0.983776,
+      "f1_obf_sd": 0.010128,
+      "f1_obf_ci95_lo": 0.978168,
+      "f1_obf_ci95_hi": 0.989385,
+      "obf_drop": 0.000568
+    },
+    "svm_normalized": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.991925,
+      "f1_clean_sd": 0.007704,
+      "f1_obf_mean": 0.991925,
+      "f1_obf_sd": 0.007704,
+      "f1_obf_ci95_lo": 0.987659,
+      "f1_obf_ci95_hi": 0.996192,
+      "obf_drop": 0.0
+    },
+    "signature_raw": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.835815,
+      "f1_clean_sd": 0.075246,
+      "f1_obf_mean": 0.589255,
+      "f1_obf_sd": 0.105917,
+      "f1_obf_ci95_lo": 0.5306,
+      "f1_obf_ci95_hi": 0.64791,
+      "obf_drop": 0.24656
+    },
+    "signature_normalized": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.845959,
+      "f1_clean_sd": 0.071199,
+      "f1_obf_mean": 0.84198,
+      "f1_obf_sd": 0.07227,
+      "f1_obf_ci95_lo": 0.801958,
+      "f1_obf_ci95_hi": 0.882002,
+      "obf_drop": 0.003979
+    }
+  },
+  "canon_effects": {
+    "logistic_regression": {
+      "raw_f1_obf_mean": 0.790514,
+      "norm_f1_obf_mean": 0.993404,
+      "gain": 0.20289,
+      "sd_raw": 0.039389,
+      "sd_norm": 0.006777,
+      "sd_diff": 0.0358,
+      "corr_raw_norm": 0.591471,
+      "triangle_ok": true,
+      "triangle_bounds": [
+        0.032612,
+        0.046166
+      ],
+      "t_nb": 10.0759,
+      "p_raw": 9e-08,
+      "p_holm": 3.4e-07,
+      "significant_holm_005": true
+    },
+    "naive_bayes": {
+      "raw_f1_obf_mean": 0.812117,
+      "norm_f1_obf_mean": 0.983776,
+      "gain": 0.171659,
+      "sd_raw": 0.037975,
+      "sd_norm": 0.010128,
+      "sd_diff": 0.035283,
+      "corr_raw_norm": 0.389703,
+      "triangle_ok": true,
+      "triangle_bounds": [
+        0.027847,
+        0.048104
+      ],
+      "t_nb": 8.6498,
+      "p_raw": 5.5e-07,
+      "p_holm": 1.64e-06,
+      "significant_holm_005": true
+    },
+    "svm": {
+      "raw_f1_obf_mean": 0.859188,
+      "norm_f1_obf_mean": 0.991925,
+      "gain": 0.132737,
+      "sd_raw": 0.038081,
+      "sd_norm": 0.007704,
+      "sd_diff": 0.036041,
+      "corr_raw_norm": 0.358762,
+      "triangle_ok": true,
+      "triangle_bounds": [
+        0.030376,
+        0.045785
+      ],
+      "t_nb": 6.5479,
+      "p_raw": 1.295e-05,
+      "p_holm": 1.295e-05,
+      "significant_holm_005": true
+    },
+    "signature": {
+      "raw_f1_obf_mean": 0.589255,
+      "norm_f1_obf_mean": 0.84198,
+      "gain": 0.252725,
+      "sd_raw": 0.105917,
+      "sd_norm": 0.07227,
+      "sd_diff": 0.052281,
+      "corr_raw_norm": 0.895414,
+      "triangle_ok": true,
+      "triangle_bounds": [
+        0.033647,
+        0.178188
+      ],
+      "t_nb": 8.5944,
+      "p_raw": 5.9e-07,
+      "p_holm": 1.64e-06,
+      "significant_holm_005": true
+    }
+  }
+}

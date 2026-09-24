@@ -1,0 +1,148 @@
+{
+  "table_I": [
+    {
+      "Detector": "Logistic Regression",
+      "Raw F1\u00b1SD": "0.790514\u00b10.039389",
+      "Canon F1\u00b1SD": "0.993404\u00b10.006777",
+      "Gain": "+0.203",
+      "p_holm": "3.40e-07",
+      "sig_005": "\u2713",
+      "triangle_ok": "\u2713",
+      "sd_diff": 0.0358
+    },
+    {
+      "Detector": "Naive Bayes",
+      "Raw F1\u00b1SD": "0.812117\u00b10.037975",
+      "Canon F1\u00b1SD": "0.983776\u00b10.010128",
+      "Gain": "+0.172",
+      "p_holm": "1.64e-06",
+      "sig_005": "\u2713",
+      "triangle_ok": "\u2713",
+      "sd_diff": 0.035283
+    },
+    {
+      "Detector": "Svm",
+      "Raw F1\u00b1SD": "0.859188\u00b10.038081",
+      "Canon F1\u00b1SD": "0.991925\u00b10.007704",
+      "Gain": "+0.133",
+      "p_holm": "1.30e-05",
+      "sig_005": "\u2713",
+      "triangle_ok": "\u2713",
+      "sd_diff": 0.036041
+    },
+    {
+      "Detector": "Signature",
+      "Raw F1\u00b1SD": "0.589255\u00b10.105917",
+      "Canon F1\u00b1SD": "0.84198\u00b10.07227",
+      "Gain": "+0.253",
+      "p_holm": "1.64e-06",
+      "sig_005": "\u2713",
+      "triangle_ok": "\u2713",
+      "sd_diff": 0.052281
+    }
+  ],
+  "table_II": [
+    {
+      "Detector": "logistic_regression_raw",
+      "Clean_Acc": 1.0,
+      "Clean_F1": 1.0,
+      "Obf_Acc": 0.912548,
+      "Obf_F1": 0.78949,
+      "Drop": 0.21051,
+      "Lat_p95_ms": ""
+    },
+    {
+      "Detector": "logistic_regression_normalized",
+      "Clean_Acc": 1.0,
+      "Clean_F1": 1.0,
+      "Obf_Acc": 0.996198,
+      "Obf_F1": 0.993052,
+      "Drop": 0.006948,
+      "Lat_p95_ms": ""
+    },
+    {
+      "Detector": "naive_bayes_raw",
+      "Clean_Acc": 0.992395,
+      "Clean_F1": 0.993701,
+      "Obf_Acc": 0.904943,
+      "Obf_F1": 0.795001,
+      "Drop": 0.1987,
+      "Lat_p95_ms": ""
+    },
+    {
+      "Detector": "naive_bayes_normalized",
+      "Clean_Acc": 0.992395,
+      "Clean_F1": 0.993701,
+      "Obf_Acc": 0.988593,
+      "Obf_F1": 0.986754,
+      "Drop": 0.006947,
+      "Lat_p95_ms": ""
+    },
+    {
+      "Detector": "svm_raw",
+      "Clean_Acc": 1.0,
+      "Clean_F1": 1.0,
+      "Obf_Acc": 0.927757,
+      "Obf_F1": 0.83688,
+      "Drop": 0.16312,
+      "Lat_p95_ms": ""
+    },
+    {
+      "Detector": "svm_normalized",
+      "Clean_Acc": 1.0,
+      "Clean_F1": 1.0,
+      "Obf_Acc": 0.996198,
+      "Obf_F1": 0.993052,
+      "Drop": 0.006948,
+      "Lat_p95_ms": ""
+    },
+    {
+      "Detector": "signature_raw",
+      "Clean_Acc": 0.771863,
+      "Clean_F1": 0.746711,
+      "Obf_Acc": 0.657795,
+      "Obf_F1": 0.492751,
+      "Drop": 0.25396,
+      "Lat_p95_ms": ""
+    },
+    {
+      "Detector": "signature_normalized",
+      "Clean_Acc": 0.779468,
+      "Clean_F1": 0.756342,
+      "Obf_Acc": 0.775665,
+      "Obf_F1": 0.751558,
+      "Drop": 0.004784,
+      "Lat_p95_ms": ""
+    }
+  ],
+  "table_III": [
+    {
+      "Detector": "Logistic Regression",
+      "F1_clean": "0.993684\u00b10.006967",
+      "F1_obf": "0.993404\u00b10.006777",
+      "95CI_obf": "[0.989651,0.997156]",
+      "Drop": 0.000281
+    },
+    {
+      "Detector": "Naive Bayes",
+      "F1_clean": "0.984344\u00b10.009685",
+      "F1_obf": "0.983776\u00b10.010128",
+      "95CI_obf": "[0.978168,0.989385]",
+      "Drop": 0.000568
+    },
+    {
+      "Detector": "Svm",
+      "F1_clean": "0.991925\u00b10.007704",
+      "F1_obf": "0.991925\u00b10.007704",
+      "95CI_obf": "[0.987659,0.996192]",
+      "Drop": 0.0
+    },
+    {
+      "Detector": "Signature",
+      "F1_clean": "0.845959\u00b10.071199",
+      "F1_obf": "0.84198\u00b10.07227",
+      "95CI_obf": "[0.801958,0.882002]",
+      "Drop": 0.003979
+    }
+  ]
+}

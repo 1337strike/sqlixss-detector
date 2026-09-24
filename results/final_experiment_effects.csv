@@ -1,0 +1,5 @@
+model,raw_f1_obf,normalized_f1_obf,improvement,p_raw,p_holm,significant_holm
+logistic_regression,0.7776,0.9934,0.2158,1.78e-11,0.00e+00,True
+signature,0.5795,0.8429,0.2633,2.51e-10,0.00e+00,True
+naive_bayes,0.8119,0.9838,0.1718,4.42e-10,0.00e+00,True
+svm,0.8554,0.9916,0.1363,4.65e-08,1.00e-06,True

@@ -1,0 +1,92 @@
+# Release Manifest — v1.1.0
+# ICITDA 2026 Camera-ready / GitHub release
+# Generated: 2026-09-23
+
+release:
+  version:    "1.1.0"
+  tag:        "v1.1.0"
+  paper:      "ICITDA 2026 — Input Canonicalization as the Decisive Factor..."
+  timestamp:  "2026-09-23T00:00:00Z"
+
+## reproducibility
+
+corpus:
+  source:     "https://github.com/InfoSecWarrior/Offensive-Payloads"
+  sqli:       307          # unique payloads after de-duplication
+  xss:        135
+  benign:     570          # generated from parameterized templates
+  total:      1012
+  families:   815
+  download_script: "scripts/00_download_payloads.py"
+
+split:
+  method:     "stratified group k-fold"
+  k:          5
+  seed:       42
+  family_key: "digit→N, quoted→'S', whitespace collapsed, lowercase"
+  script:     "scripts/01c_build_grouped_dataset.py"
+  leakage_check: "tests/test_split_integrity.py"
+
+experiment:
+  protocol:   "5-fold × 3 repeats = 15 fits per configuration"
+  script:     "scripts/08_final_experiment.py"
+  results:    "results/final_experiment.csv"
+  statistics: "Holm-Bonferroni corrected paired t-test (src/statistics.py)"
+
+## key results (Table I, paper)
+
+canonicalization_effect:
+  logistic_regression:
+    raw_f1_obf:        0.7776
+    normalized_f1_obf: 0.9934
+    improvement:       0.2158
+    p_holm:            "<1e-11"
+  svm:
+    raw_f1_obf:        0.8554
+    normalized_f1_obf: 0.9916
+    improvement:       0.1363
+    p_holm:            "<1e-6"
+  naive_bayes:
+    raw_f1_obf:        0.8119
+    normalized_f1_obf: 0.9838
+    improvement:       0.1718
+    p_holm:            "<1e-9"
+  signature_baseline:
+    raw_f1_obf:        0.5795
+    normalized_f1_obf: 0.8429
+    improvement:       0.2633
+    p_holm:            "<1e-9"
+
+## environment
+
+environment:
+  python:      "3.12"
+  sklearn:     ">=1.3"
+  scipy:       ">=1.10"
+  numpy:       ">=1.24"
+  os:          "Linux x86-64"
+  seed:        42
+
+## known limitations
+
+limitations:
+  - "Benign samples are template-generated, not from production traffic"
+  - "Corpus from a single source (InfoSecWarrior) — no independent holdout"
+  - "Semantic oracle (validate_semantics.py) uses static SQLite, not a browser runtime for XSS"
+  - "Encoding-family overlap (%n) between training and obfuscated test — documented in tests/test_split_integrity.py"
+  - "Adaptive payloads (crafted to survive canonicalization) not evaluated"
+
+## files
+
+key_files:
+  - src/baseline_normalized.py    # canonicalization pipeline
+  - src/statistics.py             # Holm correction, CI utilities
+  - scripts/00_download_payloads.py
+  - scripts/01c_build_grouped_dataset.py
+  - scripts/07_per_technique_analysis.py
+  - scripts/08_final_experiment.py
+  - scripts/validate_semantics.py
+  - tests/test_pipeline_regression.py
+  - tests/test_split_integrity.py
+  - tests/integration/test_end_to_end.py
+  - .github/workflows/ci.yml

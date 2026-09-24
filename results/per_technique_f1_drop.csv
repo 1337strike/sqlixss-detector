@@ -1,0 +1,7 @@
+technique,logistic_regression,naive_bayes,signature_baseline,signature_normalized,svm
+case_toggling,0.0,0.0,0.0,0.0,0.0
+comment_insertion,0.0,0.0,0.0049,0.0,0.0
+double_url_encoding,0.3887,0.3829,0.2806,0.0,0.3889
+unicode_substitution,0.0567,0.0364,0.1238,0.0,0.0327
+url_encoding,0.2966,0.2208,0.2806,0.0,0.0678
+whitespace_manipulation,0.0,0.0,0.0082,0.01,0.0

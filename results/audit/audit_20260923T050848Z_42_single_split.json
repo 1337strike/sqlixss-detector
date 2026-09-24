@@ -1,0 +1,1036 @@
+{
+  "run_id": "audit_20260923T050848Z_42",
+  "n_train": 759,
+  "n_test": 253,
+  "class_dist_test": {
+    "benign": 142,
+    "sqli": 77,
+    "xss": 34
+  },
+  "unchanged_obfuscated": 0,
+  "obf_techniques_available": [
+    "case_toggle",
+    "comment_insertion",
+    "double_url_encode",
+    "partial_url_encode",
+    "unicode_substitution",
+    "url_encode",
+    "whitespace"
+  ],
+  "n_obf_techniques": 7,
+  "detectors": {
+    "logistic_regression": {
+      "raw_clean": {
+        "n_total": 253,
+        "n_correct": 253,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            0,
+            77,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_ms": {
+          "mean": 0.4663,
+          "median": 0.4602,
+          "p95": 0.5491,
+          "p99": 0.5671,
+          "n_samples": 100
+        },
+        "label_tag": "raw_clean"
+      },
+      "raw_obf": {
+        "n_total": 253,
+        "n_correct": 230,
+        "accuracy": 0.909091,
+        "macro_f1": 0.786793,
+        "per_class": {
+          "benign": {
+            "precision": 0.993007,
+            "recall": 1.0,
+            "f1": 0.996491,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 0.777778,
+            "recall": 1.0,
+            "f1": 0.875,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.323529,
+            "f1": 0.488889,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            0,
+            77,
+            0
+          ],
+          [
+            1,
+            22,
+            11
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 1,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 22
+        },
+        "latency_ms": {
+          "mean": 0.4521,
+          "median": 0.4562,
+          "p95": 0.5197,
+          "p99": 0.5522,
+          "n_samples": 100
+        },
+        "label_tag": "raw_obf"
+      },
+      "raw_obf_drop": 0.213207,
+      "norm_clean": {
+        "n_total": 253,
+        "n_correct": 252,
+        "accuracy": 0.996047,
+        "macro_f1": 0.992874,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 0.987179,
+            "recall": 1.0,
+            "f1": 0.993548,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.970588,
+            "f1": 0.985075,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            0,
+            77,
+            0
+          ],
+          [
+            0,
+            1,
+            33
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 1
+        },
+        "latency_ms": {
+          "mean": 0.2801,
+          "median": 0.2638,
+          "p95": 0.4061,
+          "p99": 0.4321,
+          "n_samples": 100
+        },
+        "label_tag": "norm_clean"
+      },
+      "norm_obf": {
+        "n_total": 253,
+        "n_correct": 252,
+        "accuracy": 0.996047,
+        "macro_f1": 0.992874,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 0.987179,
+            "recall": 1.0,
+            "f1": 0.993548,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.970588,
+            "f1": 0.985075,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            0,
+            77,
+            0
+          ],
+          [
+            0,
+            1,
+            33
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 1
+        },
+        "latency_ms": {
+          "mean": 0.2765,
+          "median": 0.2339,
+          "p95": 0.48,
+          "p99": 0.5036,
+          "n_samples": 100
+        },
+        "label_tag": "norm_obf"
+      },
+      "norm_obf_drop": 0.0,
+      "canon_gain_obf": 0.206081
+    },
+    "naive_bayes": {
+      "raw_clean": {
+        "n_total": 253,
+        "n_correct": 251,
+        "accuracy": 0.992095,
+        "macro_f1": 0.989526,
+        "per_class": {
+          "benign": {
+            "precision": 0.993007,
+            "recall": 1.0,
+            "f1": 0.996491,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 0.987013,
+            "recall": 0.987013,
+            "f1": 0.987013,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.970588,
+            "f1": 0.985075,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            1,
+            76,
+            0
+          ],
+          [
+            0,
+            1,
+            33
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 1,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 1
+        },
+        "latency_ms": {
+          "mean": 0.2202,
+          "median": 0.21,
+          "p95": 0.264,
+          "p99": 0.3338,
+          "n_samples": 100
+        },
+        "label_tag": "raw_clean"
+      },
+      "raw_obf": {
+        "n_total": 253,
+        "n_correct": 232,
+        "accuracy": 0.916996,
+        "macro_f1": 0.82992,
+        "per_class": {
+          "benign": {
+            "precision": 0.959459,
+            "recall": 1.0,
+            "f1": 0.97931,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 0.833333,
+            "recall": 0.974026,
+            "f1": 0.898204,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.441176,
+            "f1": 0.612245,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            2,
+            75,
+            0
+          ],
+          [
+            4,
+            15,
+            15
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 6,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 15
+        },
+        "latency_ms": {
+          "mean": 0.2147,
+          "median": 0.2059,
+          "p95": 0.2529,
+          "p99": 0.2884,
+          "n_samples": 100
+        },
+        "label_tag": "raw_obf"
+      },
+      "raw_obf_drop": 0.159606,
+      "norm_clean": {
+        "n_total": 253,
+        "n_correct": 251,
+        "accuracy": 0.992095,
+        "macro_f1": 0.989526,
+        "per_class": {
+          "benign": {
+            "precision": 0.993007,
+            "recall": 1.0,
+            "f1": 0.996491,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 0.987013,
+            "recall": 0.987013,
+            "f1": 0.987013,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.970588,
+            "f1": 0.985075,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            1,
+            76,
+            0
+          ],
+          [
+            0,
+            1,
+            33
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 1,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 1
+        },
+        "latency_ms": {
+          "mean": 0.2754,
+          "median": 0.2497,
+          "p95": 0.4379,
+          "p99": 0.4892,
+          "n_samples": 100
+        },
+        "label_tag": "norm_clean"
+      },
+      "norm_obf": {
+        "n_total": 253,
+        "n_correct": 251,
+        "accuracy": 0.992095,
+        "macro_f1": 0.989526,
+        "per_class": {
+          "benign": {
+            "precision": 0.993007,
+            "recall": 1.0,
+            "f1": 0.996491,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 0.987013,
+            "recall": 0.987013,
+            "f1": 0.987013,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.970588,
+            "f1": 0.985075,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            1,
+            76,
+            0
+          ],
+          [
+            0,
+            1,
+            33
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 1,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 1
+        },
+        "latency_ms": {
+          "mean": 0.376,
+          "median": 0.3737,
+          "p95": 0.4458,
+          "p99": 0.5416,
+          "n_samples": 100
+        },
+        "label_tag": "norm_obf"
+      },
+      "norm_obf_drop": 0.0,
+      "canon_gain_obf": 0.159606
+    },
+    "svm": {
+      "raw_clean": {
+        "n_total": 253,
+        "n_correct": 253,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            0,
+            77,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_ms": {
+          "mean": 0.9161,
+          "median": 0.9,
+          "p95": 1.0284,
+          "p99": 1.1056,
+          "n_samples": 100
+        },
+        "label_tag": "raw_clean"
+      },
+      "raw_obf": {
+        "n_total": 253,
+        "n_correct": 239,
+        "accuracy": 0.944664,
+        "macro_f1": 0.886463,
+        "per_class": {
+          "benign": {
+            "precision": 0.993007,
+            "recall": 1.0,
+            "f1": 0.996491,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 0.855556,
+            "recall": 1.0,
+            "f1": 0.922156,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.588235,
+            "f1": 0.740741,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            0,
+            77,
+            0
+          ],
+          [
+            1,
+            13,
+            20
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 1,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 13
+        },
+        "latency_ms": {
+          "mean": 0.8936,
+          "median": 0.8789,
+          "p95": 0.9911,
+          "p99": 1.0636,
+          "n_samples": 100
+        },
+        "label_tag": "raw_obf"
+      },
+      "raw_obf_drop": 0.113537,
+      "norm_clean": {
+        "n_total": 253,
+        "n_correct": 253,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            0,
+            77,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_ms": {
+          "mean": 0.9169,
+          "median": 0.9046,
+          "p95": 1.0195,
+          "p99": 1.0467,
+          "n_samples": 100
+        },
+        "label_tag": "norm_clean"
+      },
+      "norm_obf": {
+        "n_total": 253,
+        "n_correct": 253,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            0,
+            77,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_ms": {
+          "mean": 0.919,
+          "median": 0.8951,
+          "p95": 1.0822,
+          "p99": 1.2585,
+          "n_samples": 100
+        },
+        "label_tag": "norm_obf"
+      },
+      "norm_obf_drop": 0.0,
+      "canon_gain_obf": 0.113537
+    },
+    "signature_raw": {
+      "clean": {
+        "n_total": 253,
+        "n_correct": 218,
+        "accuracy": 0.86166,
+        "macro_f1": 0.844872,
+        "per_class": {
+          "benign": {
+            "precision": 0.80226,
+            "recall": 1.0,
+            "f1": 0.890282,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.662338,
+            "f1": 0.796875,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.735294,
+            "f1": 0.847458,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            26,
+            51,
+            0
+          ],
+          [
+            9,
+            0,
+            25
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 35,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_ms": {
+          "mean": 0.0039,
+          "median": 0.0037,
+          "p95": 0.0077,
+          "p99": 0.0102,
+          "n_samples": 100
+        },
+        "label_tag": "clean"
+      },
+      "obf": {
+        "n_total": 253,
+        "n_correct": 176,
+        "accuracy": 0.695652,
+        "macro_f1": 0.572166,
+        "per_class": {
+          "benign": {
+            "precision": 0.648402,
+            "recall": 1.0,
+            "f1": 0.786704,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.311688,
+            "f1": 0.475248,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.294118,
+            "f1": 0.454545,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            53,
+            24,
+            0
+          ],
+          [
+            24,
+            0,
+            10
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 77,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_ms": {
+          "mean": 0.005,
+          "median": 0.004,
+          "p95": 0.0114,
+          "p99": 0.0174,
+          "n_samples": 100
+        },
+        "label_tag": "obf"
+      },
+      "obf_drop": 0.272706
+    },
+    "signature_normalized": {
+      "clean": {
+        "n_total": 253,
+        "n_correct": 221,
+        "accuracy": 0.873518,
+        "macro_f1": 0.856873,
+        "per_class": {
+          "benign": {
+            "precision": 0.816092,
+            "recall": 1.0,
+            "f1": 0.898734,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.701299,
+            "f1": 0.824427,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.735294,
+            "f1": 0.847458,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            23,
+            54,
+            0
+          ],
+          [
+            9,
+            0,
+            25
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 32,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_ms": {
+          "mean": 0.0068,
+          "median": 0.0064,
+          "p95": 0.0129,
+          "p99": 0.0148,
+          "n_samples": 100
+        },
+        "label_tag": "clean"
+      },
+      "obf": {
+        "n_total": 253,
+        "n_correct": 221,
+        "accuracy": 0.873518,
+        "macro_f1": 0.856873,
+        "per_class": {
+          "benign": {
+            "precision": 0.816092,
+            "recall": 1.0,
+            "f1": 0.898734,
+            "support": 142
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.701299,
+            "f1": 0.824427,
+            "support": 77
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.735294,
+            "f1": 0.847458,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            142,
+            0,
+            0
+          ],
+          [
+            23,
+            54,
+            0
+          ],
+          [
+            9,
+            0,
+            25
+          ]
+        ],
+        "cm_labels": [
+          "benign",
+          "sqli",
+          "xss"
+        ],
+        "errors": {
+          "benign_to_attack": 0,
+          "attack_to_benign": 32,
+          "sqli_to_xss": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_ms": {
+          "mean": 0.0093,
+          "median": 0.0082,
+          "p95": 0.0176,
+          "p99": 0.0216,
+          "n_samples": 100
+        },
+        "label_tag": "obf"
+      },
+      "obf_drop": 0.0
+    }
+  }
+}

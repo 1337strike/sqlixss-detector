@@ -1,0 +1,32 @@
+{
+  "run_id": "audit_20260923T050848Z_42",
+  "seed": 42,
+  "n_samples": 1012,
+  "n_families": 815,
+  "class_dist": {
+    "benign": 570,
+    "sqli": 307,
+    "xss": 135
+  },
+  "raw_file_hashes": {
+    "real_sqli_payloads.txt": {
+      "count": 307,
+      "sha256_prefix": "01c4ddf71c865791"
+    },
+    "real_xss_payloads.txt": {
+      "count": 135,
+      "sha256_prefix": "4910570126f9ce1a"
+    }
+  },
+  "benign_extra": 200,
+  "obfuscation_techniques": [
+    "case_toggle",
+    "comment_insertion",
+    "double_url_encode",
+    "partial_url_encode",
+    "unicode_substitution",
+    "url_encode",
+    "whitespace"
+  ],
+  "n_obfuscation_techniques": 7
+}

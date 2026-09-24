@@ -1,0 +1,8 @@
+technique,logistic_regression_raw,naive_bayes_raw,svm_raw,signature_naive,signature_normalized
+double_url_encoding,0.3887,0.3829,0.3889,0.2806,0.0
+url_encoding,0.2966,0.2208,0.0678,0.2806,0.0
+partial_url_encoding_UNDISCLOSED,0.0251,0.0296,0.0109,0.1351,0.0
+unicode_substitution,0.0564,0.0331,0.0345,0.1228,0.0
+whitespace_manipulation,0.0,0.0,0.0,0.0119,0.0079
+comment_insertion,0.0,0.0,0.0,0.0049,0.0
+case_toggling,0.0,0.0,0.0,0.0,0.0

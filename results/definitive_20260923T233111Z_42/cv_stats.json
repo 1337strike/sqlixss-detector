@@ -1,0 +1,158 @@
+{
+  "cv_summary": {
+    "logistic_regression_raw": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.9909,
+      "f1_clean_sd": 0.0076,
+      "f1_obf_mean": 0.7905,
+      "f1_obf_sd": 0.0394,
+      "f1_obf_ci95_lo": 0.7687,
+      "f1_obf_ci95_hi": 0.8123,
+      "obf_drop": 0.2004
+    },
+    "naive_bayes_raw": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.9831,
+      "f1_clean_sd": 0.0129,
+      "f1_obf_mean": 0.8121,
+      "f1_obf_sd": 0.038,
+      "f1_obf_ci95_lo": 0.7911,
+      "f1_obf_ci95_hi": 0.8331,
+      "obf_drop": 0.171
+    },
+    "svm_raw": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.9931,
+      "f1_clean_sd": 0.0058,
+      "f1_obf_mean": 0.8592,
+      "f1_obf_sd": 0.0381,
+      "f1_obf_ci95_lo": 0.8381,
+      "f1_obf_ci95_hi": 0.8803,
+      "obf_drop": 0.134
+    },
+    "logistic_regression_normalized": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.9937,
+      "f1_clean_sd": 0.007,
+      "f1_obf_mean": 0.9934,
+      "f1_obf_sd": 0.0068,
+      "f1_obf_ci95_lo": 0.9897,
+      "f1_obf_ci95_hi": 0.9972,
+      "obf_drop": 0.0003
+    },
+    "naive_bayes_normalized": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.9843,
+      "f1_clean_sd": 0.0097,
+      "f1_obf_mean": 0.9838,
+      "f1_obf_sd": 0.0101,
+      "f1_obf_ci95_lo": 0.9782,
+      "f1_obf_ci95_hi": 0.9894,
+      "obf_drop": 0.0006
+    },
+    "svm_normalized": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.9919,
+      "f1_clean_sd": 0.0077,
+      "f1_obf_mean": 0.9919,
+      "f1_obf_sd": 0.0077,
+      "f1_obf_ci95_lo": 0.9877,
+      "f1_obf_ci95_hi": 0.9962,
+      "obf_drop": 0.0
+    },
+    "signature_raw": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.8358,
+      "f1_clean_sd": 0.0752,
+      "f1_obf_mean": 0.5893,
+      "f1_obf_sd": 0.1059,
+      "f1_obf_ci95_lo": 0.5306,
+      "f1_obf_ci95_hi": 0.6479,
+      "obf_drop": 0.2466
+    },
+    "signature_normalized": {
+      "n_fits": 15,
+      "f1_clean_mean": 0.846,
+      "f1_clean_sd": 0.0712,
+      "f1_obf_mean": 0.842,
+      "f1_obf_sd": 0.0723,
+      "f1_obf_ci95_lo": 0.802,
+      "f1_obf_ci95_hi": 0.882,
+      "obf_drop": 0.004
+    }
+  },
+  "canon_effects": {
+    "logistic_regression": {
+      "raw_f1_obf_mean": 0.7905,
+      "raw_f1_obf_sd": 0.0394,
+      "norm_f1_obf_mean": 0.9934,
+      "norm_f1_obf_sd": 0.0068,
+      "gain": 0.2029,
+      "sd_diff": 0.0358,
+      "sd_diff_bounds": [
+        0.0326,
+        0.0462
+      ],
+      "triangle_ok": true,
+      "correlation": 0.5915,
+      "t_nb_corrected": 10.0759,
+      "p_raw": 8.505690129570773e-08,
+      "p_holm": 3.402276051828309e-07,
+      "significant_005": true
+    },
+    "naive_bayes": {
+      "raw_f1_obf_mean": 0.8121,
+      "raw_f1_obf_sd": 0.038,
+      "norm_f1_obf_mean": 0.9838,
+      "norm_f1_obf_sd": 0.0101,
+      "gain": 0.1717,
+      "sd_diff": 0.0353,
+      "sd_diff_bounds": [
+        0.0278,
+        0.0481
+      ],
+      "triangle_ok": true,
+      "correlation": 0.3897,
+      "t_nb_corrected": 8.6498,
+      "p_raw": 5.454492170694173e-07,
+      "p_holm": 1.636347651208252e-06,
+      "significant_005": true
+    },
+    "svm": {
+      "raw_f1_obf_mean": 0.8592,
+      "raw_f1_obf_sd": 0.0381,
+      "norm_f1_obf_mean": 0.9919,
+      "norm_f1_obf_sd": 0.0077,
+      "gain": 0.1327,
+      "sd_diff": 0.036,
+      "sd_diff_bounds": [
+        0.0304,
+        0.0458
+      ],
+      "triangle_ok": true,
+      "correlation": 0.3588,
+      "t_nb_corrected": 6.5479,
+      "p_raw": 1.2954678225116437e-05,
+      "p_holm": 1.2954678225116437e-05,
+      "significant_005": true
+    },
+    "signature": {
+      "raw_f1_obf_mean": 0.5893,
+      "raw_f1_obf_sd": 0.1059,
+      "norm_f1_obf_mean": 0.842,
+      "norm_f1_obf_sd": 0.0723,
+      "gain": 0.2527,
+      "sd_diff": 0.0523,
+      "sd_diff_bounds": [
+        0.0336,
+        0.1782
+      ],
+      "triangle_ok": true,
+      "correlation": 0.8954,
+      "t_nb_corrected": 8.5944,
+      "p_raw": 5.888541746702833e-07,
+      "p_holm": 1.636347651208252e-06,
+      "significant_005": true
+    }
+  }
+}

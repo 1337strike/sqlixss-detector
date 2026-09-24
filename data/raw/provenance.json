@@ -1,0 +1,14 @@
+{
+  "real_sqli_payloads.txt": {
+    "url": "https://raw.githubusercontent.com/InfoSecWarrior/Offensive-Payloads/main/SQL-Injection-Payloads.txt",
+    "category": "sqli",
+    "count": 307,
+    "downloaded_at": "2026-09-24T11:51:39Z"
+  },
+  "real_xss_payloads.txt": {
+    "url": "https://raw.githubusercontent.com/InfoSecWarrior/Offensive-Payloads/main/Cross-Site-Scripting-XSS-Payloads.txt",
+    "category": "xss",
+    "count": 135,
+    "downloaded_at": "2026-09-24T11:51:39Z"
+  }
+}

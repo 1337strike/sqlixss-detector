@@ -1,0 +1,46 @@
+{
+  "latency": {
+    "logistic_regression_normalized": {
+      "size_kb": 129.0,
+      "p95_ms": 0.3659,
+      "p99_ms": 0.3898,
+      "mean_ms": 0.3005
+    },
+    "naive_bayes_normalized": {
+      "size_kb": 179.3,
+      "p95_ms": 0.3573,
+      "p99_ms": 0.4031,
+      "mean_ms": 0.2936
+    },
+    "svm_normalized": {
+      "size_kb": 232.1,
+      "p95_ms": 1.2254,
+      "p99_ms": 1.3168,
+      "mean_ms": 1.1452
+    },
+    "signature_naive": {
+      "size_kb": "n/a",
+      "p95_ms": 0.0001,
+      "mean_ms": 0.0001
+    },
+    "signature_normalized": {
+      "size_kb": "n/a",
+      "p95_ms": 0.0001,
+      "mean_ms": 0.0001
+    }
+  },
+  "oracle": {
+    "n_sqli_test": 84,
+    "oracle_on_clean": {
+      "invalid_in_this_context": 66,
+      "syntax_error": 16,
+      "error:ProgrammingError": 2
+    },
+    "oracle_on_obf": {
+      "invalid_in_this_context": 66,
+      "syntax_error": 16,
+      "error:ProgrammingError": 2
+    },
+    "changed_after_obfuscation": 0
+  }
+}

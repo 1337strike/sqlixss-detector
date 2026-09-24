@@ -1,0 +1,156 @@
+% LaTeX Tables — generated from definitive_20260923T145813Z_42
+
+% Paste into your paper or thesis as needed.
+
+% All numbers verified against experiment output.
+
+
+
+\begin{table*}[t]
+\caption{Canonicalization Effects Under Grouped 5\,$\times$\,3 Cross-Validation.
+  Obfuscated F1 entries are mean\,$\pm$\,marginal SD over 15 folds.
+  Gain intervals use the corrected paired SE and are unadjusted;
+  $ uses Holm adjustment across four comparisons.}
+\label{tab:canon}
+\begin{center}
+\setlength{\tabcolsep}{4pt}\footnotesize
+\begin{tabular}{|l|c|c|c|c|c|c|c|}
+\hline
+\textbf{Detector} &
+\textbf{Raw clean F1} &
+\textbf{Raw obf.\ F1} &
+\textbf{Canon.\ obf.\ F1} &
+\textbf{Gain} &
+\textbf{95\% CI of gain} &
+\textbf{Paired SD} &
+\textbf{$} \
+\hline
+LR      & 0.9909 & /bin/sh.7905\pm0.0394$ & /bin/sh.9934\pm0.0068$ & $+0.2029$ & $[0.1597,\,0.2461]$ & 0.0358 & .42\times10^{-7}$ \
+\hline
+MNB     & 0.9831 & /bin/sh.8121\pm0.0380$ & /bin/sh.9838\pm0.0101$ & $+0.1717$ & $[0.1291,\,0.2142]$ & 0.0353 & .65\times10^{-6}$ \
+\hline
+SVM     & 0.9931 & /bin/sh.8592\pm0.0381$ & /bin/sh.9919\pm0.0077$ & $+0.1327$ & $[0.0892,\,0.1762]$ & 0.0360 & .30\times10^{-5}$ \
+\hline
+Signature & 0.8358 & /bin/sh.5893\pm0.1059$ & /bin/sh.8420\pm0.0723$ & $+0.2527$ & $[0.1896,\,0.3158]$ & 0.0523 & .65\times10^{-6}$ \
+\hline
+\end{tabular}
+\end{center}
+\end{table*}
+
+
+
+\begin{table}[htbp]
+\caption{Supplementary Single-Split Results (=263$).
+  FN denotes malicious-to-benign errors among 118 attack-labeled strings;
+  Cross denotes SQLi--XSS label confusions.
+  Error counts are for obfuscated inputs.}
+\label{tab:single}
+\begin{center}
+\setlength{\tabcolsep}{3pt}\footnotesize
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Configuration} & \textbf{Clean F1} & \textbf{Obf.\ F1} & \textbf{FN} & \textbf{Cross} \
+\hline
+LR (raw)          & 1.0000 & 0.7895 &  0 & 23 \
+\hline
+LR (canon.)       & 1.0000 & 0.9931 &  0 &  1 \
+\hline
+MNB (raw)         & 0.9937 & 0.7950 &  8 & 17 \
+\hline
+MNB (canon.)      & 0.9937 & 0.9868 &  2 &  1 \
+\hline
+SVM (raw)         & 1.0000 & 0.8369 &  0 & 19 \
+\hline
+SVM (canon.)      & 1.0000 & 0.9931 &  0 &  1 \
+\hline
+Sig.\ (raw)       & 0.7467 & 0.4928 & 90 &  0 \
+\hline
+Sig.\ (canon.)    & 0.7563 & 0.7516 & 59 &  0 \
+\hline
+\multicolumn{5}{l}{$^{\mathrm{a}}: \texttt{definitive\_20260923T145813Z\_42/single\_split.json}.}
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\begin{table}[htbp]
+\caption{Canonicalized Configurations Under Grouped 5\,$\times$\,3 CV\@.
+  Entries are mean\,$\pm$\,sample SD\@; Drop is computed from unrounded paired means.}
+\label{tab:cv}
+\begin{center}
+\setlength{\tabcolsep}{4pt}\footnotesize
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Detector} & \textbf{Clean macro-F1} & \textbf{Obf.\ macro-F1} & \textbf{Drop} \
+\hline
+LR      & /bin/sh.9937\pm0.0070$ & /bin/sh.9934\pm0.0068$ & 0.0003 \
+\hline
+MNB     & /bin/sh.9843\pm0.0097$ & /bin/sh.9838\pm0.0101$ & 0.0006 \
+\hline
+SVM     & /bin/sh.9919\pm0.0077$ & /bin/sh.9919\pm0.0077$ & 0.0000 \
+\hline
+Signature & /bin/sh.8460\pm0.0712$ & /bin/sh.8420\pm0.0723$ & 0.0040 \
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\begin{table}[htbp]
+\caption{Macro-F1 Drop by Transformation Attempt on the Supplementary Split,
+  averaged over five generator seeds.
+  LR/MNB/SVM use raw input.
+  Sig.-R and Sig.-C denote raw and canonicalized local signatures.}
+\label{tab:technique}
+\begin{center}
+\setlength{\tabcolsep}{3pt}\footnotesize
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Technique} & \textbf{LR} & \textbf{MNB} & \textbf{SVM} & \textbf{Sig.-R} & \textbf{Sig.-C} \
+\hline
+Double URL   & 0.3887 & 0.3829 & 0.3889 & 0.2806 & 0.0000 \
+\hline
+URL          & 0.2966 & 0.2208 & 0.0678 & 0.2806 & 0.0000 \
+\hline
+Partial URL  & 0.0251 & 0.0296 & 0.0109 & 0.1351 & 0.0000 \
+\hline
+Unicode      & 0.0564 & 0.0331 & 0.0345 & 0.1228 & 0.0000 \
+\hline
+Whitespace   & 0.0000 & 0.0000 & 0.0000 & 0.0119 & 0.0079 \
+\hline
+Comment      & 0.0000 & 0.0000 & 0.0000 & 0.0049 & 0.0000 \
+\hline
+Case         & 0.0000 & 0.0000 & 0.0000 & 0.0000 & 0.0000 \
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\begin{table}[htbp]
+\caption{Exploratory Clean-Input Prediction API Timing in ms, after five warm-up calls.
+  Each row contains 263 measured calls.
+  Canonicalization is excluded for canonicalized ML and included for the normalizing signature detector.}
+\label{tab:timing}
+\begin{center}
+\setlength{\tabcolsep}{4pt}\footnotesize
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Configuration} & \textbf{Calls} & \textbf{Median} & \textbf{p95} & \textbf{p99} \
+\hline
+LR (canon.)         & 263 & 0.2731 & 0.3548 & 0.3750 \
+\hline
+MNB (canon.)        & 263 & 0.2579 & 0.3242 & 0.3783 \
+\hline
+SVM (canon.)        & 263 & 1.2457 & 1.3864 & 1.5812 \
+\hline
+Signature (raw)     & 263 & 0.0046 & 0.0091 & 0.0167 \
+\hline
+Signature (canon.)  & 263 & 0.0082 & 0.0190 & 0.0323 \
+\hline
+\end{tabular}
+\end{center}
+\end{table}

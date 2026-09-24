@@ -1,0 +1,8 @@
+technique,logistic_regression,naive_bayes,svm,sig_norm
+case_toggle,0.0,0.0,0.0,0.0
+comment_insertion,0.0,0.0,0.0,0.0
+double_url_encode,0.0958,0.079,0.0773,0.0871
+partial_url_encode,0.0084,0.0069,0.0069,0.012
+unicode_substitution,0.0,0.0,0.0,0.0
+url_encode,0.0143,0.0216,0.0143,0.0311
+whitespace,0.0,0.0,0.0,0.001

