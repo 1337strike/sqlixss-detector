@@ -39,14 +39,21 @@ class JsonExtractionResult:
     string_values: list[str] = field(default_factory=list)
     was_valid_json: bool = True
     max_depth: int = 0
+    truncated: bool = False   # True if limit hit before full traversal
 
 
-_MAX_STRINGS = 200      # cap how many leaf strings we bother classifying per request
-_MAX_DEPTH = 25          # guard against pathological/deeply-nested JSON used to burn CPU
+_MAX_STRINGS = 200      # cap how many leaf strings we classify per request
+_MAX_DEPTH = 25          # guard against pathological nesting
 
 
-def _walk(node, depth: int, out: list[str], depth_tracker: list[int]) -> None:
-    if depth > _MAX_DEPTH or len(out) >= _MAX_STRINGS:
+def _walk(node, depth: int, out: list[str], depth_tracker: list[int],
+          truncated: list[bool]) -> None:
+    """Walk JSON tree. Sets truncated[0]=True if any limit is hit."""
+    if depth > _MAX_DEPTH:
+        truncated[0] = True
+        return
+    if len(out) >= _MAX_STRINGS:
+        truncated[0] = True
         return
     depth_tracker[0] = max(depth_tracker[0], depth)
 
@@ -54,31 +61,46 @@ def _walk(node, depth: int, out: list[str], depth_tracker: list[int]) -> None:
         out.append(node)
     elif isinstance(node, dict):
         for key, value in node.items():
-            # Keys can carry payloads too (e.g. {"' OR 1=1--": "x"}), so
-            # inspect them as strings as well, not just the values.
             if isinstance(key, str):
                 out.append(key)
-            _walk(value, depth + 1, out, depth_tracker)
+            _walk(value, depth + 1, out, depth_tracker, truncated)
+            if truncated[0]:
+                return   # stop early — already flagged
     elif isinstance(node, list):
         for item in node:
-            _walk(item, depth + 1, out, depth_tracker)
-    # numbers/bools/null contribute nothing classifiable
+            _walk(item, depth + 1, out, depth_tracker, truncated)
+            if truncated[0]:
+                return
 
 
 def extract_json_string_values(body_bytes: bytes) -> JsonExtractionResult:
+    """Extract all leaf string values from a JSON body.
+
+    If the body exceeds _MAX_STRINGS or _MAX_DEPTH, sets result.truncated=True.
+    The WAF proxy should REJECT (not forward) truncated requests because
+    inspection was incomplete — the unexamined portion may contain a payload.
+    """
     try:
         text = body_bytes.decode("utf-8")
         parsed = json.loads(text)
     except (UnicodeDecodeError, json.JSONDecodeError):
-        # Not valid JSON despite the Content-Type -- fall back to raw text
-        # as a single item so it still gets classified, just less precisely.
         raw = body_bytes.decode("utf-8", errors="replace")
-        return JsonExtractionResult(string_values=[raw] if raw else [], was_valid_json=False)
+        return JsonExtractionResult(
+            string_values=[raw] if raw else [],
+            was_valid_json=False,
+            truncated=False,
+        )
 
     out: list[str] = []
     depth_tracker = [0]
-    _walk(parsed, 0, out, depth_tracker)
-    return JsonExtractionResult(string_values=out, was_valid_json=True, max_depth=depth_tracker[0])
+    truncated = [False]
+    _walk(parsed, 0, out, depth_tracker, truncated)
+    return JsonExtractionResult(
+        string_values=out,
+        was_valid_json=True,
+        max_depth=depth_tracker[0],
+        truncated=truncated[0],
+    )
 
 
 if __name__ == "__main__":

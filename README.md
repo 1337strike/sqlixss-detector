@@ -28,7 +28,7 @@ python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
 ```
 
 Results land in `results/definitive_<timestamp>_42/`.
-Reference run: `results/definitive_20260923T145813Z_42/`
+Reference run: `results/definitive_20260923T094339Z_42/`
 
 ---
 
@@ -40,7 +40,7 @@ data/
   processed/    ← split CSVs (01c_build_grouped_dataset.py)
 models/         ← trained joblib files (02_train_models.py)
 results/
-  definitive_20260923T145813Z_42/   ← authoritative run
+  definitive_20260923T094339Z_42/   ← authoritative run
     manifest.json           experiment metadata + technique list
     single_split.json       Tables II & V (263-sample split)
     fold_scores.json        15×8 fold-level F1 (Tables I & III)
@@ -81,7 +81,7 @@ AUDIT_REPORT.md             full audit findings
 
 ## Paper Numbers
 
-All numbers below come from `results/definitive_20260923T145813Z_42/`.
+All numbers below come from `results/definitive_20260923T094339Z_42/`.
 
 ### Table I — Canonicalization Effect (CV, 15 fits)
 
@@ -129,5 +129,5 @@ python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
 python -m pytest tests/ -q   # 70 passed, 5 xfailed
 ```
 
-Experiment ID: `definitive_20260923T145813Z_42`  
+Experiment ID: `definitive_20260923T094339Z_42`  
 Head commit at reference run: `ff88291`

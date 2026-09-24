@@ -77,7 +77,7 @@
 | Case toggling | `keyword_case_toggle()` | same | ✅ |
 | SQL comment insertion | `comment_insertion()` | same | ✅ |
 | Unicode/HTML-entity substitution | `unicode_substitution()` | same | ✅ |
-| **UNDISCLOSED 7th:** partial URL encoding | `partial_url_encode()` | same | ❌ NOT IN PAPER |
+| Partial URL encoding | `partial_url_encode()` | same | ✅ DISCLOSED in PDF v17 §III-C |
 | Random combinations 1–3 per payload | `rng.randint(1, 3)` in `random_obfuscate()` | same | ✅ MATCH |
 | Fold-specific seed | `rng.randint(0, 10**6)` per sample, deterministic per fold | `audit_run.py` | ✅ MATCH |
 | Determinism: every obfuscated sample differs from clean | fallback to `partial_url_encode(probability=1.0)` | `obfuscation.py` | ✅ MATCH |

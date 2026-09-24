@@ -322,6 +322,11 @@ class WafProxy:
             return web.json_response({"error": "Internal error"}, status=500)
 
     async def _handle_request_inner(self, request: web.Request) -> web.Response:
+        # R2 FIX: keep both the connection address and the resolved client IP.
+        # classify_recon() needs the DIRECT connection address (request.remote)
+        # to decide whether X-Forwarded-For is trusted or spoofed.
+        # rate_limiter, banning, and logging use client_ip (the resolved value).
+        connection_ip = request.remote or "unknown"
         client_ip = resolve_client_ip(request, self.trusted_proxies)
         t0 = time.perf_counter()
 
@@ -354,7 +359,7 @@ class WafProxy:
         #      probing, and IP-spoofing attempts BEFORE spending a model
         #      inference on the request. High-confidence recon signals
         #      count double toward the ban threshold (see rate_limiter.py).
-        recon_verdict = classify_recon(str(request.rel_url), request.headers, client_ip, self.trusted_proxies)
+        recon_verdict = classify_recon(str(request.rel_url), request.headers, connection_ip, self.trusted_proxies)
         if recon_verdict.flagged:
             self.stats.increment("blocked")
             just_banned = self.rate_limiter.record_offense(client_ip, weight=2)
@@ -417,6 +422,17 @@ class WafProxy:
 
         if "application/json" in content_type:
             json_result = extract_json_string_values(body_bytes)
+            # R1 FIX: reject if traversal hit a limit — uninspected tail
+            # may contain a payload (documented in json_extraction.py).
+            if json_result.truncated:
+                self.stats.increment("blocked")
+                self.logger.log_event(
+                    decision="blocked", client_ip=client_ip, method=request.method,
+                    path=str(request.rel_url), label="incomplete_json_inspection",
+                    triggered_by=["json_truncation"],
+                    latency_ms=(time.perf_counter() - t0) * 1000,
+                )
+                return web.Response(status=400, text="Request body too complex to inspect")
             body_texts = [urllib.parse.unquote(str(request.rel_url))] + json_result.string_values
             if not json_result.was_valid_json:
                 # Malformed JSON despite the declared Content-Type -- log
@@ -478,25 +494,58 @@ class WafProxy:
 
     async def _proxy_to_backend(self, request: web.Request, body_bytes: bytes) -> web.Response:
         target_url = f"{self.backend_url}{request.rel_url}"
+        # R3 FIX: strip hop-by-hop and encoding headers that must be
+        # rebuilt from the actual body sent.  aiohttp reads the full body
+        # so we must not forward Transfer-Encoding or Content-Encoding
+        # to the backend (it will receive raw bytes, not chunked/gzip).
+        _HOP_BY_HOP = {
+            "transfer-encoding", "te", "trailers", "upgrade",
+            "connection", "keep-alive", "proxy-authenticate",
+            "proxy-authorization",
+        }
         forward_headers = {
             k: v for k, v in request.headers.items()
-            if k.lower() not in ("host", "content-length")
+            if k.lower() not in _HOP_BY_HOP
+            and k.lower() not in ("host", "content-length", "content-encoding")
         }
         try:
             async with self._session.request(
-                request.method, target_url, headers=forward_headers, data=body_bytes,
+                request.method, target_url,
+                headers=forward_headers,
+                data=body_bytes,
+                allow_redirects=False,   # R4 FIX: pass 3xx to client, don't follow
             ) as backend_resp:
                 body = await backend_resp.read()
-                return web.Response(
-                    body=body, status=backend_resp.status,
-                    headers={k: v for k, v in backend_resp.headers.items() if k.lower() != "content-length"},
-                )
+                # R3 FIX: preserve multi-value response headers (e.g. Set-Cookie)
+                # and strip hop-by-hop + encoding headers from the response too.
+                _RESP_HOP_BY_HOP = _HOP_BY_HOP | {"content-encoding", "content-length"}
+                resp_headers = {}
+                for k, v in backend_resp.headers.items():
+                    if k.lower() in _RESP_HOP_BY_HOP:
+                        continue
+                    # Accumulate multi-value headers (e.g. multiple Set-Cookie)
+                    if k.lower() in resp_headers:
+                        # aiohttp flattens them; use comma join for most,
+                        # but Set-Cookie must be separate — signal via list
+                        existing = resp_headers[k.lower()]
+                        if not isinstance(existing, list):
+                            resp_headers[k.lower()] = [existing]
+                        resp_headers[k.lower()].append(v)
+                    else:
+                        resp_headers[k.lower()] = v
+
+                response = web.Response(body=body, status=backend_resp.status)
+                for k, v in resp_headers.items():
+                    if isinstance(v, list):
+                        for item in v:
+                            response.headers.add(k, item)
+                    else:
+                        response.headers[k] = v
+                return response
+        except web.HTTPRequestEntityTooLarge:
+            # R4 FIX: preserve 413 status instead of letting it become 500
+            return web.Response(status=413, text="Request body too large")
         except Exception as e:
-            # Deliberately generic message to the CLIENT -- the exception
-            # string can contain internal hostnames, ports, or stack
-            # details (e.g. connection-refused to a backend IP) that have
-            # no business being visible to whoever sent the request.
-            # Full detail still goes to the server-side log for debugging.
             print(f"[waf] backend request failed: {type(e).__name__}: {e}")
             return web.json_response({"error": "Upstream server error"}, status=502)
 

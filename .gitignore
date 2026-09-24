@@ -1,3 +1,20 @@
 __pycache__/
 *.pyc
 .venv/
+# Generated data - reproducible via scripts
+data/processed/
+data/raw/provenance.json
+models/
+results/metrics.csv
+
+# Intermediate/old experiment runs
+results/audit/
+results/definitive_20260923*/
+results/definitive_20260924T094*/
+results/single_split_*.csv
+results/fold_scores_audit.json
+results/experiment_audit.json
+results/latency_oracle_audit.json
+results/canon_effects_v2.csv
+results/cv_summary_v2.csv
+results/final_experiment.csv

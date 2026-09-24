@@ -1,8 +1,15 @@
 """
 08_final_experiment.py
 -----------------------
-The definitive experiment for the revised paper. Addresses every
-methodological issue raised in peer review in one run:
+DEPRECATED — use scripts/definitive_experiment.py instead.
+
+This script has a known bug at line 164: it passes pre-canonicalized
+Xte_obf_n to NormalizedSignatureBaseline which canonicalizes internally,
+causing double canonicalization for the signature_normalized/obf condition.
+That bug is fixed in definitive_experiment.py.
+
+This file is kept for historical reference only.
+Do NOT use this script for new experiment runs.
 
   * GROUP-AWARE splitting — payload families never straddle the
     train/test boundary (anti-leakage, reviewer point 3).

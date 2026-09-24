@@ -32,38 +32,30 @@ def paired_ci(arr: np.ndarray, confidence: float = 0.95) -> tuple[float, float]:
 def nadeau_bengio_ttest(
     scores_a: list[float],
     scores_b: list[float],
-    n_train: int,
-    n_test: int,
+    n_train: float,
+    n_test: float,
+    mean_ratio: float | None = None,
 ) -> tuple[float, float]:
     """Nadeau-Bengio corrected resampled paired t-test (2003).
-
-    Standard paired t-test on repeated k-fold scores violates independence
-    because test folds from different repetitions overlap.  The Nadeau-
-    Bengio correction inflates the variance by a factor of
-    (1/k + n_test/n_train), where k is the number of test samples per fold,
-    effectively accounting for the positive correlation.
 
     Parameters
     ----------
     scores_a, scores_b : per-fold scores for the two configurations.
-    n_train, n_test    : number of training and test samples per fold.
+    n_train, n_test    : mean training and test sizes (used if mean_ratio is None).
+    mean_ratio         : if provided, use mean(n_test_i/n_train_i) per fold directly.
+                         This is more accurate than n_test/n_train from truncated means.
 
     Returns
     -------
     t_stat, p_value  (two-tailed)
-
-    Reference
-    ---------
-    Nadeau, C. & Bengio, Y. (2003). Inference for the generalization error.
-    Machine Learning, 52(3), 239–281.
     """
     diffs = np.array(scores_b) - np.array(scores_a)
     k = len(diffs)
     mean_diff = diffs.mean()
-    # Unbiased variance of the per-fold differences
     var_diff = diffs.var(ddof=1)
-    # Correction factor: accounts for fold correlation
-    correction = 1.0 / k + n_test / n_train
+    # Correction factor: 1/k + mean(n_test/n_train) per fold
+    ratio = mean_ratio if mean_ratio is not None else float(n_test) / float(n_train)
+    correction = 1.0 / k + ratio
     corrected_var = correction * var_diff
     if corrected_var <= 0:
         return (float("inf"), 0.0) if mean_diff != 0 else (0.0, 1.0)

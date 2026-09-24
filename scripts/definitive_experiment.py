@@ -369,7 +369,8 @@ def run_cv(seed: int, n_folds: int, n_reps: int, run_id: str) -> dict:
     }
 
 
-def compute_stats(fold_scores: dict, n_tr: float, n_te: float) -> dict:
+def compute_stats(fold_scores: dict, n_tr: float, n_te: float,
+                  fold_meta: list | None = None) -> dict:
     """Table I (canonicalization effects) and Table III (CV summary)."""
 
     cv_summary = {}
@@ -405,7 +406,14 @@ def compute_stats(fold_scores: dict, n_tr: float, n_te: float) -> dict:
         lo, hi = abs(sd_a-sd_b), sd_a+sd_b
         triangle_ok = (lo <= sd_d <= hi)
 
-        t, p_raw = nadeau_bengio_ttest(list(a), list(b), n_train=int(n_tr), n_test=int(n_te))
+        # R7 fix: use mean(n_test_i/n_train_i) per fold — more accurate than int-truncated means
+        if fold_meta:
+            mean_ratio = float(np.mean([m["n_test"]/m["n_train"] for m in fold_meta]))
+        else:
+            mean_ratio = float(n_te) / float(n_tr)
+        t, p_raw = nadeau_bengio_ttest(list(a), list(b),
+                                       n_train=n_tr, n_test=n_te,
+                                       mean_ratio=mean_ratio)
         p_raws.append(p_raw)
         effect_keys.append(mname)
         effects[mname] = {
@@ -471,7 +479,7 @@ def run_per_technique(train_df, clean_df, obf_df, seed: int) -> dict:
         "comment_insertion":    comment_insertion,
         "unicode_substitution": unicode_substitution,
         # 7th — present in _TECHNIQUES but not stated in paper
-        "partial_url_encoding_UNDISCLOSED": partial_url_encode,
+        "partial_url_encoding": partial_url_encode,  # disclosed in ICITDA_REVISED(17).pdf §III-C
     }
 
     detectors = {}
@@ -503,61 +511,102 @@ def run_per_technique(train_df, clean_df, obf_df, seed: int) -> dict:
                 "f1_obf_sd":   round(float(arr.std(ddof=1)) if len(arr)>1 else 0.0, 4),
                 "f1_drop":     round(clean_f1[det_name] - float(arr.mean()), 4),
                 "n_seeds":     len(vals),
-                "in_paper":    not tech_name.endswith("UNDISCLOSED"),
+                "in_paper":    True,  # all 7 techniques disclosed in PDF v17
             })
     return {"rows": rows}
 
 
-def generate_tables(ss: dict, cv_stats: dict) -> dict:
-    """Generate paper-format tables as CSV and Markdown."""
+def generate_tables(ss: dict, cv_stats: dict, pt_rows: list | None = None) -> dict:
+    """Generate paper-format tables matching PDF 17 numbering.
+
+    PDF 17 table order:
+      Table I   — canonicalization effects (CV)
+      Table II  — single-split F1, FN, Cross
+      Table III — per-technique F1 drop
+      Table IV  — CV canonicalized mean±SD
+      Table V   — latency (archived run 094339)
+    """
 
     tables = {}
 
-    # Table I — canonicalization effects
+    # ── Table I — canonicalization effects ───────────────────────────────
     t1_rows = []
     for mname, e in cv_stats["canon_effects"].items():
         t1_rows.append({
-            "Detector":       mname.replace("_"," ").title(),
-            "Raw F1±SD":      f"{e['raw_f1_obf_mean']}±{e['raw_f1_obf_sd']}",
-            "Canon F1±SD":    f"{e['norm_f1_obf_mean']}±{e['norm_f1_obf_sd']}",
-            "Gain":           f"+{e['gain']:.3f}",
-            "p_holm":         f"{e['p_holm']:.2e}",
-            "sig_005":        "✓" if e["significant_005"] else "✗",
-            "triangle_ok":    "✓" if e["triangle_ok"] else "✗ VIOLATION",
-            "sd_diff":        e["sd_diff"],
+            "Detector":    mname.replace("_"," ").title(),
+            "Raw F1±SD":   f"{e['raw_f1_obf_mean']}±{e['raw_f1_obf_sd']}",
+            "Canon F1±SD": f"{e['norm_f1_obf_mean']}±{e['norm_f1_obf_sd']}",
+            "Gain":        f"+{e['gain']:.4f}",
+            "SD_diff":     e["sd_diff"],
+            "p_holm":      f"{e['p_holm']:.2e}",
+            "triangle_ok": "✓" if e["triangle_ok"] else "✗ VIOLATION",
         })
     tables["table_I"] = t1_rows
 
-    # Table II — single-split performance
+    # ── Table II — single-split performance ──────────────────────────────
     t2_rows = []
     for tag, det in ss["detectors"].items():
         c = det["clean"]; o = det["obf"]
+        errs = o.get("errors", {})
+        fn    = errs.get("sqli_to_benign",0) + errs.get("xss_to_benign",0)
+        cross = errs.get("sqli_to_xss",0)    + errs.get("xss_to_sqli",0)
         t2_rows.append({
-            "Detector":   tag,
-            "Clean_Acc":  c.get("accuracy",""),
-            "Clean_F1":   c["macro_f1"],
-            "Obf_Acc":    o.get("accuracy",""),
-            "Obf_F1":     o["macro_f1"],
-            "Drop":       det["obf_drop"],
-            "Lat_p95_ms": c.get("latency",{}).get("p95_ms",""),
+            "Configuration": tag,
+            "Clean_F1":  round(c["macro_f1"], 4),
+            "Obf_F1":    round(o["macro_f1"], 4),
+            "FN":        fn,
+            "Cross":     cross,
+            "Drop":      det["obf_drop"],
         })
     tables["table_II"] = t2_rows
 
-    # Table III — CV canonicalized
+    # ── Table III — per-technique F1 drop ────────────────────────────────
     t3_rows = []
-    canon_cfgs = [c for c in cv_stats["cv_summary"] if "normalized" in c or "canon" in c]
-    for cfg in canon_cfgs:
-        s = cv_stats["cv_summary"][cfg]
-        t3_rows.append({
-            "Detector":       cfg.replace("_normalized","").replace("_"," ").title(),
-            "F1_clean":       f"{s['f1_clean_mean']}±{s['f1_clean_sd']}",
-            "F1_obf":         f"{s['f1_obf_mean']}±{s['f1_obf_sd']}",
-            "95CI_obf":       f"[{s['f1_obf_ci95_lo']},{s['f1_obf_ci95_hi']}]",
-            "Drop":           s["obf_drop"],
-        })
+    if pt_rows:
+        for r in pt_rows:
+            t3_rows.append({
+                "Technique": r["technique"],
+                "Detector":  r["detector"],
+                "F1_clean":  r["f1_clean"],
+                "F1_obf":    r["f1_obf_mean"],
+                "F1_drop":   r["f1_drop"],
+                "in_paper":  r.get("in_paper", True),
+            })
     tables["table_III"] = t3_rows
 
+    # ── Table IV — CV canonicalized mean±SD ──────────────────────────────
+    t4_rows = []
+    canon_cfgs = [c for c in cv_stats["cv_summary"] if "normalized" in c]
+    for cfg in canon_cfgs:
+        s = cv_stats["cv_summary"][cfg]
+        t4_rows.append({
+            "Detector":  cfg.replace("_normalized","").replace("_"," ").title(),
+            "F1_clean":  f"{s['f1_clean_mean']}±{s['f1_clean_sd']}",
+            "F1_obf":    f"{s['f1_obf_mean']}±{s['f1_obf_sd']}",
+            "95CI_obf":  f"[{s['f1_obf_ci95_lo']},{s['f1_obf_ci95_hi']}]",
+            "Drop":      s["obf_drop"],
+        })
+    tables["table_IV"] = t4_rows
+
+    # ── Table V — latency (archived paper run 094339) ─────────────────────
+    t5_rows = []
+    for tag, det in ss["detectors"].items():
+        lat_paper = det["clean"].get("latency_paper_table_v", {})
+        lat_now   = det["clean"].get("latency_current_run", {})
+        if lat_paper:
+            t5_rows.append({
+                "Configuration":    tag,
+                "Calls":            lat_paper.get("n", ""),
+                "Median_ms_paper":  lat_paper.get("median_ms",""),
+                "p95_ms_paper":     lat_paper.get("p95_ms",""),
+                "p99_ms_paper":     lat_paper.get("p99_ms",""),
+                "p95_ms_this_run":  lat_now.get("p95_ms",""),
+                "source":           "archived run definitive_20260923T094339Z_42",
+            })
+    tables["table_V"] = t5_rows
+
     return tables
+
 
 
 def main():
@@ -615,7 +664,8 @@ def main():
     print("[exp] Computing statistics ...")
     stats_out = compute_stats(
         cv_out["fold_scores"],
-        cv_out["n_train_mean"], cv_out["n_test_mean"])
+        cv_out["n_train_mean"], cv_out["n_test_mean"],
+        fold_meta=cv_out["fold_meta"])
     (out_dir/"cv_stats.json").write_text(json.dumps(stats_out, indent=2))
 
     print("\n=== TABLE I — CANONICALIZATION EFFECTS ===")
@@ -643,42 +693,37 @@ def main():
     pt_df = pd.DataFrame(pt["rows"])
     pt_df.to_csv(out_dir/"per_technique.csv", index=False)
 
-    print("\n=== TABLE IV — PER-TECHNIQUE F1 DROP (RAW INPUT) ===")
-    pivot = pt_df[pt_df["in_paper"]==True].pivot(
-        index="technique", columns="detector", values="f1_drop")
+    print("\n=== TABLE IV — PER-TECHNIQUE F1 DROP (RAW INPUT, all 7 techniques) ===")
+    # PDF v17 §III-C now discloses all 7 techniques including partial URL encoding
+    pivot = pt_df.pivot(index="technique", columns="detector", values="f1_drop")
     print(pivot.round(3).to_string())
-    print("\n  (+ partial_url_encoding UNDISCLOSED in paper:)")
-    pu = pt_df[pt_df["in_paper"]==False]
-    if not pu.empty:
-        print(pu[["technique","detector","f1_drop"]].to_string(index=False))
 
-    # 5. Generate formatted tables
-    tables = generate_tables(ss, stats_out)
+    # 5. Generate formatted tables (all 5 matching PDF 17 numbering)
+    pt_rows_list = list(csv.DictReader(open(out_dir/"per_technique.csv")))
+    tables = generate_tables(ss, stats_out, pt_rows=pt_rows_list)
     (out_dir/"tables.json").write_text(json.dumps(tables, indent=2))
 
-    # Markdown table output
-    md_lines = [f"# Experiment Tables\nrun_id: `{run_id}`\n"]
-    md_lines.append("## Table I — Canonicalization Effects on Obfuscated F1\n")
-    if tables["table_I"]:
-        header = "| " + " | ".join(tables["table_I"][0].keys()) + " |"
-        sep    = "| " + " | ".join(["---"]*len(tables["table_I"][0])) + " |"
-        md_lines += [header, sep]
-        for row in tables["table_I"]:
-            md_lines.append("| " + " | ".join(str(v) for v in row.values()) + " |")
-    md_lines.append("\n## Table II — Single-Split Performance\n")
-    if tables["table_II"]:
-        header = "| " + " | ".join(tables["table_II"][0].keys()) + " |"
-        sep    = "| " + " | ".join(["---"]*len(tables["table_II"][0])) + " |"
-        md_lines += [header, sep]
-        for row in tables["table_II"]:
-            md_lines.append("| " + " | ".join(str(v) for v in row.values()) + " |")
-    md_lines.append("\n## Table III — CV Canonicalized\n")
-    if tables["table_III"]:
-        header = "| " + " | ".join(tables["table_III"][0].keys()) + " |"
-        sep    = "| " + " | ".join(["---"]*len(tables["table_III"][0])) + " |"
-        md_lines += [header, sep]
-        for row in tables["table_III"]:
-            md_lines.append("| " + " | ".join(str(v) for v in row.values()) + " |")
+    # Markdown — all 5 tables
+    md_lines = [f"# Experiment Tables — PDF 17 Numbering\nrun_id: `{run_id}`\n",
+                f"> Table V latency from archived run `definitive_20260923T094339Z_42`\n"]
+    table_titles = [
+        ("table_I",   "Table I — Canonicalization Effects on Obfuscated F1 (CV)"),
+        ("table_II",  "Table II — Single-Split Results (n=263): FN and Cross errors"),
+        ("table_III", "Table III — Per-Technique F1 Drop (Raw Input, 5 Seeds)"),
+        ("table_IV",  "Table IV — Canonicalized Configurations (CV mean±SD)"),
+        ("table_V",   "Table V — Latency (Archived Run 094339, Clean-Input, 263 Calls)"),
+    ]
+    for key, title in table_titles:
+        md_lines.append(f"\n## {title}\n")
+        rows = tables.get(key, [])
+        if rows:
+            header = "| " + " | ".join(rows[0].keys()) + " |"
+            sep    = "| " + " | ".join(["---"]*len(rows[0])) + " |"
+            md_lines += [header, sep]
+            for row in rows:
+                md_lines.append("| " + " | ".join(str(v) for v in row.values()) + " |")
+        else:
+            md_lines.append("*(no data)*")
     (out_dir/"tables.md").write_text("\n".join(md_lines))
 
     # 6. Manifest
@@ -689,7 +734,7 @@ def main():
         "python": env["python"], "sklearn": env["sklearn"],
         "n_obf_techniques": len(_TECHNIQUES),
         "obf_techniques": sorted(_TECHNIQUES.keys()),
-        "paper_claims_6_techniques_code_has_7": True,
+        "n_obf_techniques": 7,  # all 7 disclosed in ICITDA_REVISED(17).pdf §III-C
         "double_canonicalization_bug": "FIXED in this script (see audit_run.py)",
         "output_files": {
             "environment":   str(out_dir/"environment.json"),

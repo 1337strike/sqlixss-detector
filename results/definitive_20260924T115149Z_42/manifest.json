@@ -16,7 +16,6 @@
     "url_encode",
     "whitespace"
   ],
-  "paper_claims_6_techniques_code_has_7": true,
   "double_canonicalization_bug": "FIXED in this script (see audit_run.py)",
   "output_files": {
     "environment": "/home/claude/sqli/results/definitive_20260924T115149Z_42/environment.json",
@@ -27,5 +26,6 @@
     "per_technique": "/home/claude/sqli/results/definitive_20260924T115149Z_42/per_technique.csv",
     "tables_json": "/home/claude/sqli/results/definitive_20260924T115149Z_42/tables.json",
     "tables_md": "/home/claude/sqli/results/definitive_20260924T115149Z_42/tables.md"
-  }
+  },
+  "obf_techniques_note": "All 7 techniques including partial_url_encode are disclosed in PDF v17 \u00a7III-C"
 }

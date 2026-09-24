@@ -1,0 +1,465 @@
+{
+  "table_I": [
+    {
+      "Detector": "Logistic Regression",
+      "Raw F1\u00b1SD": "0.790514\u00b10.039389",
+      "Canon F1\u00b1SD": "0.993404\u00b10.006777",
+      "Gain": "+0.2029",
+      "SD_diff": 0.0358,
+      "p_holm": "3.42e-07",
+      "triangle_ok": "\u2713"
+    },
+    {
+      "Detector": "Naive Bayes",
+      "Raw F1\u00b1SD": "0.812117\u00b10.037975",
+      "Canon F1\u00b1SD": "0.983776\u00b10.010128",
+      "Gain": "+0.1717",
+      "SD_diff": 0.035283,
+      "p_holm": "1.65e-06",
+      "triangle_ok": "\u2713"
+    },
+    {
+      "Detector": "Svm",
+      "Raw F1\u00b1SD": "0.859188\u00b10.038081",
+      "Canon F1\u00b1SD": "0.991925\u00b10.007704",
+      "Gain": "+0.1327",
+      "SD_diff": 0.036041,
+      "p_holm": "1.30e-05",
+      "triangle_ok": "\u2713"
+    },
+    {
+      "Detector": "Signature",
+      "Raw F1\u00b1SD": "0.589255\u00b10.105917",
+      "Canon F1\u00b1SD": "0.84198\u00b10.07227",
+      "Gain": "+0.2527",
+      "SD_diff": 0.052281,
+      "p_holm": "1.65e-06",
+      "triangle_ok": "\u2713"
+    }
+  ],
+  "table_II": [
+    {
+      "Configuration": "logistic_regression_raw",
+      "Clean_F1": 1.0,
+      "Obf_F1": 0.7895,
+      "FN": 0,
+      "Cross": 23,
+      "Drop": 0.21051
+    },
+    {
+      "Configuration": "logistic_regression_normalized",
+      "Clean_F1": 1.0,
+      "Obf_F1": 0.9931,
+      "FN": 0,
+      "Cross": 1,
+      "Drop": 0.006948
+    },
+    {
+      "Configuration": "naive_bayes_raw",
+      "Clean_F1": 0.9937,
+      "Obf_F1": 0.795,
+      "FN": 8,
+      "Cross": 17,
+      "Drop": 0.1987
+    },
+    {
+      "Configuration": "naive_bayes_normalized",
+      "Clean_F1": 0.9937,
+      "Obf_F1": 0.9868,
+      "FN": 2,
+      "Cross": 1,
+      "Drop": 0.006947
+    },
+    {
+      "Configuration": "svm_raw",
+      "Clean_F1": 1.0,
+      "Obf_F1": 0.8369,
+      "FN": 0,
+      "Cross": 19,
+      "Drop": 0.16312
+    },
+    {
+      "Configuration": "svm_normalized",
+      "Clean_F1": 1.0,
+      "Obf_F1": 0.9931,
+      "FN": 0,
+      "Cross": 1,
+      "Drop": 0.006948
+    },
+    {
+      "Configuration": "signature_raw",
+      "Clean_F1": 0.7467,
+      "Obf_F1": 0.4928,
+      "FN": 90,
+      "Cross": 0,
+      "Drop": 0.25396
+    },
+    {
+      "Configuration": "signature_normalized",
+      "Clean_F1": 0.7563,
+      "Obf_F1": 0.7516,
+      "FN": 59,
+      "Cross": 0,
+      "Drop": 0.004784
+    }
+  ],
+  "table_III": [
+    {
+      "Technique": "url_encoding",
+      "Detector": "logistic_regression_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "0.7034",
+      "F1_drop": "0.2966",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "url_encoding",
+      "Detector": "naive_bayes_raw",
+      "F1_clean": "0.9937",
+      "F1_obf": "0.7729",
+      "F1_drop": "0.2208",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "url_encoding",
+      "Detector": "svm_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "0.9322",
+      "F1_drop": "0.0678",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "url_encoding",
+      "Detector": "signature_naive",
+      "F1_clean": "0.7467",
+      "F1_obf": "0.4661",
+      "F1_drop": "0.2806",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "url_encoding",
+      "Detector": "signature_normalized",
+      "F1_clean": "0.7563",
+      "F1_obf": "0.7563",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "double_url_encoding",
+      "Detector": "logistic_regression_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "0.6113",
+      "F1_drop": "0.3887",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "double_url_encoding",
+      "Detector": "naive_bayes_raw",
+      "F1_clean": "0.9937",
+      "F1_obf": "0.6108",
+      "F1_drop": "0.3829",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "double_url_encoding",
+      "Detector": "svm_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "0.6111",
+      "F1_drop": "0.3889",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "double_url_encoding",
+      "Detector": "signature_naive",
+      "F1_clean": "0.7467",
+      "F1_obf": "0.4661",
+      "F1_drop": "0.2806",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "double_url_encoding",
+      "Detector": "signature_normalized",
+      "F1_clean": "0.7563",
+      "F1_obf": "0.7563",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "whitespace_manipulation",
+      "Detector": "logistic_regression_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "1.0",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "whitespace_manipulation",
+      "Detector": "naive_bayes_raw",
+      "F1_clean": "0.9937",
+      "F1_obf": "0.9937",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "whitespace_manipulation",
+      "Detector": "svm_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "1.0",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "whitespace_manipulation",
+      "Detector": "signature_naive",
+      "F1_clean": "0.7467",
+      "F1_obf": "0.7349",
+      "F1_drop": "0.0119",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "whitespace_manipulation",
+      "Detector": "signature_normalized",
+      "F1_clean": "0.7563",
+      "F1_obf": "0.7484",
+      "F1_drop": "0.0079",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "case_toggling",
+      "Detector": "logistic_regression_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "1.0",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "case_toggling",
+      "Detector": "naive_bayes_raw",
+      "F1_clean": "0.9937",
+      "F1_obf": "0.9937",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "case_toggling",
+      "Detector": "svm_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "1.0",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "case_toggling",
+      "Detector": "signature_naive",
+      "F1_clean": "0.7467",
+      "F1_obf": "0.7467",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "case_toggling",
+      "Detector": "signature_normalized",
+      "F1_clean": "0.7563",
+      "F1_obf": "0.7563",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "comment_insertion",
+      "Detector": "logistic_regression_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "1.0",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "comment_insertion",
+      "Detector": "naive_bayes_raw",
+      "F1_clean": "0.9937",
+      "F1_obf": "0.9937",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "comment_insertion",
+      "Detector": "svm_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "1.0",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "comment_insertion",
+      "Detector": "signature_naive",
+      "F1_clean": "0.7467",
+      "F1_obf": "0.7418",
+      "F1_drop": "0.0049",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "comment_insertion",
+      "Detector": "signature_normalized",
+      "F1_clean": "0.7563",
+      "F1_obf": "0.7563",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "unicode_substitution",
+      "Detector": "logistic_regression_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "0.9436",
+      "F1_drop": "0.0564",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "unicode_substitution",
+      "Detector": "naive_bayes_raw",
+      "F1_clean": "0.9937",
+      "F1_obf": "0.9606",
+      "F1_drop": "0.0331",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "unicode_substitution",
+      "Detector": "svm_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "0.9655",
+      "F1_drop": "0.0345",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "unicode_substitution",
+      "Detector": "signature_naive",
+      "F1_clean": "0.7467",
+      "F1_obf": "0.6239",
+      "F1_drop": "0.1228",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "unicode_substitution",
+      "Detector": "signature_normalized",
+      "F1_clean": "0.7563",
+      "F1_obf": "0.7563",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "partial_url_encoding",
+      "Detector": "logistic_regression_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "0.9749",
+      "F1_drop": "0.0251",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "partial_url_encoding",
+      "Detector": "naive_bayes_raw",
+      "F1_clean": "0.9937",
+      "F1_obf": "0.9641",
+      "F1_drop": "0.0296",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "partial_url_encoding",
+      "Detector": "svm_raw",
+      "F1_clean": "1.0",
+      "F1_obf": "0.9891",
+      "F1_drop": "0.0109",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "partial_url_encoding",
+      "Detector": "signature_naive",
+      "F1_clean": "0.7467",
+      "F1_obf": "0.6116",
+      "F1_drop": "0.1351",
+      "in_paper": "True"
+    },
+    {
+      "Technique": "partial_url_encoding",
+      "Detector": "signature_normalized",
+      "F1_clean": "0.7563",
+      "F1_obf": "0.7563",
+      "F1_drop": "0.0",
+      "in_paper": "True"
+    }
+  ],
+  "table_IV": [
+    {
+      "Detector": "Logistic Regression",
+      "F1_clean": "0.993684\u00b10.006967",
+      "F1_obf": "0.993404\u00b10.006777",
+      "95CI_obf": "[0.989651,0.997156]",
+      "Drop": 0.000281
+    },
+    {
+      "Detector": "Naive Bayes",
+      "F1_clean": "0.984344\u00b10.009685",
+      "F1_obf": "0.983776\u00b10.010128",
+      "95CI_obf": "[0.978168,0.989385]",
+      "Drop": 0.000568
+    },
+    {
+      "Detector": "Svm",
+      "F1_clean": "0.991925\u00b10.007704",
+      "F1_obf": "0.991925\u00b10.007704",
+      "95CI_obf": "[0.987659,0.996192]",
+      "Drop": 0.0
+    },
+    {
+      "Detector": "Signature",
+      "F1_clean": "0.845959\u00b10.071199",
+      "F1_obf": "0.84198\u00b10.07227",
+      "95CI_obf": "[0.801958,0.882002]",
+      "Drop": 0.003979
+    }
+  ],
+  "table_V": [
+    {
+      "Configuration": "logistic_regression_normalized",
+      "Calls": 263,
+      "Median_ms_paper": 0.2731,
+      "p95_ms_paper": 0.3548,
+      "p99_ms_paper": 0.375,
+      "p95_ms_this_run": 0.5939,
+      "source": "archived run definitive_20260923T094339Z_42"
+    },
+    {
+      "Configuration": "naive_bayes_normalized",
+      "Calls": 263,
+      "Median_ms_paper": 0.2579,
+      "p95_ms_paper": 0.3242,
+      "p99_ms_paper": 0.3783,
+      "p95_ms_this_run": 0.6369,
+      "source": "archived run definitive_20260923T094339Z_42"
+    },
+    {
+      "Configuration": "svm_normalized",
+      "Calls": 263,
+      "Median_ms_paper": 1.2457,
+      "p95_ms_paper": 1.3864,
+      "p99_ms_paper": 1.5812,
+      "p95_ms_this_run": 2.2445,
+      "source": "archived run definitive_20260923T094339Z_42"
+    },
+    {
+      "Configuration": "signature_raw",
+      "Calls": 263,
+      "Median_ms_paper": 0.0046,
+      "p95_ms_paper": 0.0091,
+      "p99_ms_paper": 0.0167,
+      "p95_ms_this_run": 0.011,
+      "source": "archived run definitive_20260923T094339Z_42"
+    },
+    {
+      "Configuration": "signature_normalized",
+      "Calls": 263,
+      "Median_ms_paper": 0.0082,
+      "p95_ms_paper": 0.019,
+      "p99_ms_paper": 0.0323,
+      "p95_ms_this_run": 0.0233,
+      "source": "archived run definitive_20260923T094339Z_42"
+    }
+  ]
+}
