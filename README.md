@@ -131,20 +131,31 @@ run on every push.
 
 ### Measured on data the models never saw (`scripts/evaluate_waf_realworld.py`)
 
-Default detectors LR + SVM + signature:
+Default: detectors LR + SVM + signature, `model_set: deploy` (models trained by
+`scripts/train_deploy_models.py`; the paper's models are available as
+`model_set: paper`).
 
-| Test | Result |
-|---|---|
-| False positives, CSIC 2010 normal traffic (36,000 real HTTP requests) | **0 (0.00%)** |
-| SQLi holdout, PayloadsAllTheThings (879 complete payloads, not in training) | 99.2–99.8% (query / form / JSON) |
-| XSS holdout, PayloadsAllTheThings (1,572 complete payloads) | 99.2–99.7% |
-| sqlmap 1.10.9 live, `--level 3 --risk 2`, 6 tamper configurations (10,252 attack requests) | **99.91%** blocked |
-| Latency (content inspection, in-process) | ~2.4 ms / request |
+| Test | Deploy models (default) | Paper models |
+|---|---|---|
+| False positives, CSIC 2010 normal traffic (36,000 real HTTP requests) | **0** | 0 |
+| False positives, ordinary values with unseen parameter names | **0%** | 6.9% |
+| False positives, values with apostrophes (`it's`, `O'Neil`) | **0.1%** | 99.4% |
+| SQLi holdout, PayloadsAllTheThings (879 complete payloads, not in training) | 99.1–99.4% | 99.2–99.8% |
+| XSS holdout, PayloadsAllTheThings (1,572 complete payloads) | 98.5–99.4% | 99.2–99.7% |
+| Paper test split, attacks detected at the WAF | 96.6% | 95.8% |
+| sqlmap 1.10.9 replay, 6 tamper configurations (10,252 attack requests) | 99.05% | 99.91% |
+| Latency (content inspection, in-process) | ~2.5 ms / request | ~2.4 ms / request |
 
-The ~0.1% of sqlmap requests that pass are arithmetic probes (`5602-5601`)
-and single encoded digits, which are not injections and are indistinguishable
-from ordinary input. `naive_bayes` is off by default: it caused all 112 false
-positives in this test (it flags short-password login forms as SQLi).
+The deployment models trade 0.9 points of sqlmap detection for far fewer
+false positives on real-world inputs; signature rules and repeat-offender bans
+remain behind them. Most sqlmap requests that pass are arithmetic probes
+(`5602-5601`) and single encoded digits, which are not injections.
+`naive_bayes` is off by default: on CSIC it caused all 112 false positives
+(it flags short-password login forms as SQLi).
+
+Every detection-based refusal (payload, scanner, ban, deny list) returns the
+same `403 {"error": "Forbidden", "request_id": ...}`; the reason is recorded
+in `logs/waf.log` under that `request_id`.
 
 ### Recommended rollout
 1. Deploy behind Caddy (`deploy/Caddyfile`) with `deploy/waf.service`; set
