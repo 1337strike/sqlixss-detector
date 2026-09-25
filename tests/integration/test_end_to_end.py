@@ -9,9 +9,9 @@ proxy, produce consistent decisions and that the decision boundary is
 not degraded by the canonicalization step.
 
 These tests do NOT start a network proxy; they test the pipeline
-components directly in the same way the proxy would call them.  Network
-proxy tests belong in tests/integration/test_proxy_live.py (written
-separately, requires a running WAF instance).
+components directly in the same way the proxy would call them. Proxy tests
+over real HTTP are in tests/integration/test_waf_deployment.py (in-process)
+and tests/integration/test_proxy_live.py (real processes, gunicorn + Redis).
 
 Run:
     python -m pytest tests/integration/test_end_to_end.py -v
