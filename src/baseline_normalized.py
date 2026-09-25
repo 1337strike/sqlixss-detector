@@ -99,8 +99,9 @@ class NormalizedSignatureBaseline:
     interchangeably with the ML models.
     """
 
-    def __init__(self) -> None:
-        self._sqli_re = [re.compile(p, re.IGNORECASE) for p in _SQLI_PATTERNS]
+    def __init__(self, extra_sqli_patterns: list[str] = ()) -> None:
+        self._sqli_re = [re.compile(p, re.IGNORECASE)
+                         for p in [*_SQLI_PATTERNS, *extra_sqli_patterns]]
         self._xss_re  = [re.compile(p, re.IGNORECASE) for p in _XSS_PATTERNS]
 
     def _classify_one(self, payload: str) -> str:

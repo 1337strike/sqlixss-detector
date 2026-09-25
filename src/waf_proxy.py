@@ -63,9 +63,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import yaml
 from aiohttp import web, ClientSession, ClientTimeout
 
-from src.models import load_model
-from src.baseline_signature import SignatureBaseline
-from src.baseline_normalized import NormalizedSignatureBaseline
+from src.models import AbstainOnUnknown, load_model
+from src.baseline_signature import WAF_EXTRA_SQLI_PATTERNS, SignatureBaseline
+from src.baseline_normalized import NormalizedSignatureBaseline, canonicalize
 from src.ensemble import EnsembleDetector, Verdict
 from src.rate_limiter import build_rate_limiter
 from src.waf_stats import build_stats
@@ -120,12 +120,15 @@ def build_detectors(model_names: list[str]) -> dict[str, Any]:
     detectors = {}
     for name in model_names:
         if name == "signature_baseline":
-            detectors[name] = SignatureBaseline()
+            detectors[name] = SignatureBaseline(extra_sqli_patterns=WAF_EXTRA_SQLI_PATTERNS)
         elif name == "anomaly":
             detectors[name] = AnomalyDetector()
         else:
             try:
-                detectors[name] = load_model(name)
+                # Abstain on out-of-vocabulary input instead of voting the
+                # class prior (see AbstainOnUnknown) -- otherwise bare paths
+                # like "/login" are blocked as SQLi.
+                detectors[name] = AbstainOnUnknown(load_model(name))
             except FileNotFoundError as e:
                 raise SystemExit(
                     f"[waf] {e}\nTrain models first: python scripts/02_train_models.py"
@@ -163,14 +166,27 @@ def resolve_client_ip(request: web.Request, trusted_proxies: list[str]) -> str:
         return direct_ip
 
 
+def extract_url_path(path_qs: str) -> str:
+    """The decoded URL path, which is classified by signature rules only.
+
+    The ML models were trained on parameter strings ("id=5&sort=asc") and
+    never saw a URL path; bare paths like "/login" or "/api/users" land on
+    the prior or on a single SQL-ish token ("users") and were blocked as
+    SQLi. Paths get the same signature-only treatment as headers.
+    """
+    return urllib.parse.unquote(urllib.parse.urlsplit(path_qs).path)
+
+
 def extract_inspectable_texts(path_qs: str, body_bytes: bytes, content_type: str) -> list[str]:
     """
-    Returns a list of separate strings to classify individually: the
-    URL path+query string, and (if present) the request body. Keeping
-    them separate rather than concatenated means the WAF log can tell you
-    exactly WHICH part of the request was malicious.
+    Returns a list of separate strings for the ML ensemble to classify
+    individually: the query string (if any), and (if present) the request
+    body. Keeping them separate rather than concatenated means the WAF log
+    can tell you exactly WHICH part of the request was malicious. The URL
+    path is handled separately, see extract_url_path().
     """
-    texts = [urllib.parse.unquote(path_qs)]
+    query = urllib.parse.urlsplit(path_qs).query
+    texts = [urllib.parse.unquote(query)] if query else []
 
     if not body_bytes:
         return texts
@@ -222,7 +238,7 @@ class WafProxy:
         # R5 FIX: use NormalizedSignatureBaseline so encoded header values
         # (e.g. URL-encoded SQLi) are canonicalized before rule matching.
         # Raw strings are passed in; canonicalization happens once inside.
-        self._header_detector = NormalizedSignatureBaseline()
+        self._header_detector = NormalizedSignatureBaseline(extra_sqli_patterns=WAF_EXTRA_SQLI_PATTERNS)
 
         self.rate_limiter = build_rate_limiter(config.get("rate_limit", {}))
 
@@ -441,7 +457,10 @@ class WafProxy:
                     latency_ms=(time.perf_counter() - t0) * 1000,
                 )
                 return web.Response(status=400, text="Request body too complex to inspect")
-            body_texts = [urllib.parse.unquote(str(request.rel_url))] + json_result.string_values
+            # ML sees "key=value" leaves (its training shape); every bare key
+            # and value still goes through the signature rules below.
+            body_texts = extract_inspectable_texts(str(request.rel_url), b"", "") + json_result.pairs
+            json_signature_texts = json_result.string_values
             if not json_result.was_valid_json:
                 # Malformed JSON despite the declared Content-Type -- log
                 # it as a distinct signal without auto-blocking (plenty of
@@ -453,20 +472,25 @@ class WafProxy:
                 )
         else:
             body_texts = extract_inspectable_texts(str(request.rel_url), body_bytes, content_type)
+            json_signature_texts = []
 
-        header_texts = extract_header_texts(request.headers)
+        signature_only_texts = ([extract_url_path(str(request.rel_url))]
+                                + json_signature_texts
+                                + extract_header_texts(request.headers))
 
         worst_verdict = None
         for text in body_texts:
             if not text:
                 continue
-            verdict = self.ensemble.classify(text)
+            # Canonicalize once before the ensemble: the paper's recommended
+            # configuration (raw input costs ~0.2 F1 on obfuscated payloads).
+            verdict = self.ensemble.classify(canonicalize(text))
             if verdict.blocked:
                 worst_verdict = verdict
                 break
 
         if worst_verdict is None:
-            for text in header_texts:
+            for text in signature_only_texts:
                 if not text:
                     continue
                 label = self._header_detector.predict([text])[0]

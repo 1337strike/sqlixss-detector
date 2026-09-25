@@ -79,6 +79,35 @@ def load_model(name: str, models_dir: Path = MODELS_DIR) -> Pipeline:
     return joblib.load(path)
 
 
+class AbstainOnUnknown:
+    """Deployment wrapper: vote "benign" when the input shares no token with
+    the model's TF-IDF vocabulary.
+
+    With an all-zero feature vector the classifier has no evidence and falls
+    back to its intercepts, i.e. the class priors -- which on this corpus
+    favour "sqli" (~0.51). Unwrapped, every out-of-vocabulary request such
+    as a bare path ("/login", "/") or a plain JSON value ("bob") gets
+    blocked. Attack syntax (quotes, comment markers, SQL/HTML keywords) is
+    in the vocabulary, so real payloads always reach the classifier; the
+    signature baseline in the ensemble still sees every input regardless.
+
+    Research scripts use the bare pipelines; only the live WAF wraps them.
+    """
+
+    def __init__(self, pipeline: Pipeline):
+        self.pipeline = pipeline
+        self._vectorizer = pipeline.steps[0][1]
+
+    def predict(self, payloads: list[str]) -> list[str]:
+        known = self._vectorizer.transform(payloads).getnnz(axis=1) > 0
+        preds = ["benign"] * len(payloads)
+        idx = [i for i, k in enumerate(known) if k]
+        if idx:
+            for i, label in zip(idx, self.pipeline.predict([payloads[i] for i in idx])):
+                preds[i] = label
+        return preds
+
+
 def load_all_models(models_dir: Path = MODELS_DIR) -> dict[str, Pipeline]:
     return {
         name: load_model(name, models_dir)

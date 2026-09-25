@@ -36,7 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import psutil
 from scapy.all import sniff, TCP, IP, Raw
 
-from src.models import load_model
+from src.models import AbstainOnUnknown, load_model
 from src.baseline_signature import SignatureBaseline
 
 # --------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class RealtimeClassifier:
         if model_name == "signature_baseline":
             self.model = SignatureBaseline()
         else:
-            self.model = load_model(model_name)
+            self.model = AbstainOnUnknown(load_model(model_name))
         self.model_name = model_name
         self.process = psutil.Process()
         self.packet_count = 0

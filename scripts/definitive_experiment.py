@@ -727,24 +727,27 @@ def main():
     (out_dir/"tables.md").write_text("\n".join(md_lines))
 
     # 6. Manifest
+    # Paths are stored relative to the repo root so the manifest is portable
+    # and does not leak the local filesystem layout of the machine that ran it.
+    repo_root = out_dir.parent.parent
+    rel = lambda name: (out_dir/name).relative_to(repo_root).as_posix()
     manifest = {
         "run_id": run_id,
         "timestamp": env["timestamp"],
         "seed": args.seed, "n_folds": args.folds, "n_reps": args.repeats,
         "python": env["python"], "sklearn": env["sklearn"],
-        "n_obf_techniques": len(_TECHNIQUES),
+        "n_obf_techniques": len(_TECHNIQUES),  # all 7 disclosed in ICITDA_REVISED(17).pdf §III-C
         "obf_techniques": sorted(_TECHNIQUES.keys()),
-        "n_obf_techniques": 7,  # all 7 disclosed in ICITDA_REVISED(17).pdf §III-C
         "double_canonicalization_bug": "FIXED in this script (see audit_run.py)",
         "output_files": {
-            "environment":   str(out_dir/"environment.json"),
-            "single_split":  str(out_dir/"single_split.json"),
-            "fold_scores":   str(out_dir/"fold_scores.json"),
-            "predictions":   str(out_dir/"predictions.csv"),
-            "cv_stats":      str(out_dir/"cv_stats.json"),
-            "per_technique": str(out_dir/"per_technique.csv"),
-            "tables_json":   str(out_dir/"tables.json"),
-            "tables_md":     str(out_dir/"tables.md"),
+            "environment":   rel("environment.json"),
+            "single_split":  rel("single_split.json"),
+            "fold_scores":   rel("fold_scores.json"),
+            "predictions":   rel("predictions.csv"),
+            "cv_stats":      rel("cv_stats.json"),
+            "per_technique": rel("per_technique.csv"),
+            "tables_json":   rel("tables.json"),
+            "tables_md":     rel("tables.md"),
         },
     }
     (out_dir/"manifest.json").write_text(json.dumps(manifest, indent=2))

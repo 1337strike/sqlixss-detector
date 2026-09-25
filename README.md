@@ -71,7 +71,7 @@ tests/
   test_pipeline_regression.py   G1/M2 canonicalization + vocabulary isolation
   test_split_integrity.py       G4 family leakage checks
   integration/
-    test_end_to_end.py          37 passed, 5 xfailed (documented FP edge cases)
+    test_end_to_end.py          pipeline + WAF extraction path; FP edge cases are xfail
 AUDIT_REPORT.md             full audit findings
 ```
 
@@ -124,7 +124,7 @@ pip install -r requirements.txt
 python scripts/00_download_payloads.py
 python scripts/01c_build_grouped_dataset.py
 python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
-python -m pytest tests/ -q   # 70 passed, 5 xfailed
+python -m pytest tests/ -q   # all pass; documented FP edge cases report as xfailed
 ```
 
 Experiment ID: `definitive_20260923T094339Z_42`  

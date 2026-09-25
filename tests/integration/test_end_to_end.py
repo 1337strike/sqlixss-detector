@@ -19,7 +19,9 @@ Run:
 
 from __future__ import annotations
 
+import json
 import sys
+import urllib.parse
 from pathlib import Path
 
 import pytest
@@ -28,7 +30,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.baseline_normalized import NormalizedSignatureBaseline, canonicalize
 from src.baseline_signature import SignatureBaseline
+from src.json_extraction import extract_json_string_values
 from src.models import get_model_definitions
+from src.waf_proxy import extract_header_texts, extract_inspectable_texts
 
 
 # ── shared fixtures ──────────────────────────────────────────────────────────
@@ -203,12 +207,141 @@ class TestRequestLocationConsistency:
     PAYLOAD = "' OR 1=1 --"
     EXPECTED = "sqli"
 
+    @staticmethod
+    def _extract(loc: str, payload: str) -> list[str]:
+        """Return the texts the WAF proxy would inspect for ``payload``
+        placed in ``loc``, using the proxy's own extraction functions."""
+        enc = urllib.parse.quote(payload, safe="")
+        if loc == "query":
+            return extract_inspectable_texts(f"/search?q={enc}", b"", "")
+        if loc == "body":
+            return extract_inspectable_texts(
+                "/login", f"user={enc}".encode(), "application/x-www-form-urlencoded")
+        if loc == "json":
+            # ' exercises JSON's own escaping, which only a real parse undoes
+            body = json.dumps({"filters": {"q": payload}}).replace("'", "\\u0027")
+            result = extract_json_string_values(body.encode())
+            assert result.was_valid_json and not result.truncated
+            return result.pairs   # what the proxy hands to the ML ensemble
+        if loc == "header":
+            return extract_header_texts({"User-Agent": payload})
+        raise ValueError(loc)
+
     @pytest.mark.parametrize("loc", LOCATIONS)
     def test_location_invariance_ml(self, trained_models, loc):
-        # Simulate what the WAF proxy extracts for each location
-        canon = canonicalize(self.PAYLOAD)
+        texts = self._extract(loc, self.PAYLOAD)
         for name, model in trained_models.items():
-            pred = model.predict([canon])[0]
-            assert pred == self.EXPECTED, (
-                f"{name} gave different result for location={loc}: {pred!r}"
+            preds = model.predict([canonicalize(t) for t in texts])
+            assert self.EXPECTED in preds, (
+                f"{name} missed payload in location={loc}: "
+                f"texts={texts!r} preds={list(preds)!r}"
             )
+
+    @pytest.mark.parametrize("loc", LOCATIONS)
+    def test_location_invariance_normalized_baseline(self, baselines, loc):
+        # The proxy classifies headers with the normalizing signature
+        # baseline only, so every location must be caught by it too.
+        texts = self._extract(loc, self.PAYLOAD)
+        preds = baselines["signature_normalized"].predict(texts)
+        assert self.EXPECTED in preds, (
+            f"Normalizing baseline missed payload in location={loc}: "
+            f"texts={texts!r} preds={list(preds)!r}"
+        )
+
+
+# ── live-WAF detector configuration ──────────────────────────────────────────
+
+class TestWafDetectors:
+    """Regressions found by driving the live proxy with real HTTP traffic.
+
+    Uses the committed models exactly as the WAF loads them
+    (build_detectors), so these fail if the deployment wiring regresses.
+    """
+
+    # Plain JSON values share no token with the TF-IDF vocabulary;
+    # unwrapped, LR voted the class prior ("sqli", p=0.51) and every JSON
+    # POST was blocked.
+    OUT_OF_VOCAB_BENIGN = ["bob", "hi there", "username"]
+
+    # Bare paths were classified by the ML ensemble and blocked (GET /,
+    # POST /login, GET /api/users). They now go to signature rules only.
+    BENIGN_PATHS = ["/", "/login", "/api/users", "/select-plan", "/admin/users/42"]
+
+    ATTACKS = [
+        ("' OR 1=1 --", "sqli"),
+        ("1 union select null", "sqli"),
+        ("admin'--", "sqli"),
+        ("%2527%2520OR%25201%253D1%2520--", "sqli"),
+        ("<svg/onload=alert(1)>", "xss"),
+        ("javascript:alert(1)", "xss"),
+    ]
+
+    @pytest.fixture(scope="class")
+    def ensemble(self):
+        from src.ensemble import EnsembleDetector
+        from src.waf_proxy import build_detectors
+        names = ["logistic_regression", "naive_bayes", "svm", "signature_baseline"]
+        return EnsembleDetector(build_detectors(names), policy="any")
+
+    @pytest.fixture(scope="class")
+    def signature_only(self):
+        from src.baseline_signature import WAF_EXTRA_SQLI_PATTERNS
+        return NormalizedSignatureBaseline(extra_sqli_patterns=WAF_EXTRA_SQLI_PATTERNS)
+
+    @pytest.mark.parametrize("text", OUT_OF_VOCAB_BENIGN)
+    def test_out_of_vocab_benign_passes(self, ensemble, text):
+        v = ensemble.classify(canonicalize(text))
+        assert not v.blocked, f"{text!r} blocked by {v.triggered_by}: {v.votes}"
+
+    @pytest.mark.parametrize("path", BENIGN_PATHS)
+    def test_benign_paths_pass(self, signature_only, path):
+        from src.waf_proxy import extract_inspectable_texts, extract_url_path
+        assert extract_inspectable_texts(path, b"", "") == []   # no ML input
+        assert signature_only.predict([extract_url_path(path)]) == ["benign"]
+
+    @pytest.mark.parametrize("path", [
+        "/item/1%27%20UNION%20SELECT%20password%20FROM%20users--",
+        "/p/%3Cscript%3Ealert(1)%3C/script%3E",
+    ])
+    def test_path_attacks_blocked(self, signature_only, path):
+        from src.waf_proxy import extract_url_path
+        assert signature_only.predict([extract_url_path(path)]) != ["benign"]
+
+    # Bare keys/values like "type", "order", "users" are single SQL-ish
+    # tokens and were blocked; as "key=value" pairs they classify benign.
+    @pytest.mark.parametrize("body", [
+        {"role": "admin", "table": "users", "name": "John Smith"},
+        {"type": "data", "sort": "order", "status": "active"},
+        {"items": [{"group": "staff"}, {"order": "desc"}]},
+    ])
+    def test_benign_json_passes(self, ensemble, signature_only, body):
+        result = extract_json_string_values(json.dumps(body).encode())
+        for text in result.pairs:
+            v = ensemble.classify(canonicalize(text))
+            assert not v.blocked, f"{text!r} blocked by {v.triggered_by}"
+        assert set(signature_only.predict(result.string_values)) == {"benign"}
+
+    @pytest.mark.parametrize("payload,label", ATTACKS)
+    def test_attacks_still_blocked(self, ensemble, payload, label):
+        v = ensemble.classify(canonicalize(payload))
+        assert v.blocked and v.final_label == label, v.votes
+
+    @pytest.mark.parametrize("cookie", [
+        "id=1' OR '1'='1", "session=x\" or \"a\"=\"a", "q=1 OR 2=2",
+    ])
+    def test_header_tautology_blocked(self, cookie):
+        from src.baseline_signature import WAF_EXTRA_SQLI_PATTERNS
+        det = NormalizedSignatureBaseline(extra_sqli_patterns=WAF_EXTRA_SQLI_PATTERNS)
+        assert det.predict([cookie]) == ["sqli"]
+
+    @pytest.mark.parametrize("cookie", [
+        "theme=dark; lang=en", "pref=color or size", "a=1; b=2",
+    ])
+    def test_header_tautology_no_fp(self, cookie):
+        from src.baseline_signature import WAF_EXTRA_SQLI_PATTERNS
+        det = NormalizedSignatureBaseline(extra_sqli_patterns=WAF_EXTRA_SQLI_PATTERNS)
+        assert det.predict([cookie]) == ["benign"]
+
+    def test_research_baseline_unchanged(self):
+        # The extra rule is WAF-only; the paper's baseline must not gain it.
+        assert SignatureBaseline().predict(["id=1' OR '1'='1"]) == ["benign"]
