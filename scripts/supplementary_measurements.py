@@ -36,7 +36,6 @@ Output: results/supplementary_<UTC timestamp>/
     timing_sessions.csv       median/p95/p99 per session per config
     timing_summary.csv        range across sessions per config
     supplementary_tables.md   Markdown tables
-    paper_paragraph.md        paragraph for the revision, numbers filled in
 """
 from __future__ import annotations
 
@@ -460,7 +459,9 @@ def write_markdown(out_dir, env, abl, sess_df, summ_df, n_sessions) -> None:
              f"reference run, which was recorded on a different host ({ref_env.get('n_cpus')} "
              "CPU visible to the process); absolute latencies depend on hardware, so only "
              "the relative ordering and the calibration overhead should be compared.")
-    (out_dir / "paper_paragraph.md").write_text(para + "\n")
+    # Printed, not written into results/: manuscript text stays out of the
+    # public repository.
+    print("\n[supp] Draft paragraph (not saved):\n" + para + "\n")
 
 
 def _order_flips(sess_df) -> list[tuple[str, str, float]]:

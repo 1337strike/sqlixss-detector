@@ -2,7 +2,7 @@
 """
 scripts/supplementary_csic.py
 ==============================
-Supplementary evaluation (paper §IV-F): false-positive rate of the paper's
+Supplementary evaluation: false-positive rate of the paper's
 8 detector configurations on realistic benign traffic, the CSIC 2010 HTTP
 dataset's normal test set (normalTrafficTest.txt, 36,000 requests).
 

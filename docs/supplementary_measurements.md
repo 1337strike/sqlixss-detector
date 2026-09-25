@@ -1,4 +1,4 @@
-# Supplementary Measurements for the Paper Revision
+# Supplementary Measurements
 
 > **Supplementary, not part of the archived results.** Nothing here changes Table V.
 > Table V still reports the archived reference run `definitive_20260923T094339Z_42`.
@@ -96,7 +96,3 @@ in the same session had normal medians (NB 0.398, calibrated SVM 1.583, uncalibr
 0.368 ms). LR is timed first in every session, so this fits contention on the shared cloud VM
 during the first ~0.2 s of session 5. The session is kept as
 measured, not re-run or dropped; the across-session range is meant to show exactly this kind of variation.
-
-## Paper paragraph (draft)
-
-**Supplementary measurements.** To separate the cost of probability calibration from the linear decision function, we retrained the canonicalized linear SVM on the same 749-sample training split without `CalibratedClassifierCV`. Macro-F1 was 1.0000 (clean) and 0.9931 (obfuscated) with calibration, and 1.0000 and 0.9931 without it (identical). Median single-request latency fell from 1.604 ms to 0.381 ms (4.2× faster); the calibrated model evaluates three LinearSVC fits and their sigmoid calibrators per call. We also repeated the Table V timing protocol in 5 independent sessions (CPU: Intel(R) Xeon(R) Processor @ 2.80GHz, 4 usable CPUs; 15.72 GiB RAM; Ubuntu 24.04.4 LTS; Python 3.12.3; scikit-learn 1.8.0). Across sessions, median latency ranged from 0.0057–0.0059 ms (signature_raw) to 1.5834–1.6314 ms (svm_normalized), and the canonicalized SVM's p99 ranged from 2.1936–2.8047 ms. The ordering of the five configurations by median latency was the same in every session. These values are supplementary. Table V still reports the archived reference run, which was recorded on a different host (1 CPU visible to the process); absolute latencies depend on hardware, so only the relative ordering and the calibration overhead should be compared.

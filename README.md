@@ -229,7 +229,7 @@ CSIC run).
 - No end-to-end proxy benchmark (throughput, sustained-load memory) yet
 - CSIC 2010 is evaluated for false positives only (36,000 normal requests, classifier level):
   `scripts/00b_download_csic2010.py` + `scripts/supplementary_csic.py`, results in
-  `results/supplementary_20260925T122826Z/`, write-up in `docs/supplementary_csic2010_IV-F.md`.
+  `results/supplementary_20260925T122826Z/`, write-up in `docs/supplementary_csic2010.md`.
   LR/SVM label empty input (20,000 parameterless GETs) as SQLi; no CSIC attack-traffic evaluation yet
 
 ---
