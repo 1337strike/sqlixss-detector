@@ -1,0 +1,217 @@
+{
+  "svm_normalized": {
+    "calibrated": true,
+    "fit_seconds": 0.0453,
+    "clean": {
+      "n": 263,
+      "n_correct": 263,
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class": {
+        "benign": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 145
+        },
+        "sqli": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 84
+        },
+        "xss": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 34
+        }
+      },
+      "confusion_matrix": [
+        [
+          145,
+          0,
+          0
+        ],
+        [
+          0,
+          84,
+          0
+        ],
+        [
+          0,
+          0,
+          34
+        ]
+      ],
+      "errors": {
+        "benign_to_sqli": 0,
+        "benign_to_xss": 0,
+        "sqli_to_benign": 0,
+        "sqli_to_xss": 0,
+        "xss_to_benign": 0,
+        "xss_to_sqli": 0
+      }
+    },
+    "obf": {
+      "n": 263,
+      "n_correct": 262,
+      "accuracy": 0.996198,
+      "macro_f1": 0.993052,
+      "per_class": {
+        "benign": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 145
+        },
+        "sqli": {
+          "precision": 0.988235,
+          "recall": 1.0,
+          "f1": 0.994083,
+          "support": 84
+        },
+        "xss": {
+          "precision": 1.0,
+          "recall": 0.970588,
+          "f1": 0.985075,
+          "support": 34
+        }
+      },
+      "confusion_matrix": [
+        [
+          145,
+          0,
+          0
+        ],
+        [
+          0,
+          84,
+          0
+        ],
+        [
+          0,
+          1,
+          33
+        ]
+      ],
+      "errors": {
+        "benign_to_sqli": 0,
+        "benign_to_xss": 0,
+        "sqli_to_benign": 0,
+        "sqli_to_xss": 0,
+        "xss_to_benign": 0,
+        "xss_to_sqli": 1
+      }
+    },
+    "obf_drop": 0.006948,
+    "matches_reference_run": true
+  },
+  "svm_normalized_uncalibrated": {
+    "calibrated": false,
+    "fit_seconds": 0.0178,
+    "clean": {
+      "n": 263,
+      "n_correct": 263,
+      "accuracy": 1.0,
+      "macro_f1": 1.0,
+      "per_class": {
+        "benign": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 145
+        },
+        "sqli": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 84
+        },
+        "xss": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 34
+        }
+      },
+      "confusion_matrix": [
+        [
+          145,
+          0,
+          0
+        ],
+        [
+          0,
+          84,
+          0
+        ],
+        [
+          0,
+          0,
+          34
+        ]
+      ],
+      "errors": {
+        "benign_to_sqli": 0,
+        "benign_to_xss": 0,
+        "sqli_to_benign": 0,
+        "sqli_to_xss": 0,
+        "xss_to_benign": 0,
+        "xss_to_sqli": 0
+      }
+    },
+    "obf": {
+      "n": 263,
+      "n_correct": 262,
+      "accuracy": 0.996198,
+      "macro_f1": 0.993052,
+      "per_class": {
+        "benign": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 145
+        },
+        "sqli": {
+          "precision": 0.988235,
+          "recall": 1.0,
+          "f1": 0.994083,
+          "support": 84
+        },
+        "xss": {
+          "precision": 1.0,
+          "recall": 0.970588,
+          "f1": 0.985075,
+          "support": 34
+        }
+      },
+      "confusion_matrix": [
+        [
+          145,
+          0,
+          0
+        ],
+        [
+          0,
+          84,
+          0
+        ],
+        [
+          0,
+          1,
+          33
+        ]
+      ],
+      "errors": {
+        "benign_to_sqli": 0,
+        "benign_to_xss": 0,
+        "sqli_to_benign": 0,
+        "sqli_to_xss": 0,
+        "xss_to_benign": 0,
+        "xss_to_sqli": 1
+      }
+    },
+    "obf_drop": 0.006948
+  }
+}
