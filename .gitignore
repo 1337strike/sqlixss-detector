@@ -18,3 +18,15 @@ results/latency_oracle_audit.json
 results/canon_effects_v2.csv
 results/cv_summary_v2.csv
 results/final_experiment.csv
+
+# Secrets and runtime output -- never commit
+.env
+.env.*
+*.pem
+*.key
+*.crt
+*.p12
+config/certs/
+config/*.prod.yaml
+logs/
+*.log
