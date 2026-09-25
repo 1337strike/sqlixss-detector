@@ -29,33 +29,35 @@ split:
 
 experiment:
   protocol:   "5-fold × 3 repeats = 15 fits per configuration"
-  script:     "scripts/08_final_experiment.py"
-  results:    "results/final_experiment.csv"
-  statistics: "Holm-Bonferroni corrected paired t-test (src/statistics.py)"
+  script:     "scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3"
+  results:    "results/definitive_20260923T094339Z_42/"
+  statistics: "Nadeau-Bengio corrected paired t-test + Holm correction (src/statistics.py)"
+  # scripts/08_final_experiment.py is superseded: it double-canonicalized
+  # signature_normalized inputs (AUDIT_REPORT.md, Bug B1).
 
-## key results (Table I, paper)
+## key results (Table I, paper — from results/definitive_20260923T094339Z_42/)
 
 canonicalization_effect:
   logistic_regression:
-    raw_f1_obf:        0.7776
+    raw_f1_obf:        0.7905
     normalized_f1_obf: 0.9934
-    improvement:       0.2158
-    p_holm:            "<1e-11"
+    improvement:       0.2029
+    p_holm:            3.42e-07
   svm:
-    raw_f1_obf:        0.8554
-    normalized_f1_obf: 0.9916
-    improvement:       0.1363
-    p_holm:            "<1e-6"
+    raw_f1_obf:        0.8592
+    normalized_f1_obf: 0.9919
+    improvement:       0.1327
+    p_holm:            1.30e-05
   naive_bayes:
-    raw_f1_obf:        0.8119
+    raw_f1_obf:        0.8121
     normalized_f1_obf: 0.9838
-    improvement:       0.1718
-    p_holm:            "<1e-9"
+    improvement:       0.1717
+    p_holm:            1.65e-06
   signature_baseline:
-    raw_f1_obf:        0.5795
-    normalized_f1_obf: 0.8429
-    improvement:       0.2633
-    p_holm:            "<1e-9"
+    raw_f1_obf:        0.5893
+    normalized_f1_obf: 0.8420
+    improvement:       0.2527
+    p_holm:            1.65e-06
 
 ## environment
 
@@ -84,7 +86,7 @@ key_files:
   - scripts/00_download_payloads.py
   - scripts/01c_build_grouped_dataset.py
   - scripts/07_per_technique_analysis.py
-  - scripts/08_final_experiment.py
+  - scripts/definitive_experiment.py
   - scripts/validate_semantics.py
   - tests/test_pipeline_regression.py
   - tests/test_split_integrity.py

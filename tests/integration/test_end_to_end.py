@@ -19,7 +19,9 @@ Run:
 
 from __future__ import annotations
 
+import json
 import sys
+import urllib.parse
 from pathlib import Path
 
 import pytest
@@ -28,7 +30,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.baseline_normalized import NormalizedSignatureBaseline, canonicalize
 from src.baseline_signature import SignatureBaseline
+from src.json_extraction import extract_json_string_values
 from src.models import get_model_definitions
+from src.waf_proxy import extract_header_texts, extract_inspectable_texts
 
 
 # ── shared fixtures ──────────────────────────────────────────────────────────
@@ -203,12 +207,43 @@ class TestRequestLocationConsistency:
     PAYLOAD = "' OR 1=1 --"
     EXPECTED = "sqli"
 
+    @staticmethod
+    def _extract(loc: str, payload: str) -> list[str]:
+        """Return the texts the WAF proxy would inspect for ``payload``
+        placed in ``loc``, using the proxy's own extraction functions."""
+        enc = urllib.parse.quote(payload, safe="")
+        if loc == "query":
+            return extract_inspectable_texts(f"/search?q={enc}", b"", "")
+        if loc == "body":
+            return extract_inspectable_texts(
+                "/login", f"user={enc}".encode(), "application/x-www-form-urlencoded")
+        if loc == "json":
+            # ' exercises JSON's own escaping, which only a real parse undoes
+            body = json.dumps({"filters": {"q": payload}}).replace("'", "\\u0027")
+            result = extract_json_string_values(body.encode())
+            assert result.was_valid_json and not result.truncated
+            return result.string_values
+        if loc == "header":
+            return extract_header_texts({"User-Agent": payload})
+        raise ValueError(loc)
+
     @pytest.mark.parametrize("loc", LOCATIONS)
     def test_location_invariance_ml(self, trained_models, loc):
-        # Simulate what the WAF proxy extracts for each location
-        canon = canonicalize(self.PAYLOAD)
+        texts = self._extract(loc, self.PAYLOAD)
         for name, model in trained_models.items():
-            pred = model.predict([canon])[0]
-            assert pred == self.EXPECTED, (
-                f"{name} gave different result for location={loc}: {pred!r}"
+            preds = model.predict([canonicalize(t) for t in texts])
+            assert self.EXPECTED in preds, (
+                f"{name} missed payload in location={loc}: "
+                f"texts={texts!r} preds={list(preds)!r}"
             )
+
+    @pytest.mark.parametrize("loc", LOCATIONS)
+    def test_location_invariance_normalized_baseline(self, baselines, loc):
+        # The proxy classifies headers with the normalizing signature
+        # baseline only, so every location must be caught by it too.
+        texts = self._extract(loc, self.PAYLOAD)
+        preds = baselines["signature_normalized"].predict(texts)
+        assert self.EXPECTED in preds, (
+            f"Normalizing baseline missed payload in location={loc}: "
+            f"texts={texts!r} preds={list(preds)!r}"
+        )

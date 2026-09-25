@@ -47,5 +47,10 @@ jobs:
       - name: Offline evaluation
         run: python scripts/03_evaluate_offline.py
 
+      - name: Definitive experiment smoke run (paper tables)
+        run: python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 1
+
       - name: All tests summary
-        run: python -m pytest tests/ -v --tb=short 2>&1 | tail -20
+        run: |
+          set -o pipefail
+          python -m pytest tests/ -v --tb=short 2>&1 | tail -20
