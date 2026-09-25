@@ -76,7 +76,10 @@ def build_stats(rate_limiter) -> "InMemoryStats | RedisStats":
     """
     redis_client = getattr(rate_limiter, "redis", None)
     if redis_client is not None:
-        return RedisStats(redis_client)
+        # Same namespace as the limiter's keys ("waf:stat:" by default), so
+        # deployments sharing one Redis under different key_prefix values
+        # don't mix their counters.
+        return RedisStats(redis_client, key_prefix=f"{getattr(rate_limiter, 'prefix', 'waf:')}stat:")
     return InMemoryStats()
 
 

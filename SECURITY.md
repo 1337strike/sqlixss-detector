@@ -31,8 +31,13 @@ end.
   feroxbuster, wpscan, dalfox/xsstrike, wafw00f, and orchestrators that wrap
   them, e.g. HexStrike AI), sensitive-path probing (`.git`, `.env`, backup
   files, etc.), and forwarded-IP header spoofing.
-- Repeat-offender IPs (rate-limited and auto-banned, shared correctly
-  across multiple worker processes via Redis).
+- Repeat-offender IPs: banned on their ratio of refused to total requests
+  over a sliding window (plus an absolute anti-dilution cap), with ban
+  length escalating for repeat offenders; shared correctly across
+  multiple worker processes via Redis, decided atomically in a Lua script.
+  Legitimate traffic that trips an occasional detector false positive is
+  not banned (0 bans on the 72,000 CSIC 2010 normal requests,
+  `scripts/09_csic_rate_limit_validation.py`).
 - Request-smuggling-class header ambiguity (conflicting/malformed
   Content-Length and Transfer-Encoding).
 - A non-ML statistical anomaly check as a second, independent signal

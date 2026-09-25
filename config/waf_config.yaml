@@ -105,9 +105,24 @@ rate_limit:
   backend: "memory"
   redis_url: "redis://127.0.0.1:6379/0"
   key_prefix: "waf:"
-  offense_window_seconds: 60     # sliding window to count malicious requests in
-  offense_threshold: 5           # this many malicious requests within the window...
-  ban_duration_seconds: 300      # ...triggers a temporary ban of this length
+  # Behavioral banning: every request is recorded per IP as allowed or
+  # refused, and an IP is banned on the RATIO of refused requests over a
+  # sliding window -- so a client that trips an occasional detector false
+  # positive is never banned, however busy it is (validated: 0 bans on all
+  # 72,000 CSIC 2010 normal requests, scripts/09_csic_rate_limit_validation.py).
+  offense_window_seconds: 60     # sliding window to measure each IP's behavior over
+  offense_threshold: 5           # ban when at least this many refused requests in the window...
+  refusal_ratio_threshold: 0.2   # ...make up at least this fraction of the IP's requests,
+  hard_offense_threshold: 60     # or on this many refused regardless of ratio (anti-dilution; 0 = off)
+  window_buckets: 12             # sub-buckets approximating the sliding window
+  # Escalating bans for repeat offenders: the n-th ban lasts
+  # ban_duration_seconds * ban_escalation_factor^(n-1), capped at
+  # max_ban_duration_seconds; strikes are forgotten offender_memory_seconds
+  # after an IP's last ban ends. Defaults: 5 min -> 20 min -> 80 min -> ... -> 24 h.
+  ban_duration_seconds: 300
+  ban_escalation_factor: 4
+  max_ban_duration_seconds: 86400
+  offender_memory_seconds: 86400
 
 # --- Admin API -------------------------------------------------------------
 # /__waf/health, /__waf/stats, /__waf/metrics are only served to these

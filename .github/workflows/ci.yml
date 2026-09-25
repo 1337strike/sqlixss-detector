@@ -75,6 +75,12 @@ jobs:
       - name: Live proxy tests (real processes; gunicorn + Redis)
         run: python -m pytest tests/integration/test_proxy_live.py -v
 
+      - name: Download CSIC 2010 (pinned mirror commit, SHA-256 verified)
+        run: python scripts/00b_download_csic2010.py
+
+      - name: Rate limiter unit + live tests (both backends; CSIC 2010 normal traffic -> 0 bans)
+        run: python -m pytest tests/test_rate_limiter.py tests/integration/test_rate_limiter_live.py -v -p no:logging
+
       - name: All tests summary
         run: |
           set -o pipefail

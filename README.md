@@ -66,6 +66,8 @@ src/
   obfuscation.py            7 transformation techniques
   statistics.py             Nadeau-Bengio t-test + Holm correction
   tokenizer.py              security-aware tokenizer
+  rate_limiter.py           WAF behavioral rate limiting (memory / Redis)
+  csic2010.py, waf_replay.py  CSIC 2010 parser + live WAF replay harness
 scripts/
   definitive_experiment.py  ← MAIN: reproduces all paper tables
   export_statistics.py      Table I CIs/p_Holm + §IV-B pairwise tests → full_statistics.json
@@ -75,13 +77,17 @@ scripts/
   02_train_models.py
   03_evaluate_offline.py
   05_run_waf.py             reverse-proxy WAF
+  00b_download_csic2010.py  CSIC 2010 (rate-limit validation only)
+  09_csic_rate_limit_validation.py  0-false-ban check on CSIC 2010 normal traffic
 tests/
   test_pipeline_regression.py   G1/M2 canonicalization + vocabulary isolation
   test_split_integrity.py       G4 family leakage checks
+  test_rate_limiter.py          behavioral rate limiter, both backends
   integration/
     test_end_to_end.py          pipeline + WAF extraction path; FP edge cases are xfail
     test_waf_deployment.py      evasion views, WAF rules, block/monitor, uniform refusals (in-process HTTP)
     test_proxy_live.py          real processes: single-process WAF and gunicorn + Redis shared bans
+    test_rate_limiter_live.py   live WAF bans/escalation; CSIC 2010 normal traffic → 0 bans
 AUDIT_REPORT.md             full audit findings
 ```
 
@@ -160,6 +166,49 @@ remain behind them. Most sqlmap requests that pass are arithmetic probes
 Every detection-based refusal (payload, scanner, ban, deny list) returns the
 same `403 {"error": "Forbidden", "request_id": ...}`; the reason is recorded
 in `logs/waf.log` under that `request_id`.
+
+### Repeat-offender bans (behavioral rate limiting)
+
+`src/rate_limiter.py` bans source IPs on behavior, not on single detections:
+
+- **Refusal ratio over a sliding window.** Every request is recorded per IP
+  as allowed or refused. An IP is banned when, within `offense_window_seconds`,
+  it has at least `offense_threshold` refused requests **and** they make up at
+  least `refusal_ratio_threshold` of its traffic. A scanner is refused on most
+  of what it sends; a busy legitimate client that trips an occasional false
+  positive is not banned.
+- **Anti-dilution cap.** `hard_offense_threshold` refusals in the window ban
+  regardless of ratio, so padding payloads with benign requests doesn't work.
+- **Escalating bans.** The n-th ban issued within `offender_memory_seconds`
+  of the previous one ending lasts
+  `ban_duration_seconds × ban_escalation_factor^(n-1)`, capped at
+  `max_ban_duration_seconds` (defaults: 5 min → 20 min → 80 min → … → 24 h).
+  A banned IP gets the same uniform 403 as any other refusal.
+- **Redis backend.** With `backend: redis`, each request is one atomic Lua
+  call, so state is shared correctly across gunicorn workers and replicas.
+
+Validated on all 72,000 CSIC 2010 normal requests (training + test files):
+
+```bash
+redis-server --daemonize yes                      # optional; else in-memory backend
+python scripts/00b_download_csic2010.py            # pinned mirror, SHA-256-verified
+python scripts/09_csic_rate_limit_validation.py --with-anomalous
+```
+
+| CSIC 2010, live through the WAF (Redis), clients of 100 requests | Refused | Bans |
+|---|---|---|
+| Normal traffic, shipped detectors (LR + SVM + signature, deploy) | 0 / 72,000 | **0** |
+| Normal traffic, stress detectors (LR + NB + signature, paper models) | 230 / 72,000 (0.32%) | **0** |
+| Same recorded refusals, one IP at 1 / 10 / 100 req/s, and clients of 10 / 50 / 500 / 5,000 requests in one window (both backends) | — | **0** |
+| Anomalous traffic, shipped detectors, 251 clients | 2,309 / 25,065 | 159 of 251 clients banned; 11,183 later requests turned away |
+
+The stress configuration runs the ban layer against detectors that do
+misfire. They refuse at most 2 of any 30 consecutive normal requests. One IP
+sending that traffic would reach the anti-dilution cap only above ~228 req/s.
+Full output: `results/waf_csic2010_rate_limit.json`. Tests:
+`tests/test_rate_limiter.py` (unit, both backends) and
+`tests/integration/test_rate_limiter_live.py` (live WAF over HTTP, includes the
+CSIC run).
 
 ### Recommended rollout
 1. Deploy behind Caddy (`deploy/Caddyfile`) with `deploy/waf.service`; set

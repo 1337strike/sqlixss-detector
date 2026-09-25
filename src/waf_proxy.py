@@ -23,10 +23,14 @@ Pipeline per request:
   3. Ensemble classification   -- run every configured detector, combine
                                   via the configured voting policy.
   4. Decision:
-       - malicious -> log, record offense against the IP (may trigger an
+       - malicious -> log, record a refusal against the IP (may trigger an
                       auto-ban), return 403 with a JSON error body.
-       - benign    -> forward the request to the real backend unmodified,
-                      stream the backend's response back to the client.
+       - benign    -> record an allowed request against the IP, forward it
+                      to the real backend unmodified, stream the backend's
+                      response back to the client.
+     The rate limiter bans on each IP's ratio of refused to total requests
+     over a sliding window, with escalating bans for repeat offenders
+     (see src/rate_limiter.py).
 
 Production hardening in this version:
   - Correct client-IP resolution behind a trusted reverse proxy/load
@@ -399,6 +403,22 @@ class WafProxy:
             response.headers[k] = v
         return response
 
+    def _record_behavior(self, client_ip: str, refused: bool, weight: int = 1) -> None:
+        """Feeds one decision into the behavioral rate limiter, which bans
+        on the RATIO of refused to total requests per IP (plus an absolute
+        anti-dilution cap) and escalates ban length for repeat offenders --
+        so allowed requests must be recorded too (see rate_limiter.py)."""
+        if not self.rate_limiter.record_request(client_ip, refused=refused, weight=weight):
+            return
+        self.stats.increment("banned_ips_triggered")
+        strike = self.rate_limiter.strikes(client_ip)
+        self.logger.log_event(
+            decision="ip_banned", client_ip=client_ip, method="-", path="-",
+            label=f"strike_{strike}",
+            triggered_by=[f"ban_seconds={round(self.rate_limiter.seconds_remaining_banned(client_ip))}"],
+            latency_ms=0.0,
+        )
+
     async def handle_request(self, request: web.Request) -> web.Response:
         if self._is_admin_request(request):
             return await self._handle_admin(request)
@@ -468,9 +488,7 @@ class WafProxy:
             )
         elif recon_verdict.flagged:
             self.stats.increment("blocked")
-            just_banned = self.rate_limiter.record_offense(client_ip, weight=2)
-            if just_banned:
-                self.stats.increment("banned_ips_triggered")
+            self._record_behavior(client_ip, refused=True, weight=2)
             self.logger.log_event(
                 decision="blocked_recon", client_ip=client_ip, method=request.method,
                 path=str(request.rel_url), label="recon", triggered_by=recon_verdict.reasons,
@@ -486,7 +504,7 @@ class WafProxy:
         integrity = validate_request_integrity(request.headers)
         if not integrity.valid:
             self.stats.increment("blocked")
-            self.rate_limiter.record_offense(client_ip, weight=2)
+            self._record_behavior(client_ip, refused=True, weight=2)
             self.logger.log_event(
                 decision="blocked_malformed", client_ip=client_ip, method=request.method,
                 path=str(request.rel_url), label="malformed_request", triggered_by=[integrity.reason],
@@ -575,9 +593,7 @@ class WafProxy:
 
         if worst_verdict is not None:
             self.stats.increment("blocked")
-            just_banned = self.rate_limiter.record_offense(client_ip)
-            if just_banned:
-                self.stats.increment("banned_ips_triggered")
+            self._record_behavior(client_ip, refused=True)
 
             self.logger.log_event(
                 decision="blocked", client_ip=client_ip, method=request.method,
@@ -587,6 +603,7 @@ class WafProxy:
             return self._deny(request_id)
 
         self.stats.increment("allowed")
+        self._record_behavior(client_ip, refused=False)
         self.logger.log_event(
             decision="allowed", client_ip=client_ip, method=request.method,
             path=str(request.rel_url), label="benign", triggered_by=[], latency_ms=latency_ms,
