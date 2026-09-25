@@ -1,10 +1,8 @@
 # SQLi/XSS Detector — sqlixss-detector
 
-Replication package for the ICITDA 2026 paper
 **"Evaluating Input Canonicalization for SQLi and XSS Detection Using Lightweight Machine Learning"**
 
-> Ahsani Taufiq Khawarizmi · Yudi Prayudi  
-> Universitas Islam Indonesia, Yogyakarta
+> Ahsani Taufiq Khawarizmi · 
 
 ---
 
