@@ -14,6 +14,17 @@ backend_url: "http://127.0.0.1:8080"   # the REAL application this WAF protects
 backend_timeout_seconds: 10
 max_request_size_bytes: 10485760   # 10 MB cap on request bodies the WAF will buffer/inspect
 
+# --- Enforcement mode ------------------------------------------------------
+# "block"   : malicious requests get 403 (normal operation).
+# "monitor" : detection verdicts are only LOGGED (decision "would_block" /
+#             "would_block_recon") and the request is forwarded; no ban
+#             strikes are recorded. Run this first on real traffic to
+#             measure false positives before switching to "block" -- the
+#             same approach as ModSecurity's DetectionOnly. Protocol-safety
+#             rejections (request-smuggling ambiguity, WebSocket, static
+#             deny list) are enforced in both modes.
+mode: "block"
+
 # --- TLS -----------------------------------------------------------------
 # Only used by scripts/05_run_waf.py's single-process mode. In the
 # gunicorn/production mode, TLS is terminated by Caddy/nginx in front, and
@@ -42,10 +53,16 @@ trusted_proxies: []
 # check against adversarial payloads specifically crafted to evade the
 # trained ML models -- add it to the list below for that extra layer of
 # defense-in-depth (see README "Recon/scanner defense").
+# Default chosen from scripts/evaluate_waf_realworld.py (CSIC 2010 normal
+# traffic + PayloadsAllTheThings holdout): LR+SVM+Sig had 0 false positives
+# on 36,000 real requests and the highest detection. naive_bayes caused all
+# 112 false positives (it flags short-password login forms as SQLi), so it
+# is off by default.
 models:
   - logistic_regression
-  - naive_bayes
+  - svm
   - signature_baseline
+  # - naive_bayes
   # - anomaly   # uncomment to add the non-ML statistical anomaly check
 
 # Voting policy across the models above: "any" | "majority" | "all"

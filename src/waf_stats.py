@@ -1,7 +1,7 @@
 """
 waf_stats.py
 ------------
-Request counters (allowed / blocked / banned_ips_triggered / static_denied)
+Request counters (allowed / blocked / would_block / banned_ips_triggered / static_denied)
 for the WAF's /__waf/stats and /__waf/metrics endpoints.
 
 Why this needs its own abstraction: under gunicorn with multiple workers,
@@ -37,7 +37,7 @@ class InMemoryStats:
 
     def get_all(self) -> dict:
         return {
-            **{k: self._counters.get(k, 0) for k in ("allowed", "blocked", "banned_ips_triggered", "static_denied")},
+            **{k: self._counters.get(k, 0) for k in ("allowed", "blocked", "would_block", "banned_ips_triggered", "static_denied")},
             "started_at": self.started_at,
         }
 
@@ -55,7 +55,7 @@ class RedisStats:
         self.redis.incrby(f"{self.prefix}{name}", amount)
 
     def get_all(self) -> dict:
-        keys = ("allowed", "blocked", "banned_ips_triggered", "static_denied")
+        keys = ("allowed", "blocked", "would_block", "banned_ips_triggered", "static_denied")
         pipe = self.redis.pipeline()
         for k in keys:
             pipe.get(f"{self.prefix}{k}")

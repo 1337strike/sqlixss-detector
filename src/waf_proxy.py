@@ -64,8 +64,8 @@ import yaml
 from aiohttp import web, ClientSession, ClientTimeout
 
 from src.models import AbstainOnUnknown, load_model
-from src.baseline_signature import WAF_EXTRA_SQLI_PATTERNS, SignatureBaseline
-from src.baseline_normalized import NormalizedSignatureBaseline, canonicalize
+from src.baseline_signature import WAF_EXTRA_SQLI_PATTERNS, WAF_EXTRA_XSS_PATTERNS, SignatureBaseline
+from src.baseline_normalized import NormalizedSignatureBaseline
 from src.ensemble import EnsembleDetector, Verdict
 from src.rate_limiter import build_rate_limiter
 from src.waf_stats import build_stats
@@ -73,6 +73,7 @@ from src.waf_logging import WafLogger
 from src.recon_detection import classify_recon
 from src.request_validation import validate_request_integrity, is_websocket_upgrade
 from src.json_extraction import extract_json_string_values
+from src.waf_canonical import waf_views
 from src.anomaly_detection import AnomalyDetector
 
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "waf_config.yaml"
@@ -113,6 +114,9 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict:
     if not models:
         raise SystemExit("[waf] config.models is empty -- need at least one detector.")
 
+    if config.get("mode", "block") not in ("block", "monitor"):
+        raise SystemExit(f"[waf] config.mode must be 'block' or 'monitor', got {config.get('mode')!r}")
+
     return config
 
 
@@ -120,7 +124,8 @@ def build_detectors(model_names: list[str]) -> dict[str, Any]:
     detectors = {}
     for name in model_names:
         if name == "signature_baseline":
-            detectors[name] = SignatureBaseline(extra_sqli_patterns=WAF_EXTRA_SQLI_PATTERNS)
+            detectors[name] = SignatureBaseline(extra_sqli_patterns=WAF_EXTRA_SQLI_PATTERNS,
+                                                extra_xss_patterns=WAF_EXTRA_XSS_PATTERNS)
         elif name == "anomaly":
             detectors[name] = AnomalyDetector()
         else:
@@ -219,6 +224,10 @@ class WafProxy:
         self.config = config
         self.backend_url = config["backend_url"].rstrip("/")
         self.policy = config.get("voting_policy", "any")
+        # "monitor": detection verdicts are logged as would_block_* and the
+        # request is forwarded (no ban offenses). Protocol-safety rejections
+        # (smuggling ambiguity, WebSocket, static deny) are still enforced.
+        self.monitor = config.get("mode", "block") == "monitor"
 
         self.detectors = build_detectors(config.get("models", ["logistic_regression", "signature_baseline"]))
         self.ensemble = EnsembleDetector(self.detectors, policy=self.policy)
@@ -238,7 +247,8 @@ class WafProxy:
         # R5 FIX: use NormalizedSignatureBaseline so encoded header values
         # (e.g. URL-encoded SQLi) are canonicalized before rule matching.
         # Raw strings are passed in; canonicalization happens once inside.
-        self._header_detector = NormalizedSignatureBaseline(extra_sqli_patterns=WAF_EXTRA_SQLI_PATTERNS)
+        self._header_detector = NormalizedSignatureBaseline(extra_sqli_patterns=WAF_EXTRA_SQLI_PATTERNS,
+                                                            extra_xss_patterns=WAF_EXTRA_XSS_PATTERNS)
 
         self.rate_limiter = build_rate_limiter(config.get("rate_limit", {}))
 
@@ -304,6 +314,9 @@ class WafProxy:
             "# HELP waf_requests_blocked_total Requests blocked by the WAF",
             "# TYPE waf_requests_blocked_total counter",
             f"waf_requests_blocked_total {current['blocked']}",
+            "# HELP waf_requests_would_block_total Requests monitor mode forwarded but would have blocked",
+            "# TYPE waf_requests_would_block_total counter",
+            f"waf_requests_would_block_total {current['would_block']}",
             "# HELP waf_static_denied_total Requests rejected by the static deny list",
             "# TYPE waf_static_denied_total counter",
             f"waf_static_denied_total {current['static_denied']}",
@@ -315,6 +328,48 @@ class WafProxy:
             f"waf_uptime_seconds {uptime:.1f}",
         ]
         return "\n".join(lines) + "\n"
+
+    def classify_payload(self, path_qs: str, headers, body_bytes: bytes, content_type: str,
+                         json_result=None) -> Verdict | None:
+        """Content inspection for one request; returns the blocking Verdict
+        or None. Pure (no I/O, logging or rate limiting), so offline
+        evaluation (scripts/evaluate_waf_realworld.py) runs exactly the
+        decision the live proxy makes."""
+        if "application/json" in content_type:
+            if json_result is None:
+                json_result = extract_json_string_values(body_bytes)
+            # ML sees "key=value" leaves (its training shape); every bare key
+            # and value still goes through the signature rules below.
+            body_texts = extract_inspectable_texts(path_qs, b"", "") + json_result.pairs
+            json_signature_texts = json_result.string_values
+        else:
+            body_texts = extract_inspectable_texts(path_qs, body_bytes, content_type)
+            json_signature_texts = []
+
+        signature_only_texts = ([extract_url_path(path_qs)]
+                                + json_signature_texts
+                                + extract_header_texts(headers))
+
+        for text in body_texts:
+            if not text:
+                continue
+            # Canonicalize before the ensemble (the paper's recommended
+            # configuration), plus the WAF-only evasion views -- see
+            # waf_canonical.py. Block if any view is malicious.
+            for view in waf_views(text):
+                verdict = self.ensemble.classify(view)
+                if verdict.blocked:
+                    return verdict
+
+        for text in signature_only_texts:
+            if not text:
+                continue
+            for view in waf_views(text):
+                label = self._header_detector.predict([view])[0]
+                if label != "benign":
+                    return Verdict(blocked=True, final_label=label, votes={"signature_baseline": label},
+                                   triggered_by=["signature_baseline"])
+        return None
 
     @web.middleware
     async def security_headers_middleware(self, request: web.Request, handler):
@@ -384,7 +439,14 @@ class WafProxy:
         #      inference on the request. High-confidence recon signals
         #      count double toward the ban threshold (see rate_limiter.py).
         recon_verdict = classify_recon(str(request.rel_url), request.headers, connection_ip, self.trusted_proxies)
-        if recon_verdict.flagged:
+        if recon_verdict.flagged and self.monitor:
+            self.stats.increment("would_block")
+            self.logger.log_event(
+                decision="would_block_recon", client_ip=client_ip, method=request.method,
+                path=str(request.rel_url), label="recon", triggered_by=recon_verdict.reasons,
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+        elif recon_verdict.flagged:
             self.stats.increment("blocked")
             just_banned = self.rate_limiter.record_offense(client_ip, weight=2)
             if just_banned:
@@ -448,7 +510,15 @@ class WafProxy:
             json_result = extract_json_string_values(body_bytes)
             # R1 FIX: reject if traversal hit a limit — uninspected tail
             # may contain a payload (documented in json_extraction.py).
-            if json_result.truncated:
+            if json_result.truncated and self.monitor:
+                self.stats.increment("would_block")
+                self.logger.log_event(
+                    decision="would_block", client_ip=client_ip, method=request.method,
+                    path=str(request.rel_url), label="incomplete_json_inspection",
+                    triggered_by=["json_truncation"],
+                    latency_ms=(time.perf_counter() - t0) * 1000,
+                )
+            elif json_result.truncated:
                 self.stats.increment("blocked")
                 self.logger.log_event(
                     decision="blocked", client_ip=client_ip, method=request.method,
@@ -457,10 +527,6 @@ class WafProxy:
                     latency_ms=(time.perf_counter() - t0) * 1000,
                 )
                 return web.Response(status=400, text="Request body too complex to inspect")
-            # ML sees "key=value" leaves (its training shape); every bare key
-            # and value still goes through the signature rules below.
-            body_texts = extract_inspectable_texts(str(request.rel_url), b"", "") + json_result.pairs
-            json_signature_texts = json_result.string_values
             if not json_result.was_valid_json:
                 # Malformed JSON despite the declared Content-Type -- log
                 # it as a distinct signal without auto-blocking (plenty of
@@ -471,35 +537,21 @@ class WafProxy:
                     latency_ms=0.0,
                 )
         else:
-            body_texts = extract_inspectable_texts(str(request.rel_url), body_bytes, content_type)
-            json_signature_texts = []
+            json_result = None
 
-        signature_only_texts = ([extract_url_path(str(request.rel_url))]
-                                + json_signature_texts
-                                + extract_header_texts(request.headers))
-
-        worst_verdict = None
-        for text in body_texts:
-            if not text:
-                continue
-            # Canonicalize once before the ensemble: the paper's recommended
-            # configuration (raw input costs ~0.2 F1 on obfuscated payloads).
-            verdict = self.ensemble.classify(canonicalize(text))
-            if verdict.blocked:
-                worst_verdict = verdict
-                break
-
-        if worst_verdict is None:
-            for text in signature_only_texts:
-                if not text:
-                    continue
-                label = self._header_detector.predict([text])[0]
-                if label != "benign":
-                    worst_verdict = Verdict(blocked=True, final_label=label, votes={"signature_baseline": label},
-                                             triggered_by=["signature_baseline"])
-                    break
+        worst_verdict = self.classify_payload(str(request.rel_url), request.headers,
+                                              body_bytes, content_type, json_result)
 
         latency_ms = (time.perf_counter() - t0) * 1000
+
+        if worst_verdict is not None and self.monitor:
+            self.stats.increment("would_block")
+            self.logger.log_event(
+                decision="would_block", client_ip=client_ip, method=request.method,
+                path=str(request.rel_url), label=worst_verdict.final_label,
+                triggered_by=worst_verdict.triggered_by, latency_ms=latency_ms,
+            )
+            return await self._proxy_to_backend(request, body_bytes)
 
         if worst_verdict is not None:
             self.stats.increment("blocked")

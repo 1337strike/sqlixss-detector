@@ -111,6 +111,52 @@ All numbers below come from `results/definitive_20260923T094339Z_42/`.
 
 ---
 
+## Real-World Deployment
+
+The WAF (`src/waf_proxy.py`) adds deployment-only layers on top of the paper's
+pipeline. They do not change any paper number; CI re-verifies the reference
+run on every push.
+
+- **Evasion-aware canonicalization** (`src/waf_canonical.py`): decodes IIS
+  `%uXXXX`, unwraps MySQL versioned comments `/*!…*/` (nested too), and also
+  inspects a comments-as-spaces view.
+- **WAF-only signature rules** (`WAF_EXTRA_*_PATTERNS`): tautologies,
+  `xp_cmdshell`, `@@version`, quote+comment, `IIF(`/`(CASE WHEN`, numeric
+  boolean probes, generic `<tag on*=>`, `` alert` ``, UTF-7.
+- **Input-shape routing**: URL paths and headers → signature rules; query,
+  form and JSON (`key=value` leaves) → ML ensemble; ML abstains on inputs
+  with no known features.
+- **Monitor mode**: `mode: "monitor"` logs `would_block` and forwards the
+  request. Use it first on real traffic.
+
+### Measured on data the models never saw (`scripts/evaluate_waf_realworld.py`)
+
+Default detectors LR + SVM + signature:
+
+| Test | Result |
+|---|---|
+| False positives, CSIC 2010 normal traffic (36,000 real HTTP requests) | **0 (0.00%)** |
+| SQLi holdout, PayloadsAllTheThings (879 complete payloads, not in training) | 99.2–99.8% (query / form / JSON) |
+| XSS holdout, PayloadsAllTheThings (1,572 complete payloads) | 99.2–99.7% |
+| sqlmap 1.10.9 live, `--level 3 --risk 2`, 6 tamper configurations (10,252 attack requests) | **99.91%** blocked |
+| Latency (content inspection, in-process) | ~2.4 ms / request |
+
+The ~0.1% of sqlmap requests that pass are arithmetic probes (`5602-5601`)
+and single encoded digits, which are not injections and are indistinguishable
+from ordinary input. `naive_bayes` is off by default: it caused all 112 false
+positives in this test (it flags short-password login forms as SQLi).
+
+### Recommended rollout
+1. Deploy behind Caddy (`deploy/Caddyfile`) with `deploy/waf.service`; set
+   `rate_limit.backend: redis` (the service runs 4 workers).
+2. Run with `mode: "monitor"` on real traffic; review `would_block` entries in
+   `logs/waf.log` for false positives.
+3. Switch to `mode: "block"`. Keep a mature ruleset (e.g. ModSecurity + OWASP
+   CRS) in front for defense in depth: this WAF is not adversarially hardened
+   against attackers who adapt to it specifically.
+
+---
+
 ## Known Limitations
 
 - Benign corpus from narrow templates; 5 edge-case inputs (apostrophe, SQL tutorial text, HTML) produce false positives outside the test set (documented as `xfailed` tests)
