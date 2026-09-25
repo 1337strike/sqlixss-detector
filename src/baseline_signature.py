@@ -34,6 +34,13 @@ _SQLI_PATTERNS = [
     r"(\bhaving\b\s+\d+\s*=\s*\d+)",
 ]
 
+# Extra rules for the live WAF only. Kept out of _SQLI_PATTERNS so the
+# research baseline (and every paper number derived from it) is unchanged.
+WAF_EXTRA_SQLI_PATTERNS = [
+    # tautology with identical operands, quoted or not: ' OR '1'='1 / or a=a
+    r"\bor\b\s+['\"]?(\w+)['\"]?\s*=\s*['\"]?\1\b",
+]
+
 _XSS_PATTERNS = [
     r"(<\s*script\b)",
     r"(on\w+\s*=\s*['\"]?\s*alert\s*\()",
@@ -49,8 +56,9 @@ _XSS_PATTERNS = [
 class SignatureBaseline:
     """Drop-in-compatible with the ML pipelines: exposes .predict(list[str])."""
 
-    def __init__(self):
-        self._sqli_re = [re.compile(p, re.IGNORECASE) for p in _SQLI_PATTERNS]
+    def __init__(self, extra_sqli_patterns: list[str] = ()):
+        self._sqli_re = [re.compile(p, re.IGNORECASE)
+                         for p in [*_SQLI_PATTERNS, *extra_sqli_patterns]]
         self._xss_re = [re.compile(p, re.IGNORECASE) for p in _XSS_PATTERNS]
 
     def _classify_one(self, payload: str) -> str:

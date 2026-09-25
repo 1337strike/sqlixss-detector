@@ -37,6 +37,11 @@ from dataclasses import dataclass, field
 @dataclass
 class JsonExtractionResult:
     string_values: list[str] = field(default_factory=list)
+    # "key=value" for every string leaf (nearest enclosing key). This is
+    # the shape the ML models were trained on (query/form parameters); a
+    # bare value or key such as "type" or "order" is a single SQL-ish token
+    # the models flag as SQLi, while "type=order" classifies correctly.
+    pairs: list[str] = field(default_factory=list)
     was_valid_json: bool = True
     max_depth: int = 0
     truncated: bool = False   # True if limit hit before full traversal
@@ -47,7 +52,7 @@ _MAX_DEPTH = 25          # guard against pathological nesting
 
 
 def _walk(node, depth: int, out: list[str], depth_tracker: list[int],
-          truncated: list[bool]) -> None:
+          truncated: list[bool], pairs: list[str], key: str | None = None) -> None:
     """Walk JSON tree. Sets truncated[0]=True if any limit is hit."""
     if depth > _MAX_DEPTH:
         truncated[0] = True
@@ -59,16 +64,17 @@ def _walk(node, depth: int, out: list[str], depth_tracker: list[int],
 
     if isinstance(node, str):
         out.append(node)
+        pairs.append(f"{key}={node}" if key else node)
     elif isinstance(node, dict):
-        for key, value in node.items():
-            if isinstance(key, str):
-                out.append(key)
-            _walk(value, depth + 1, out, depth_tracker, truncated)
+        for k, value in node.items():
+            if isinstance(k, str):
+                out.append(k)
+            _walk(value, depth + 1, out, depth_tracker, truncated, pairs, k)
             if truncated[0]:
                 return   # stop early — already flagged
     elif isinstance(node, list):
         for item in node:
-            _walk(item, depth + 1, out, depth_tracker, truncated)
+            _walk(item, depth + 1, out, depth_tracker, truncated, pairs, key)
             if truncated[0]:
                 return
 
@@ -87,16 +93,19 @@ def extract_json_string_values(body_bytes: bytes) -> JsonExtractionResult:
         raw = body_bytes.decode("utf-8", errors="replace")
         return JsonExtractionResult(
             string_values=[raw] if raw else [],
+            pairs=[raw] if raw else [],
             was_valid_json=False,
             truncated=False,
         )
 
     out: list[str] = []
+    pairs: list[str] = []
     depth_tracker = [0]
     truncated = [False]
-    _walk(parsed, 0, out, depth_tracker, truncated)
+    _walk(parsed, 0, out, depth_tracker, truncated, pairs)
     return JsonExtractionResult(
         string_values=out,
+        pairs=pairs,
         was_valid_json=True,
         max_depth=depth_tracker[0],
         truncated=truncated[0],
