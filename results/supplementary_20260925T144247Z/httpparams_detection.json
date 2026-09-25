@@ -1,0 +1,1642 @@
+{
+  "run_id": "supplementary_20260925T144247Z",
+  "description": "Detection rate of the paper's 8 detector configurations on the SQLi/XSS items of HttpParamsDataset, with paper-corpus overlap removed (classifier level, no WAF layers).",
+  "environment": {
+    "timestamp": "2026-09-25T14:42:47.962612+00:00",
+    "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "scikit-learn": "1.8.0",
+    "numpy": "2.4.4",
+    "scipy": "1.17.1",
+    "pandas": "3.0.6",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.7.0"
+  },
+  "models": {
+    "source": "scripts/definitive_experiment.py::run_single_split",
+    "seed": 42,
+    "n_train": 749,
+    "class_dist_train": {
+      "benign": 425,
+      "sqli": 223,
+      "xss": 101
+    },
+    "reference_run": "definitive_20260923T094339Z_42",
+    "confusion_matrices_verified_identical": 16
+  },
+  "dataset": {
+    "name": "HttpParamsDataset, payload_full.csv",
+    "path": "data/external/httpparams/payload_full.csv",
+    "upstream_repo": "Morzeux/HttpParamsDataset",
+    "upstream_commit": "926670a710283f87c05b554680facf3f9530548c",
+    "license": "MIT",
+    "sha256": "a4e62ba13435ad3dd583c5790db2175629020fc41c56e1b26baa02a9ae45f03d",
+    "attack_type_counts": {
+      "norm": 19304,
+      "sqli": 10852,
+      "xss": 532,
+      "path-traversal": 290,
+      "cmdi": 89
+    },
+    "in_scope": [
+      "sqli",
+      "xss"
+    ],
+    "generators": {
+      "sqli": "sqlmap",
+      "xss": "XSSYA, FuzzDB"
+    },
+    "n_benign_control": 19304,
+    "note": "all payloads are lowercase in the upstream file"
+  },
+  "paper_corpus": {
+    "files": {
+      "data/raw/real_sqli_payloads.txt": 307,
+      "data/raw/real_xss_payloads.txt": 135,
+      "data/processed/train.csv": 749,
+      "data/processed/test_clean.csv": 263,
+      "data/processed/test_obfuscated.csv": 263
+    },
+    "n_strings": 1717,
+    "n_distinct": 1285
+  },
+  "overlap": {
+    "sqli": {
+      "n_total": 10852,
+      "exact": 3,
+      "string_casefold_ws": 3,
+      "string_or_family": 4
+    },
+    "xss": {
+      "n_total": 532,
+      "exact": 2,
+      "string_casefold_ws": 3,
+      "string_or_family": 21
+    }
+  },
+  "removed_payloads": {
+    "sqli": {
+      "string_casefold_ws": [
+        "1 or sleep(5)#",
+        "1) or sleep(5)#",
+        "1)) or sleep(5)#"
+      ],
+      "family_only": [
+        "-3752"
+      ]
+    },
+    "xss": {
+      "string_casefold_ws": [
+        "</script><script>alert(1)</script>",
+        "<img src=javascript:alert(string.fromcharcode(88,83,83))>",
+        "<script>alert(document.cookie)</script>"
+      ],
+      "family_only": [
+        "<body onload=alert('crosssitescripting')>",
+        "<body onload=alert('xss')>",
+        "<iframe src=\"javascript:document.cookie=true;\"></iframe>",
+        "<img src=\" javascript:alert('crosssitescripting');\">",
+        "<img src=\" javascript:document.cookie=true;\">",
+        "<img src=\"http://www.vulnerability-lab.com/file.php?variables=malicious\">",
+        "<img src=\"jav ascript:alert('crosssitescripting');\">",
+        "<img src=\"jav ascript:document.cookie=true;\">",
+        "<img src=\"javascript:alert('crosssitescripting');\">",
+        "<img src=\"javascript:document.cookie=true;\">",
+        "<img src=\"livescript:[code]\">",
+        "<img src=\"livescript:document.cookie=true;\">",
+        "<img src=\"mocha:[code]\">",
+        "<img src=\"mocha:document.cookie=true;\">",
+        "<img src=javascript:alert('crosssitescripting')>",
+        "<object type=\"text/x-scriptlet\" data=\"http://ha.ckers.org/scriptlet.html\"></object>",
+        "<object type=\"text/x-scriptlet\" data=\"http://vulnerability-lab.com/scriptlet.html\"></object>",
+        "<script>alert(1);</script>"
+      ]
+    }
+  },
+  "subsets": {
+    "primary": {
+      "description": "paper-corpus strings removed (case- and whitespace-insensitive)",
+      "n": {
+        "sqli": 10849,
+        "xss": 529
+      }
+    },
+    "sensitivity_family": {
+      "description": "additionally, paper-corpus family_key matches removed",
+      "n": {
+        "sqli": 10848,
+        "xss": 511
+      }
+    }
+  },
+  "definitions": {
+    "detection_rate": "share of class-c items predicted 'sqli' or 'xss' (not 'benign')",
+    "correct_class_rate": "share of class-c items predicted exactly c",
+    "family_weighted": "mean over the benchmark's family_key groups of the per-group rate",
+    "benign_control_flag_rate": "share of 'norm' values predicted 'sqli' or 'xss'"
+  },
+  "results": {
+    "primary": {
+      "logistic_regression_raw": {
+        "label": "LR (raw)",
+        "input_routing": "raw",
+        "per_class": {
+          "sqli": {
+            "n": 10849,
+            "n_families": 8427,
+            "detection": {
+              "k": 10814,
+              "n": 10849,
+              "rate": 0.9967738962116324,
+              "wilson95": [
+                0.9955167896643381,
+                0.9976793277671315
+              ]
+            },
+            "correct_class": {
+              "k": 10808,
+              "n": 10849,
+              "rate": 0.9962208498479123,
+              "wilson95": [
+                0.9948775359486254,
+                0.9972128802666668
+              ]
+            },
+            "predicted": {
+              "benign": 35,
+              "sqli": 10808,
+              "xss": 6
+            },
+            "family_weighted_detection_rate": 0.9984276729559748,
+            "family_weighted_correct_class_rate": 0.998249673667972
+          },
+          "xss": {
+            "n": 529,
+            "n_families": 410,
+            "detection": {
+              "k": 527,
+              "n": 529,
+              "rate": 0.996219281663516,
+              "wilson95": [
+                0.9863211147392217,
+                0.9989625776407796
+              ]
+            },
+            "correct_class": {
+              "k": 518,
+              "n": 529,
+              "rate": 0.9792060491493384,
+              "wilson95": [
+                0.9631524656360306,
+                0.9883500715766564
+              ]
+            },
+            "predicted": {
+              "benign": 2,
+              "sqli": 9,
+              "xss": 518
+            },
+            "family_weighted_detection_rate": 0.9951219512195122,
+            "family_weighted_correct_class_rate": 0.973170731707317
+          }
+        },
+        "pooled": {
+          "n": 11378,
+          "detection": {
+            "k": 11341,
+            "n": 11378,
+            "rate": 0.996748110388469,
+            "wilson95": [
+              0.9955211726082045,
+              0.9976397355715201
+            ]
+          },
+          "correct_class": {
+            "k": 11326,
+            "n": 11378,
+            "rate": 0.9954297767621726,
+            "wilson95": [
+              0.9940122072459998,
+              0.9965129235765597
+            ]
+          }
+        }
+      },
+      "logistic_regression_normalized": {
+        "label": "LR (canon.)",
+        "input_routing": "canonicalize(input)",
+        "per_class": {
+          "sqli": {
+            "n": 10849,
+            "n_families": 8427,
+            "detection": {
+              "k": 10814,
+              "n": 10849,
+              "rate": 0.9967738962116324,
+              "wilson95": [
+                0.9955167896643381,
+                0.9976793277671315
+              ]
+            },
+            "correct_class": {
+              "k": 10808,
+              "n": 10849,
+              "rate": 0.9962208498479123,
+              "wilson95": [
+                0.9948775359486254,
+                0.9972128802666668
+              ]
+            },
+            "predicted": {
+              "benign": 35,
+              "sqli": 10808,
+              "xss": 6
+            },
+            "family_weighted_detection_rate": 0.9984276729559748,
+            "family_weighted_correct_class_rate": 0.998249673667972
+          },
+          "xss": {
+            "n": 529,
+            "n_families": 410,
+            "detection": {
+              "k": 526,
+              "n": 529,
+              "rate": 0.994328922495274,
+              "wilson95": [
+                0.9834607443029102,
+                0.998069486391834
+              ]
+            },
+            "correct_class": {
+              "k": 516,
+              "n": 529,
+              "rate": 0.9754253308128544,
+              "wilson95": [
+                0.9584124360285813,
+                0.9855831778135915
+              ]
+            },
+            "predicted": {
+              "benign": 3,
+              "sqli": 10,
+              "xss": 516
+            },
+            "family_weighted_detection_rate": 0.9926829268292683,
+            "family_weighted_correct_class_rate": 0.9682926829268292
+          }
+        },
+        "pooled": {
+          "n": 11378,
+          "detection": {
+            "k": 11340,
+            "n": 11378,
+            "rate": 0.9966602214800492,
+            "wilson95": [
+              0.9954194988736549,
+              0.9975656908155919
+            ]
+          },
+          "correct_class": {
+            "k": 11324,
+            "n": 11378,
+            "rate": 0.9952539989453331,
+            "wilson95": [
+              0.9938132106426274,
+              0.9963604831989767
+            ]
+          }
+        }
+      },
+      "naive_bayes_raw": {
+        "label": "MNB (raw)",
+        "input_routing": "raw",
+        "per_class": {
+          "sqli": {
+            "n": 10849,
+            "n_families": 8427,
+            "detection": {
+              "k": 10847,
+              "n": 10849,
+              "rate": 0.9998156512120933,
+              "wilson95": [
+                0.9993280306631886,
+                0.9999494434572573
+              ]
+            },
+            "correct_class": {
+              "k": 10847,
+              "n": 10849,
+              "rate": 0.9998156512120933,
+              "wilson95": [
+                0.9993280306631886,
+                0.9999494434572573
+              ]
+            },
+            "predicted": {
+              "benign": 2,
+              "sqli": 10847,
+              "xss": 0
+            },
+            "family_weighted_detection_rate": 0.9997626676159962,
+            "family_weighted_correct_class_rate": 0.9997626676159962
+          },
+          "xss": {
+            "n": 529,
+            "n_families": 410,
+            "detection": {
+              "k": 529,
+              "n": 529,
+              "rate": 1.0,
+              "wilson95": [
+                0.9927906157505156,
+                0.9999999999999999
+              ]
+            },
+            "correct_class": {
+              "k": 517,
+              "n": 529,
+              "rate": 0.9773156899810964,
+              "wilson95": [
+                0.9607721850747946,
+                0.9869768904526353
+              ]
+            },
+            "predicted": {
+              "benign": 0,
+              "sqli": 12,
+              "xss": 517
+            },
+            "family_weighted_detection_rate": 1.0,
+            "family_weighted_correct_class_rate": 0.9707317073170731
+          }
+        },
+        "pooled": {
+          "n": 11378,
+          "detection": {
+            "k": 11376,
+            "n": 11378,
+            "rate": 0.9998242221831605,
+            "wilson95": [
+              0.9993592612875447,
+              0.9999517940588979
+            ]
+          },
+          "correct_class": {
+            "k": 11364,
+            "n": 11378,
+            "rate": 0.9987695552821234,
+            "wilson95": [
+              0.9979355505855443,
+              0.9992668828751663
+            ]
+          }
+        }
+      },
+      "naive_bayes_normalized": {
+        "label": "MNB (canon.)",
+        "input_routing": "canonicalize(input)",
+        "per_class": {
+          "sqli": {
+            "n": 10849,
+            "n_families": 8427,
+            "detection": {
+              "k": 10847,
+              "n": 10849,
+              "rate": 0.9998156512120933,
+              "wilson95": [
+                0.9993280306631886,
+                0.9999494434572573
+              ]
+            },
+            "correct_class": {
+              "k": 10846,
+              "n": 10849,
+              "rate": 0.9997234768181399,
+              "wilson95": [
+                0.9991872377760398,
+                0.9999059528083767
+              ]
+            },
+            "predicted": {
+              "benign": 2,
+              "sqli": 10846,
+              "xss": 1
+            },
+            "family_weighted_detection_rate": 0.9997626676159962,
+            "family_weighted_correct_class_rate": 0.9996440014239943
+          },
+          "xss": {
+            "n": 529,
+            "n_families": 410,
+            "detection": {
+              "k": 529,
+              "n": 529,
+              "rate": 1.0,
+              "wilson95": [
+                0.9927906157505156,
+                0.9999999999999999
+              ]
+            },
+            "correct_class": {
+              "k": 516,
+              "n": 529,
+              "rate": 0.9754253308128544,
+              "wilson95": [
+                0.9584124360285813,
+                0.9855831778135915
+              ]
+            },
+            "predicted": {
+              "benign": 0,
+              "sqli": 13,
+              "xss": 516
+            },
+            "family_weighted_detection_rate": 1.0,
+            "family_weighted_correct_class_rate": 0.9682926829268292
+          }
+        },
+        "pooled": {
+          "n": 11378,
+          "detection": {
+            "k": 11376,
+            "n": 11378,
+            "rate": 0.9998242221831605,
+            "wilson95": [
+              0.9993592612875447,
+              0.9999517940588979
+            ]
+          },
+          "correct_class": {
+            "k": 11362,
+            "n": 11378,
+            "rate": 0.9985937774652839,
+            "wilson95": [
+              0.9977167942226599,
+              0.9991342022570955
+            ]
+          }
+        }
+      },
+      "svm_raw": {
+        "label": "SVM (raw)",
+        "input_routing": "raw",
+        "per_class": {
+          "sqli": {
+            "n": 10849,
+            "n_families": 8427,
+            "detection": {
+              "k": 10819,
+              "n": 10849,
+              "rate": 0.9972347681813992,
+              "wilson95": [
+                0.996055249828679,
+                0.9980622852829386
+              ]
+            },
+            "correct_class": {
+              "k": 10809,
+              "n": 10849,
+              "rate": 0.9963130242418656,
+              "wilson95": [
+                0.9949836222718611,
+                0.9972910774794608
+              ]
+            },
+            "predicted": {
+              "benign": 30,
+              "sqli": 10809,
+              "xss": 10
+            },
+            "family_weighted_detection_rate": 0.9990210039159844,
+            "family_weighted_correct_class_rate": 0.9987243384359796
+          },
+          "xss": {
+            "n": 529,
+            "n_families": 410,
+            "detection": {
+              "k": 528,
+              "n": 529,
+              "rate": 0.998109640831758,
+              "wilson95": [
+                0.9893709268509896,
+                0.9996662272142687
+              ]
+            },
+            "correct_class": {
+              "k": 520,
+              "n": 529,
+              "rate": 0.9829867674858223,
+              "wilson95": [
+                0.9679854960856946,
+                0.9910239644975065
+              ]
+            },
+            "predicted": {
+              "benign": 1,
+              "sqli": 8,
+              "xss": 520
+            },
+            "family_weighted_detection_rate": 0.9975609756097561,
+            "family_weighted_correct_class_rate": 0.9780487804878049
+          }
+        },
+        "pooled": {
+          "n": 11378,
+          "detection": {
+            "k": 11347,
+            "n": 11378,
+            "rate": 0.9972754438389875,
+            "wilson95": [
+              0.996135384502745,
+              0.9980798346198454
+            ]
+          },
+          "correct_class": {
+            "k": 11329,
+            "n": 11378,
+            "rate": 0.9956934434874319,
+            "wilson95": [
+              0.9943115544481723,
+              0.9967407318458205
+            ]
+          }
+        }
+      },
+      "svm_normalized": {
+        "label": "SVM (canon.)",
+        "input_routing": "canonicalize(input)",
+        "per_class": {
+          "sqli": {
+            "n": 10849,
+            "n_families": 8427,
+            "detection": {
+              "k": 10819,
+              "n": 10849,
+              "rate": 0.9972347681813992,
+              "wilson95": [
+                0.996055249828679,
+                0.9980622852829386
+              ]
+            },
+            "correct_class": {
+              "k": 10813,
+              "n": 10849,
+              "rate": 0.996681721817679,
+              "wilson95": [
+                0.9954097674548097,
+                0.9976020664406302
+              ]
+            },
+            "predicted": {
+              "benign": 30,
+              "sqli": 10813,
+              "xss": 6
+            },
+            "family_weighted_detection_rate": 0.9990210039159844,
+            "family_weighted_correct_class_rate": 0.9988430046279815
+          },
+          "xss": {
+            "n": 529,
+            "n_families": 410,
+            "detection": {
+              "k": 528,
+              "n": 529,
+              "rate": 0.998109640831758,
+              "wilson95": [
+                0.9893709268509896,
+                0.9996662272142687
+              ]
+            },
+            "correct_class": {
+              "k": 520,
+              "n": 529,
+              "rate": 0.9829867674858223,
+              "wilson95": [
+                0.9679854960856946,
+                0.9910239644975065
+              ]
+            },
+            "predicted": {
+              "benign": 1,
+              "sqli": 8,
+              "xss": 520
+            },
+            "family_weighted_detection_rate": 0.9975609756097561,
+            "family_weighted_correct_class_rate": 0.9780487804878049
+          }
+        },
+        "pooled": {
+          "n": 11378,
+          "detection": {
+            "k": 11347,
+            "n": 11378,
+            "rate": 0.9972754438389875,
+            "wilson95": [
+              0.996135384502745,
+              0.9980798346198454
+            ]
+          },
+          "correct_class": {
+            "k": 11333,
+            "n": 11378,
+            "rate": 0.9960449991211109,
+            "wilson95": [
+              0.9947124222179474,
+              0.9970427380379557
+            ]
+          }
+        }
+      },
+      "signature_raw": {
+        "label": "Sig (raw)",
+        "input_routing": "raw",
+        "per_class": {
+          "sqli": {
+            "n": 10849,
+            "n_families": 8427,
+            "detection": {
+              "k": 8221,
+              "n": 10849,
+              "rate": 0.7577656926905706,
+              "wilson95": [
+                0.7496134439344476,
+                0.7657354645722979
+              ]
+            },
+            "correct_class": {
+              "k": 8221,
+              "n": 10849,
+              "rate": 0.7577656926905706,
+              "wilson95": [
+                0.7496134439344476,
+                0.7657354645722979
+              ]
+            },
+            "predicted": {
+              "benign": 2628,
+              "sqli": 8221,
+              "xss": 0
+            },
+            "family_weighted_detection_rate": 0.7778172593298083,
+            "family_weighted_correct_class_rate": 0.7778172593298083
+          },
+          "xss": {
+            "n": 529,
+            "n_families": 410,
+            "detection": {
+              "k": 409,
+              "n": 529,
+              "rate": 0.7731568998109641,
+              "wilson95": [
+                0.7355744323320281,
+                0.8068007811876299
+              ]
+            },
+            "correct_class": {
+              "k": 409,
+              "n": 529,
+              "rate": 0.7731568998109641,
+              "wilson95": [
+                0.7355744323320281,
+                0.8068007811876299
+              ]
+            },
+            "predicted": {
+              "benign": 120,
+              "sqli": 0,
+              "xss": 409
+            },
+            "family_weighted_detection_rate": 0.7936659275683665,
+            "family_weighted_correct_class_rate": 0.7936659275683665
+          }
+        },
+        "pooled": {
+          "n": 11378,
+          "detection": {
+            "k": 8630,
+            "n": 11378,
+            "rate": 0.7584812796625066,
+            "wilson95": [
+              0.7505305312843807,
+              0.7662575492104121
+            ]
+          },
+          "correct_class": {
+            "k": 8630,
+            "n": 11378,
+            "rate": 0.7584812796625066,
+            "wilson95": [
+              0.7505305312843807,
+              0.7662575492104121
+            ]
+          }
+        }
+      },
+      "signature_normalized": {
+        "label": "Sig (canon.)",
+        "input_routing": "raw; canonicalizes internally",
+        "per_class": {
+          "sqli": {
+            "n": 10849,
+            "n_families": 8427,
+            "detection": {
+              "k": 8221,
+              "n": 10849,
+              "rate": 0.7577656926905706,
+              "wilson95": [
+                0.7496134439344476,
+                0.7657354645722979
+              ]
+            },
+            "correct_class": {
+              "k": 8221,
+              "n": 10849,
+              "rate": 0.7577656926905706,
+              "wilson95": [
+                0.7496134439344476,
+                0.7657354645722979
+              ]
+            },
+            "predicted": {
+              "benign": 2628,
+              "sqli": 8221,
+              "xss": 0
+            },
+            "family_weighted_detection_rate": 0.7778172593298083,
+            "family_weighted_correct_class_rate": 0.7778172593298083
+          },
+          "xss": {
+            "n": 529,
+            "n_families": 410,
+            "detection": {
+              "k": 409,
+              "n": 529,
+              "rate": 0.7731568998109641,
+              "wilson95": [
+                0.7355744323320281,
+                0.8068007811876299
+              ]
+            },
+            "correct_class": {
+              "k": 409,
+              "n": 529,
+              "rate": 0.7731568998109641,
+              "wilson95": [
+                0.7355744323320281,
+                0.8068007811876299
+              ]
+            },
+            "predicted": {
+              "benign": 120,
+              "sqli": 0,
+              "xss": 409
+            },
+            "family_weighted_detection_rate": 0.7936659275683665,
+            "family_weighted_correct_class_rate": 0.7936659275683665
+          }
+        },
+        "pooled": {
+          "n": 11378,
+          "detection": {
+            "k": 8630,
+            "n": 11378,
+            "rate": 0.7584812796625066,
+            "wilson95": [
+              0.7505305312843807,
+              0.7662575492104121
+            ]
+          },
+          "correct_class": {
+            "k": 8630,
+            "n": 11378,
+            "rate": 0.7584812796625066,
+            "wilson95": [
+              0.7505305312843807,
+              0.7662575492104121
+            ]
+          }
+        }
+      }
+    },
+    "sensitivity_family": {
+      "logistic_regression_raw": {
+        "label": "LR (raw)",
+        "input_routing": "raw",
+        "per_class": {
+          "sqli": {
+            "n": 10848,
+            "n_families": 8426,
+            "detection": {
+              "k": 10813,
+              "n": 10848,
+              "rate": 0.996773598820059,
+              "wilson95": [
+                0.9955163766923386,
+                0.9976791137595907
+              ]
+            },
+            "correct_class": {
+              "k": 10807,
+              "n": 10848,
+              "rate": 0.9962205014749262,
+              "wilson95": [
+                0.9948770641117293,
+                0.9972126232333691
+              ]
+            },
+            "predicted": {
+              "benign": 35,
+              "sqli": 10807,
+              "xss": 6
+            },
+            "family_weighted_detection_rate": 0.9984274863517684,
+            "family_weighted_correct_class_rate": 0.998249465938761
+          },
+          "xss": {
+            "n": 511,
+            "n_families": 404,
+            "detection": {
+              "k": 509,
+              "n": 511,
+              "rate": 0.9960861056751468,
+              "wilson95": [
+                0.9858431656008879,
+                0.9989260120044743
+              ]
+            },
+            "correct_class": {
+              "k": 500,
+              "n": 511,
+              "rate": 0.9784735812133072,
+              "wilson95": [
+                0.9618686724414713,
+                0.9879382858406236
+              ]
+            },
+            "predicted": {
+              "benign": 2,
+              "sqli": 9,
+              "xss": 500
+            },
+            "family_weighted_detection_rate": 0.995049504950495,
+            "family_weighted_correct_class_rate": 0.9727722772277227
+          }
+        },
+        "pooled": {
+          "n": 11359,
+          "detection": {
+            "k": 11322,
+            "n": 11359,
+            "rate": 0.996742671009772,
+            "wilson95": [
+              0.9955136863066035,
+              0.9976357861116473
+            ]
+          },
+          "correct_class": {
+            "k": 11307,
+            "n": 11359,
+            "rate": 0.9954221322299498,
+            "wilson95": [
+              0.9940021996777192,
+              0.9965070880553258
+            ]
+          }
+        }
+      },
+      "logistic_regression_normalized": {
+        "label": "LR (canon.)",
+        "input_routing": "canonicalize(input)",
+        "per_class": {
+          "sqli": {
+            "n": 10848,
+            "n_families": 8426,
+            "detection": {
+              "k": 10813,
+              "n": 10848,
+              "rate": 0.996773598820059,
+              "wilson95": [
+                0.9955163766923386,
+                0.9976791137595907
+              ]
+            },
+            "correct_class": {
+              "k": 10807,
+              "n": 10848,
+              "rate": 0.9962205014749262,
+              "wilson95": [
+                0.9948770641117293,
+                0.9972126232333691
+              ]
+            },
+            "predicted": {
+              "benign": 35,
+              "sqli": 10807,
+              "xss": 6
+            },
+            "family_weighted_detection_rate": 0.9984274863517684,
+            "family_weighted_correct_class_rate": 0.998249465938761
+          },
+          "xss": {
+            "n": 511,
+            "n_families": 404,
+            "detection": {
+              "k": 508,
+              "n": 511,
+              "rate": 0.9941291585127201,
+              "wilson95": [
+                0.9828830696870299,
+                0.9980014168824136
+              ]
+            },
+            "correct_class": {
+              "k": 498,
+              "n": 511,
+              "rate": 0.974559686888454,
+              "wilson95": [
+                0.9569642433961952,
+                0.9850733328140625
+              ]
+            },
+            "predicted": {
+              "benign": 3,
+              "sqli": 10,
+              "xss": 498
+            },
+            "family_weighted_detection_rate": 0.9925742574257426,
+            "family_weighted_correct_class_rate": 0.9678217821782178
+          }
+        },
+        "pooled": {
+          "n": 11359,
+          "detection": {
+            "k": 11321,
+            "n": 11359,
+            "rate": 0.9966546350911172,
+            "wilson95": [
+              0.9954118426779468,
+              0.9975616174279571
+            ]
+          },
+          "correct_class": {
+            "k": 11305,
+            "n": 11359,
+            "rate": 0.9952460603926402,
+            "wilson95": [
+              0.9938028706058717,
+              0.9963543925024794
+            ]
+          }
+        }
+      },
+      "naive_bayes_raw": {
+        "label": "MNB (raw)",
+        "input_routing": "raw",
+        "per_class": {
+          "sqli": {
+            "n": 10848,
+            "n_families": 8426,
+            "detection": {
+              "k": 10847,
+              "n": 10848,
+              "rate": 0.9999078171091446,
+              "wilson95": [
+                0.9994779807864258,
+                0.9999837272708785
+              ]
+            },
+            "correct_class": {
+              "k": 10847,
+              "n": 10848,
+              "rate": 0.9999078171091446,
+              "wilson95": [
+                0.9994779807864258,
+                0.9999837272708785
+              ]
+            },
+            "predicted": {
+              "benign": 1,
+              "sqli": 10847,
+              "xss": 0
+            },
+            "family_weighted_detection_rate": 0.9998813197246618,
+            "family_weighted_correct_class_rate": 0.9998813197246618
+          },
+          "xss": {
+            "n": 511,
+            "n_families": 404,
+            "detection": {
+              "k": 511,
+              "n": 511,
+              "rate": 1.0,
+              "wilson95": [
+                0.9925385596771995,
+                0.9999999999999999
+              ]
+            },
+            "correct_class": {
+              "k": 499,
+              "n": 511,
+              "rate": 0.9765166340508806,
+              "wilson95": [
+                0.9594058185115149,
+                0.9865164487346616
+              ]
+            },
+            "predicted": {
+              "benign": 0,
+              "sqli": 12,
+              "xss": 499
+            },
+            "family_weighted_detection_rate": 1.0,
+            "family_weighted_correct_class_rate": 0.9702970297029703
+          }
+        },
+        "pooled": {
+          "n": 11359,
+          "detection": {
+            "k": 11358,
+            "n": 11359,
+            "rate": 0.9999119640813452,
+            "wilson95": [
+              0.9995014563331437,
+              0.9999844593296014
+            ]
+          },
+          "correct_class": {
+            "k": 11346,
+            "n": 11359,
+            "rate": 0.9988555330574874,
+            "wilson95": [
+              0.9980427473511221,
+              0.9993310205634581
+            ]
+          }
+        }
+      },
+      "naive_bayes_normalized": {
+        "label": "MNB (canon.)",
+        "input_routing": "canonicalize(input)",
+        "per_class": {
+          "sqli": {
+            "n": 10848,
+            "n_families": 8426,
+            "detection": {
+              "k": 10847,
+              "n": 10848,
+              "rate": 0.9999078171091446,
+              "wilson95": [
+                0.9994779807864258,
+                0.9999837272708785
+              ]
+            },
+            "correct_class": {
+              "k": 10846,
+              "n": 10848,
+              "rate": 0.9998156342182891,
+              "wilson95": [
+                0.9993279687428243,
+                0.999949438796675
+              ]
+            },
+            "predicted": {
+              "benign": 1,
+              "sqli": 10846,
+              "xss": 1
+            },
+            "family_weighted_detection_rate": 0.9998813197246618,
+            "family_weighted_correct_class_rate": 0.9997626394493235
+          },
+          "xss": {
+            "n": 511,
+            "n_families": 404,
+            "detection": {
+              "k": 511,
+              "n": 511,
+              "rate": 1.0,
+              "wilson95": [
+                0.9925385596771995,
+                0.9999999999999999
+              ]
+            },
+            "correct_class": {
+              "k": 498,
+              "n": 511,
+              "rate": 0.974559686888454,
+              "wilson95": [
+                0.9569642433961952,
+                0.9850733328140625
+              ]
+            },
+            "predicted": {
+              "benign": 0,
+              "sqli": 13,
+              "xss": 498
+            },
+            "family_weighted_detection_rate": 1.0,
+            "family_weighted_correct_class_rate": 0.9678217821782178
+          }
+        },
+        "pooled": {
+          "n": 11359,
+          "detection": {
+            "k": 11358,
+            "n": 11359,
+            "rate": 0.9999119640813452,
+            "wilson95": [
+              0.9995014563331437,
+              0.9999844593296014
+            ]
+          },
+          "correct_class": {
+            "k": 11344,
+            "n": 11359,
+            "rate": 0.9986794612201778,
+            "wilson95": [
+              0.9978221989168048,
+              0.9991995443730812
+            ]
+          }
+        }
+      },
+      "svm_raw": {
+        "label": "SVM (raw)",
+        "input_routing": "raw",
+        "per_class": {
+          "sqli": {
+            "n": 10848,
+            "n_families": 8426,
+            "detection": {
+              "k": 10818,
+              "n": 10848,
+              "rate": 0.9972345132743363,
+              "wilson95": [
+                0.9960548864432082,
+                0.9980621065977469
+              ]
+            },
+            "correct_class": {
+              "k": 10808,
+              "n": 10848,
+              "rate": 0.9963126843657817,
+              "wilson95": [
+                0.9949831602035293,
+                0.9972908276593742
+              ]
+            },
+            "predicted": {
+              "benign": 30,
+              "sqli": 10808,
+              "xss": 10
+            },
+            "family_weighted_detection_rate": 0.9990208877284595,
+            "family_weighted_correct_class_rate": 0.9987241870401139
+          },
+          "xss": {
+            "n": 511,
+            "n_families": 404,
+            "detection": {
+              "k": 510,
+              "n": 511,
+              "rate": 0.9980430528375733,
+              "wilson95": [
+                0.9889994014345377,
+                0.9996544672067428
+              ]
+            },
+            "correct_class": {
+              "k": 502,
+              "n": 511,
+              "rate": 0.9823874755381604,
+              "wilson95": [
+                0.9668694767542068,
+                0.9907068635997254
+              ]
+            },
+            "predicted": {
+              "benign": 1,
+              "sqli": 8,
+              "xss": 502
+            },
+            "family_weighted_detection_rate": 0.9975247524752475,
+            "family_weighted_correct_class_rate": 0.9777227722772277
+          }
+        },
+        "pooled": {
+          "n": 11359,
+          "detection": {
+            "k": 11328,
+            "n": 11359,
+            "rate": 0.9972708865217008,
+            "wilson95": [
+              0.9961289245716988,
+              0.9980766217206344
+            ]
+          },
+          "correct_class": {
+            "k": 11310,
+            "n": 11359,
+            "rate": 0.9956862399859142,
+            "wilson95": [
+              0.994302047017813,
+              0.9967352776522731
+            ]
+          }
+        }
+      },
+      "svm_normalized": {
+        "label": "SVM (canon.)",
+        "input_routing": "canonicalize(input)",
+        "per_class": {
+          "sqli": {
+            "n": 10848,
+            "n_families": 8426,
+            "detection": {
+              "k": 10818,
+              "n": 10848,
+              "rate": 0.9972345132743363,
+              "wilson95": [
+                0.9960548864432082,
+                0.9980621065977469
+              ]
+            },
+            "correct_class": {
+              "k": 10812,
+              "n": 10848,
+              "rate": 0.9966814159292036,
+              "wilson95": [
+                0.9954093446275306,
+                0.9976018453065937
+              ]
+            },
+            "predicted": {
+              "benign": 30,
+              "sqli": 10812,
+              "xss": 6
+            },
+            "family_weighted_detection_rate": 0.9990208877284595,
+            "family_weighted_correct_class_rate": 0.9988428673154521
+          },
+          "xss": {
+            "n": 511,
+            "n_families": 404,
+            "detection": {
+              "k": 510,
+              "n": 511,
+              "rate": 0.9980430528375733,
+              "wilson95": [
+                0.9889994014345377,
+                0.9996544672067428
+              ]
+            },
+            "correct_class": {
+              "k": 502,
+              "n": 511,
+              "rate": 0.9823874755381604,
+              "wilson95": [
+                0.9668694767542068,
+                0.9907068635997254
+              ]
+            },
+            "predicted": {
+              "benign": 1,
+              "sqli": 8,
+              "xss": 502
+            },
+            "family_weighted_detection_rate": 0.9975247524752475,
+            "family_weighted_correct_class_rate": 0.9777227722772277
+          }
+        },
+        "pooled": {
+          "n": 11359,
+          "detection": {
+            "k": 11328,
+            "n": 11359,
+            "rate": 0.9972708865217008,
+            "wilson95": [
+              0.9961289245716988,
+              0.9980766217206344
+            ]
+          },
+          "correct_class": {
+            "k": 11314,
+            "n": 11359,
+            "rate": 0.9960383836605335,
+            "wilson95": [
+              0.994703584563928,
+              0.9970377893555464
+            ]
+          }
+        }
+      },
+      "signature_raw": {
+        "label": "Sig (raw)",
+        "input_routing": "raw",
+        "per_class": {
+          "sqli": {
+            "n": 10848,
+            "n_families": 8426,
+            "detection": {
+              "k": 8221,
+              "n": 10848,
+              "rate": 0.7578355457227138,
+              "wilson95": [
+                0.7496836829134478,
+                0.7658048653875443
+              ]
+            },
+            "correct_class": {
+              "k": 8221,
+              "n": 10848,
+              "rate": 0.7578355457227138,
+              "wilson95": [
+                0.7496836829134478,
+                0.7658048653875443
+              ]
+            },
+            "predicted": {
+              "benign": 2627,
+              "sqli": 8221,
+              "xss": 0
+            },
+            "family_weighted_detection_rate": 0.7779095708963083,
+            "family_weighted_correct_class_rate": 0.7779095708963083
+          },
+          "xss": {
+            "n": 511,
+            "n_families": 404,
+            "detection": {
+              "k": 397,
+              "n": 511,
+              "rate": 0.776908023483366,
+              "wilson95": [
+                0.7388210598045644,
+                0.8108627217779161
+              ]
+            },
+            "correct_class": {
+              "k": 397,
+              "n": 511,
+              "rate": 0.776908023483366,
+              "wilson95": [
+                0.7388210598045644,
+                0.8108627217779161
+              ]
+            },
+            "predicted": {
+              "benign": 114,
+              "sqli": 0,
+              "xss": 397
+            },
+            "family_weighted_detection_rate": 0.793976897689769,
+            "family_weighted_correct_class_rate": 0.793976897689769
+          }
+        },
+        "pooled": {
+          "n": 11359,
+          "detection": {
+            "k": 8618,
+            "n": 11359,
+            "rate": 0.7586935469671626,
+            "wilson95": [
+              0.7507383659650633,
+              0.7664738138667542
+            ]
+          },
+          "correct_class": {
+            "k": 8618,
+            "n": 11359,
+            "rate": 0.7586935469671626,
+            "wilson95": [
+              0.7507383659650633,
+              0.7664738138667542
+            ]
+          }
+        }
+      },
+      "signature_normalized": {
+        "label": "Sig (canon.)",
+        "input_routing": "raw; canonicalizes internally",
+        "per_class": {
+          "sqli": {
+            "n": 10848,
+            "n_families": 8426,
+            "detection": {
+              "k": 8221,
+              "n": 10848,
+              "rate": 0.7578355457227138,
+              "wilson95": [
+                0.7496836829134478,
+                0.7658048653875443
+              ]
+            },
+            "correct_class": {
+              "k": 8221,
+              "n": 10848,
+              "rate": 0.7578355457227138,
+              "wilson95": [
+                0.7496836829134478,
+                0.7658048653875443
+              ]
+            },
+            "predicted": {
+              "benign": 2627,
+              "sqli": 8221,
+              "xss": 0
+            },
+            "family_weighted_detection_rate": 0.7779095708963083,
+            "family_weighted_correct_class_rate": 0.7779095708963083
+          },
+          "xss": {
+            "n": 511,
+            "n_families": 404,
+            "detection": {
+              "k": 397,
+              "n": 511,
+              "rate": 0.776908023483366,
+              "wilson95": [
+                0.7388210598045644,
+                0.8108627217779161
+              ]
+            },
+            "correct_class": {
+              "k": 397,
+              "n": 511,
+              "rate": 0.776908023483366,
+              "wilson95": [
+                0.7388210598045644,
+                0.8108627217779161
+              ]
+            },
+            "predicted": {
+              "benign": 114,
+              "sqli": 0,
+              "xss": 397
+            },
+            "family_weighted_detection_rate": 0.793976897689769,
+            "family_weighted_correct_class_rate": 0.793976897689769
+          }
+        },
+        "pooled": {
+          "n": 11359,
+          "detection": {
+            "k": 8618,
+            "n": 11359,
+            "rate": 0.7586935469671626,
+            "wilson95": [
+              0.7507383659650633,
+              0.7664738138667542
+            ]
+          },
+          "correct_class": {
+            "k": 8618,
+            "n": 11359,
+            "rate": 0.7586935469671626,
+            "wilson95": [
+              0.7507383659650633,
+              0.7664738138667542
+            ]
+          }
+        }
+      }
+    }
+  },
+  "benign_control": {
+    "logistic_regression_raw": {
+      "label": "LR (raw)",
+      "flagged": {
+        "k": 18731,
+        "n": 19304,
+        "rate": 0.9703170327393287,
+        "wilson95": [
+          0.9678278097741925,
+          0.9726191085790038
+        ]
+      },
+      "predicted": {
+        "benign": 573,
+        "sqli": 18730,
+        "xss": 1
+      }
+    },
+    "logistic_regression_normalized": {
+      "label": "LR (canon.)",
+      "flagged": {
+        "k": 18827,
+        "n": 19304,
+        "rate": 0.9752900953170327,
+        "wilson95": [
+          0.9730037961762809,
+          0.9773872684663641
+        ]
+      },
+      "predicted": {
+        "benign": 477,
+        "sqli": 18826,
+        "xss": 1
+      }
+    },
+    "naive_bayes_raw": {
+      "label": "MNB (raw)",
+      "flagged": {
+        "k": 1193,
+        "n": 19304,
+        "rate": 0.06180066307501036,
+        "wilson95": [
+          0.058490276748910434,
+          0.06528541635058445
+        ]
+      },
+      "predicted": {
+        "benign": 18111,
+        "sqli": 1190,
+        "xss": 3
+      }
+    },
+    "naive_bayes_normalized": {
+      "label": "MNB (canon.)",
+      "flagged": {
+        "k": 1212,
+        "n": 19304,
+        "rate": 0.0627849150435143,
+        "wilson95": [
+          0.05944920277678252,
+          0.06629460260916582
+        ]
+      },
+      "predicted": {
+        "benign": 18092,
+        "sqli": 1209,
+        "xss": 3
+      }
+    },
+    "svm_raw": {
+      "label": "SVM (raw)",
+      "flagged": {
+        "k": 18708,
+        "n": 19304,
+        "rate": 0.969125569830087,
+        "wilson95": [
+          0.9665905559913879,
+          0.9714739106466277
+        ]
+      },
+      "predicted": {
+        "benign": 596,
+        "sqli": 18703,
+        "xss": 5
+      }
+    },
+    "svm_normalized": {
+      "label": "SVM (canon.)",
+      "flagged": {
+        "k": 18755,
+        "n": 19304,
+        "rate": 0.9715602983837547,
+        "wilson95": [
+          0.9691199478360174,
+          0.9738130070895409
+        ]
+      },
+      "predicted": {
+        "benign": 549,
+        "sqli": 18753,
+        "xss": 2
+      }
+    },
+    "signature_raw": {
+      "label": "Sig (raw)",
+      "flagged": {
+        "k": 0,
+        "n": 19304,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019895848165560597
+        ]
+      },
+      "predicted": {
+        "benign": 19304,
+        "sqli": 0,
+        "xss": 0
+      }
+    },
+    "signature_normalized": {
+      "label": "Sig (canon.)",
+      "flagged": {
+        "k": 0,
+        "n": 19304,
+        "rate": 0.0,
+        "wilson95": [
+          0.0,
+          0.00019895848165560597
+        ]
+      },
+      "predicted": {
+        "benign": 19304,
+        "sqli": 0,
+        "xss": 0
+      }
+    }
+  }
+}
