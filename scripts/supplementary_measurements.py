@@ -390,7 +390,11 @@ def write_markdown(out_dir, env, abl, sess_df, summ_df, n_sessions) -> None:
     L += ["", f"## S2. Latency, Table V protocol, {n_sessions} repeated sessions", "",
           "Per session: fresh process, models retrained, 5 warm-up calls, then one "
           "`predict([x])` per clean test input (263 calls). Range = min–max of the "
-          "per-session statistic.", ""]
+          "per-session statistic. With 263 calls, p99 is set by the 3rd-slowest call, so it "
+          "is sensitive to single scheduler or GC stalls. The archived Table V values come "
+          "from a different host (`definitive_20260923T094339Z_42/environment.json`: "
+          f"{json.loads((REFERENCE_RUN / 'environment.json').read_text()).get('n_cpus')} CPU "
+          "visible to the process) and are listed for reference only.", ""]
     L += md_table(["Configuration", "Median ms (range)", "p95 ms (range)", "p99 ms (range)",
                    "Archived Table V median / p95 / p99"],
                   [[r["config"], rng(r, "median_ms"), rng(r, "p95_ms"), rng(r, "p99_ms"),
@@ -424,9 +428,15 @@ def write_markdown(out_dir, env, abl, sess_df, summ_df, n_sessions) -> None:
         lat_sentence = (
             f"Median single-request latency was {sc['median_ms_median_of_sessions']:.3f} ms with "
             f"calibration and {su['median_ms_median_of_sessions']:.3f} ms without it. ")
-    ranking_sentence = ("The ranking of the configurations was the same in every session"
-                        if _same_ranking(sess_df) else
-                        "The ranking of the configurations changed between sessions")
+    flips = _order_flips(sess_df)
+    if not flips:
+        ranking_sentence = ("The ordering of the five configurations by median latency "
+                            "was the same in every session")
+    else:
+        pairs = "; ".join(f"{a} and {b} (medians within {gap:.3f} ms)" for a, b, gap in flips)
+        ranking_sentence = ("The ordering by median latency was the same in every session "
+                            f"except for {pairs}, which swapped places")
+    ref_env = json.loads((REFERENCE_RUN / "environment.json").read_text())
     para = (
         "**Supplementary measurements.** To separate the cost of probability "
         "calibration from the linear decision function, we retrained the canonicalized "
@@ -438,8 +448,8 @@ def write_markdown(out_dir, env, abl, sess_df, summ_df, n_sessions) -> None:
         + (" (identical)" if same_f1 else "") + ". "
         + lat_sentence +
         f"We also repeated the Table V timing protocol in {n_sessions} independent sessions "
-        f"on a {env['cpu_model']} ({env['cpus_usable_by_process']} usable CPU(s), "
-        f"{env['ram_total_gib']} GiB RAM, {env['os']}, Python {env['python']}, "
+        f"(CPU: {env['cpu_model']}, {env['cpus_usable_by_process']} usable CPUs; "
+        f"{env['ram_total_gib']} GiB RAM; {env['os']}; Python {env['python']}; "
         f"scikit-learn {pk.get('scikit-learn')}). "
         f"Across sessions, median latency ranged from {rng(S[fastest], 'median_ms')} ms "
         f"({fastest}) to {rng(S[slowest], 'median_ms')} ms ({slowest}), and the "
@@ -447,15 +457,24 @@ def write_markdown(out_dir, env, abl, sess_df, summ_df, n_sessions) -> None:
         + ranking_sentence
     )
     para += (". These values are supplementary. Table V still reports the archived "
-             "reference run, and absolute latencies depend on hardware.")
+             f"reference run, which was recorded on a different host ({ref_env.get('n_cpus')} "
+             "CPU visible to the process); absolute latencies depend on hardware, so only "
+             "the relative ordering and the calibration overhead should be compared.")
     (out_dir / "paper_paragraph.md").write_text(para + "\n")
 
 
-def _same_ranking(sess_df) -> bool:
-    ranks = set()
-    for s, d in sess_df[sess_df.config.isin(TABLE_V_CONFIGS)].groupby("session"):
-        ranks.add(tuple(d.sort_values("median_ms").config))
-    return len(ranks) == 1
+def _order_flips(sess_df) -> list[tuple[str, str, float]]:
+    """Pairs of Table V configs whose median-latency order differs between sessions,
+    with the largest per-session gap between the two medians."""
+    med = sess_df[sess_df.config.isin(TABLE_V_CONFIGS)].pivot(
+        index="session", columns="config", values="median_ms")
+    flips = []
+    for i, a in enumerate(TABLE_V_CONFIGS):
+        for b in TABLE_V_CONFIGS[i + 1:]:
+            diff = med[a] - med[b]
+            if (diff > 0).any() and (diff < 0).any():
+                flips.append((a, b, float(diff.abs().max())))
+    return flips
 
 
 if __name__ == "__main__":
