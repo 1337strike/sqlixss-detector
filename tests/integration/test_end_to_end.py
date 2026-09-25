@@ -276,12 +276,15 @@ class TestWafDetectors:
         ("javascript:alert(1)", "xss"),
     ]
 
-    @pytest.fixture(scope="class")
-    def ensemble(self):
+    @pytest.fixture(scope="class", params=["deploy", "paper"])
+    def ensemble(self, request):
+        # The shipped config's detectors, with both model sets: the live
+        # default (deploy) and the paper's models (model_set: paper).
         from src.ensemble import EnsembleDetector
-        from src.waf_proxy import build_detectors
-        names = ["logistic_regression", "naive_bayes", "svm", "signature_baseline"]
-        return EnsembleDetector(build_detectors(names), policy="any")
+        from src.waf_proxy import build_detectors, load_config
+        config = load_config()
+        return EnsembleDetector(build_detectors(config["models"], request.param),
+                                policy=config.get("voting_policy", "any"))
 
     @pytest.fixture(scope="class")
     def signature_only(self):

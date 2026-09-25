@@ -162,3 +162,48 @@ def test_invalid_mode_rejected(tmp_path):
     p.write_text(yaml.safe_dump(cfg))
     with pytest.raises(SystemExit):
         load_config(p)
+
+
+# ── no feedback oracle for adaptive attackers ────────────────────────────────
+
+def test_refusals_are_indistinguishable(tmp_path):
+    """SQLi, XSS, scanner and ban refusals must look identical (status,
+    body keys, headers) apart from the random request_id, so an adaptive
+    attacker learns neither which layer fired nor that it is banned."""
+    from aiohttp import web
+    from aiohttp.test_utils import TestClient, TestServer
+    from src.waf_proxy import create_app, load_config
+
+    async def scenario():
+        backend = web.Application()
+        backend.router.add_route("*", "/{tail:.*}", lambda r: web.Response(text="ok"))
+        bs = TestServer(backend)
+        await bs.start_server()
+        config = load_config()
+        config.update(mode="block", backend_url=str(bs.make_url("")).rstrip("/"),
+                      log_path=str(tmp_path / "oracle.log"))
+        config["rate_limit"] = {**config["rate_limit"], "backend": "memory", "offense_threshold": 3}
+        app, _ = create_app(config)
+        client = TestClient(TestServer(app))
+        await client.start_server()
+        try:
+            async def probe(path, headers=None):
+                r = await client.get(path, headers=headers or {})
+                body = await r.json()
+                return r.status, tuple(sorted(body)), body.get("error"), r.headers.get("Server"), body["request_id"]
+            sqli = await probe("/search?q=%27%20OR%201%3D1--")
+            xss = await probe("/search?q=%3Csvg/onload=alert(1)%3E")
+            scanner = await probe("/search?q=1", {"User-Agent": "sqlmap/1.8"})
+            banned_benign = await probe("/search?q=laptop")      # threshold reached above
+            return [sqli, xss, scanner, banned_benign]
+        finally:
+            await client.close()
+            await bs.close()
+
+    results = asyncio.run(scenario())
+    shapes = {r[:4] for r in results}
+    assert shapes == {(403, ("error", "request_id"), "Forbidden", "httpd")}
+    assert len({r[4] for r in results}) == 4              # request ids are unique
+    log = (tmp_path / "oracle.log").read_text()
+    assert all(r[4] in log for r in results)              # ...and traceable in the log
+    assert '"decision": "blocked_ratelimit"' in log

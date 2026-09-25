@@ -56,6 +56,7 @@ class WafLogger:
         label: str,
         triggered_by: list[str],
         latency_ms: float,
+        request_id: str | None = None,
     ) -> None:
         event = {
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()),
@@ -67,6 +68,8 @@ class WafLogger:
             "triggered_by": triggered_by,
             "latency_ms": round(latency_ms, 3),
         }
+        if request_id:
+            event["request_id"] = request_id
         line = json.dumps(event, ensure_ascii=False)
         self._logger.info(line)
         if self.also_print:

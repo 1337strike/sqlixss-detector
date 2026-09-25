@@ -1,0 +1,16 @@
+{
+  "seed": 42,
+  "n_benign_generated": 4000,
+  "n_paper_train": 749,
+  "holdout_fraction": 0.2,
+  "n_param_names_train": 5163,
+  "n_param_names_heldout": 1290,
+  "canonicalization": "waf_views()[0]",
+  "not_trained_on": [
+    "data/processed/test_*.csv",
+    "CSIC 2010",
+    "PayloadsAllTheThings",
+    "sqlmap traffic",
+    "held-out parameter names"
+  ]
+}

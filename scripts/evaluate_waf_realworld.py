@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import re
 import sys
 import tempfile
@@ -41,17 +42,32 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "scripts"))
+
+import pandas as pd  # noqa: E402
 
 from src.recon_detection import classify_recon  # noqa: E402
 from src.waf_proxy import WafProxy, load_config  # noqa: E402
 
+# name -> (model_set, detectors). "paper" = models/*.joblib as evaluated in
+# the paper; "deploy" = models/deploy/ (scripts/train_deploy_models.py).
 CONFIGS = {
-    "LR+MNB+Sig (default)": ["logistic_regression", "naive_bayes", "signature_baseline"],
-    "LR+Sig": ["logistic_regression", "signature_baseline"],
-    "LR+SVM+Sig": ["logistic_regression", "svm", "signature_baseline"],
-    "LR+MNB+SVM+Sig": ["logistic_regression", "naive_bayes", "svm", "signature_baseline"],
-    "Sig only": ["signature_baseline"],
+    "deploy LR+SVM+Sig": ("deploy", ["logistic_regression", "svm", "signature_baseline"]),
+    "deploy LR+Sig": ("deploy", ["logistic_regression", "signature_baseline"]),
+    "paper LR+SVM+Sig": ("paper", ["logistic_regression", "svm", "signature_baseline"]),
+    "paper LR+Sig": ("paper", ["logistic_regression", "signature_baseline"]),
+    "paper LR+MNB+Sig": ("paper", ["logistic_regression", "naive_bayes", "signature_baseline"]),
+    "Sig only": ("paper", ["signature_baseline"]),
 }
+
+# Short, ordinary values (plus a few deliberately ambiguous ones) paired with
+# parameter names HELD OUT from deployment-model training.
+GRID_VALUES = (list("abcdefghijklmnopqrstuvwxyz0123456789") + [
+    "yes", "no", "true", "false", "null", "none", "all", "asc", "desc", "new", "top", "x1", "ab",
+    "abc", "test", "admin", "user", "guest", "home", "login", "select", "update", "delete", "insert",
+    "union", "from", "where", "script", "alert", "table", "drop", "and", "or", "not", "1-2",
+    "2019-2020", "10%", "a+b", "hello world", "it's", "o'neil", "don't", "rock & roll", "c:\\temp",
+    "/home/user", "<3", "a=b", "order by name", "5' 10\""])
 
 
 def parse_csic(path: Path) -> list[dict]:
@@ -111,9 +127,10 @@ def is_fragment(p: str) -> bool:
     return len(p) <= 3 or any(r.search(p) for r in _FRAGMENT_RES)
 
 
-def build_proxy(models: list[str], log_dir: Path) -> WafProxy:
+def build_proxy(models: list[str], log_dir: Path, model_set: str = "deploy") -> WafProxy:
     config = load_config()
-    config.update(models=models, voting_policy="any", log_path=str(log_dir / "eval.log"))
+    config.update(models=models, model_set=model_set, voting_policy="any",
+                  log_path=str(log_dir / f"eval_{model_set}.log"))
     config["rate_limit"] = {**config.get("rate_limit", {}), "backend": "memory"}
     return WafProxy(config)
 
@@ -129,11 +146,27 @@ def inject(payload: str, where: str) -> tuple[str, dict, bytes, str]:
     raise ValueError(where)
 
 
+def load_sqlmap_attacks(log: Path) -> list[str]:
+    """Attack requests from a WAF log of a sqlmap run (plain numeric or
+    alphanumeric probes such as q=1 are baseline requests, not attacks)."""
+    probe = re.compile(r"^-?[0-9]+$|^[A-Za-z0-9]{1,12}$")
+    out = []
+    for line in log.read_text().splitlines():
+        e = json.loads(line)
+        if e["decision"] not in ("blocked", "allowed"):
+            continue
+        qs = urllib.parse.parse_qs(urllib.parse.urlsplit(e["path"]).query, keep_blank_values=True)
+        if not probe.match(qs.get("q", [""])[0]):
+            out.append(e["path"])
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--csic", type=Path, required=True)
     ap.add_argument("--sqli", type=Path, required=True)
     ap.add_argument("--xss", type=Path, required=True)
+    ap.add_argument("--sqlmap-log", type=Path, help="WAF log from a sqlmap run, replayed per config")
     ap.add_argument("--configs", nargs="*", default=list(CONFIGS))
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
@@ -151,12 +184,22 @@ def main() -> None:
     print(f"XSS  holdout payloads: {len(xss)} ({xss_overlap} removed: in training corpus), "
           f"{sum(not is_fragment(p) for p in xss)} complete\n")
 
+    from train_deploy_models import split_param_names
+    grid = [f"{n}={v}" for n in split_param_names()[1] for v in GRID_VALUES]
+    grid = random.Random(0).sample(grid, min(20000, len(grid)))
+    test_clean = pd.read_csv(ROOT / "data" / "processed" / "test_clean.csv")
+    test_obf = pd.read_csv(ROOT / "data" / "processed" / "test_obfuscated.csv")
+    sqlmap_paths = load_sqlmap_attacks(args.sqlmap_log) if args.sqlmap_log else []
+    print(f"Held-out-name grid: {len(grid)} inputs; paper test split: {len(test_clean)} clean / "
+          f"{len(test_obf)} obfuscated; sqlmap attack requests: {len(sqlmap_paths)}")
+
     recon_fp = sum(classify_recon(r["path_qs"], r["headers"], "203.0.113.5", []).flagged for r in csic)
 
     results = {}
     with tempfile.TemporaryDirectory() as tmp:
         for name in args.configs:
-            waf = build_proxy(CONFIGS[name], Path(tmp))
+            model_set, models = CONFIGS[name]
+            waf = build_proxy(models, Path(tmp), model_set)
             t0 = time.perf_counter()
 
             fp, fp_by = 0, Counter()
@@ -180,9 +223,24 @@ def main() -> None:
                     det_full[f"{label}_{where}"] = sum(hits[p] for p in full) / len(full)
 
             ms = (time.perf_counter() - t0) * 1000
+
+            def q(v):
+                return waf.classify_payload("/p?q=" + urllib.parse.quote(v, safe=""), {}, b"", "") is not None
+            grid_fp = [g for g in grid
+                       if waf.classify_payload("/p?" + urllib.parse.quote(g, safe="=&"), {}, b"", "") is not None]
+            ben = test_clean[test_clean.label == "benign"].payload.astype(str)
+            paper_split = {
+                "benign_fp": sum(q(v) for v in ben) / len(ben),
+                "clean_attack_detect": test_clean[test_clean.label != "benign"].payload.astype(str).map(q).mean(),
+                "obf_attack_detect": test_obf[test_obf.label != "benign"].payload.astype(str).map(q).mean(),
+            }
+            sqlmap_det = (sum(waf.classify_payload(p, {}, b"", "") is not None for p in sqlmap_paths)
+                          / len(sqlmap_paths)) if sqlmap_paths else None
             n_calls = len(csic) + 3 * (len(sqli) + len(xss))
             results[name] = {
                 "fp_rate": fp / len(csic), "fp": fp, "fp_by_detector": dict(fp_by),
+                "grid_fp_rate": len(grid_fp) / len(grid), "grid_fp_examples": grid_fp[:15],
+                "paper_split": paper_split, "sqlmap_detect": sqlmap_det,
                 "fp_examples": fp_examples, "detection_all_lines": det, "detection": det_full, "mean_ms_per_request": ms / n_calls,
             }
 
@@ -199,6 +257,16 @@ def main() -> None:
                 f"{d[k]:>10.1%}" for k in ("sqli_query", "sqli_form", "sqli_json", "xss_query", "xss_form", "xss_json"))
                 + f"   {r['mean_ms_per_request']:.2f}")
         print()
+    print(f"{'config':22} {'CSIC FP':>8} {'grid FP':>8} | {'paper-split benign FP':>21} {'clean det':>9} "
+          f"{'obf det':>8} | {'sqlmap':>7}")
+    for name, r in results.items():
+        ps = r["paper_split"]
+        sm = f"{r['sqlmap_detect']:.2%}" if r["sqlmap_detect"] is not None else "-"
+        print(f"{name:22} {r['fp_rate']:>8.2%} {r['grid_fp_rate']:>8.2%} | {ps['benign_fp']:>21.2%} "
+              f"{ps['clean_attack_detect']:>9.2%} {ps['obf_attack_detect']:>8.2%} | {sm:>7}")
+    for name, r in results.items():
+        if r["grid_fp_examples"]:
+            print(f"\n{name} held-out-name grid FP examples: {r['grid_fp_examples'][:10]}")
     for name, r in results.items():
         if r["fp"]:
             print(f"\n{name} FPs by detector: {r['fp_by_detector']}")

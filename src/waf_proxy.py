@@ -51,6 +51,7 @@ Run (production, multiple workers -- see README "Production deployment"):
 from __future__ import annotations
 
 import ipaddress
+import secrets
 import ssl
 import sys
 import time
@@ -63,7 +64,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import yaml
 from aiohttp import web, ClientSession, ClientTimeout
 
-from src.models import AbstainOnUnknown, load_model
+from src.models import MODELS_DIR, AbstainOnUnknown, load_model
 from src.baseline_signature import WAF_EXTRA_SQLI_PATTERNS, WAF_EXTRA_XSS_PATTERNS, SignatureBaseline
 from src.baseline_normalized import NormalizedSignatureBaseline
 from src.ensemble import EnsembleDetector, Verdict
@@ -82,7 +83,9 @@ SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "no-referrer",
-    "Server": "waf",
+    # Neutral value: "waf" announced the WAF to every fingerprinting tool
+    # (wafw00f, and the first recon step of AI pentest agents).
+    "Server": "httpd",
 }
 
 
@@ -114,13 +117,21 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict:
     if not models:
         raise SystemExit("[waf] config.models is empty -- need at least one detector.")
 
+    if config.get("model_set", "deploy") not in ("deploy", "paper"):
+        raise SystemExit(f"[waf] config.model_set must be 'deploy' or 'paper', got {config.get('model_set')!r}")
+
     if config.get("mode", "block") not in ("block", "monitor"):
         raise SystemExit(f"[waf] config.mode must be 'block' or 'monitor', got {config.get('mode')!r}")
 
     return config
 
 
-def build_detectors(model_names: list[str]) -> dict[str, Any]:
+def build_detectors(model_names: list[str], model_set: str = "deploy") -> dict[str, Any]:
+    # "deploy": models/deploy/ (scripts/train_deploy_models.py) -- trained on
+    #           the paper's training split plus diverse real-world benign
+    #           inputs; the default for live traffic.
+    # "paper" : models/*.joblib, exactly as evaluated in the paper.
+    models_dir = MODELS_DIR / "deploy" if model_set == "deploy" else MODELS_DIR
     detectors = {}
     for name in model_names:
         if name == "signature_baseline":
@@ -133,11 +144,10 @@ def build_detectors(model_names: list[str]) -> dict[str, Any]:
                 # Abstain on out-of-vocabulary input instead of voting the
                 # class prior (see AbstainOnUnknown) -- otherwise bare paths
                 # like "/login" are blocked as SQLi.
-                detectors[name] = AbstainOnUnknown(load_model(name))
+                detectors[name] = AbstainOnUnknown(load_model(name, models_dir))
             except FileNotFoundError as e:
-                raise SystemExit(
-                    f"[waf] {e}\nTrain models first: python scripts/02_train_models.py"
-                )
+                script = "train_deploy_models.py" if model_set == "deploy" else "02_train_models.py"
+                raise SystemExit(f"[waf] {e}\nTrain models first: python scripts/{script}")
     return detectors
 
 
@@ -229,7 +239,8 @@ class WafProxy:
         # (smuggling ambiguity, WebSocket, static deny) are still enforced.
         self.monitor = config.get("mode", "block") == "monitor"
 
-        self.detectors = build_detectors(config.get("models", ["logistic_regression", "signature_baseline"]))
+        self.detectors = build_detectors(config.get("models", ["logistic_regression", "signature_baseline"]),
+                                         config.get("model_set", "deploy"))
         self.ensemble = EnsembleDetector(self.detectors, policy=self.policy)
 
         # Header content (User-Agent, Referer, Cookie, X-Forwarded-For) is
@@ -329,6 +340,16 @@ class WafProxy:
         ]
         return "\n".join(lines) + "\n"
 
+    @staticmethod
+    def _deny(request_id: str) -> web.Response:
+        """The single response for every detection-based refusal (payload,
+        recon, ban, static deny, inspection limit). Identical bodies and
+        status deny an adaptive attacker the feedback of which layer fired
+        or whether it is banned: once banned, every probe looks blocked.
+        request_id lets a legitimate user report a false positive; it is
+        logged with the full reason."""
+        return web.json_response({"error": "Forbidden", "request_id": request_id}, status=403)
+
     def classify_payload(self, path_qs: str, headers, body_bytes: bytes, content_type: str,
                          json_result=None) -> Verdict | None:
         """Content inspection for one request; returns the blocking Verdict
@@ -408,6 +429,7 @@ class WafProxy:
         connection_ip = request.remote or "unknown"
         client_ip = resolve_client_ip(request, self.trusted_proxies)
         t0 = time.perf_counter()
+        request_id = secrets.token_hex(8)
 
         if client_ip in self.static_allow:
             pass
@@ -416,22 +438,20 @@ class WafProxy:
             self.logger.log_event(
                 decision="blocked_static_deny", client_ip=client_ip, method=request.method,
                 path=str(request.rel_url), label="denylisted", triggered_by=["static_deny_list"],
-                latency_ms=(time.perf_counter() - t0) * 1000,
+                latency_ms=(time.perf_counter() - t0) * 1000, request_id=request_id,
             )
-            return web.json_response({"error": "Forbidden"}, status=403)
+            return self._deny(request_id)
 
         if self.rate_limiter.is_blocked(client_ip):
-            remaining = self.rate_limiter.seconds_remaining_banned(client_ip)
+            # Same 403 as a detection (not 429 + remaining seconds): a banned
+            # attacker cannot tell a ban from a block, nor pace around it.
             self.stats.increment("blocked")
             self.logger.log_event(
                 decision="blocked_ratelimit", client_ip=client_ip, method=request.method,
                 path=str(request.rel_url), label="banned_ip", triggered_by=["rate_limiter"],
-                latency_ms=(time.perf_counter() - t0) * 1000,
+                latency_ms=(time.perf_counter() - t0) * 1000, request_id=request_id,
             )
-            return web.json_response(
-                {"error": "Too many malicious requests from this address", "retry_after_seconds": round(remaining)},
-                status=429,
-            )
+            return self._deny(request_id)
 
         # 1.5. Recon/scanner pre-filter -- cheap (no body read needed),
         #      catches known pentest-tool signatures, sensitive-path
@@ -454,9 +474,9 @@ class WafProxy:
             self.logger.log_event(
                 decision="blocked_recon", client_ip=client_ip, method=request.method,
                 path=str(request.rel_url), label="recon", triggered_by=recon_verdict.reasons,
-                latency_ms=(time.perf_counter() - t0) * 1000,
+                latency_ms=(time.perf_counter() - t0) * 1000, request_id=request_id,
             )
-            return web.json_response({"error": "Request blocked by WAF", "reason": "recon"}, status=403)
+            return self._deny(request_id)
 
         # 1.6. Request-smuggling-class header validation -- ambiguous
         #      Content-Length/Transfer-Encoding combinations are rejected
@@ -524,9 +544,9 @@ class WafProxy:
                     decision="blocked", client_ip=client_ip, method=request.method,
                     path=str(request.rel_url), label="incomplete_json_inspection",
                     triggered_by=["json_truncation"],
-                    latency_ms=(time.perf_counter() - t0) * 1000,
+                    latency_ms=(time.perf_counter() - t0) * 1000, request_id=request_id,
                 )
-                return web.Response(status=400, text="Request body too complex to inspect")
+                return self._deny(request_id)
             if not json_result.was_valid_json:
                 # Malformed JSON despite the declared Content-Type -- log
                 # it as a distinct signal without auto-blocking (plenty of
@@ -562,12 +582,9 @@ class WafProxy:
             self.logger.log_event(
                 decision="blocked", client_ip=client_ip, method=request.method,
                 path=str(request.rel_url), label=worst_verdict.final_label,
-                triggered_by=worst_verdict.triggered_by, latency_ms=latency_ms,
+                triggered_by=worst_verdict.triggered_by, latency_ms=latency_ms, request_id=request_id,
             )
-            return web.json_response(
-                {"error": "Request blocked by WAF", "reason": worst_verdict.final_label},
-                status=403,
-            )
+            return self._deny(request_id)
 
         self.stats.increment("allowed")
         self.logger.log_event(
