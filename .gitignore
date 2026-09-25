@@ -6,6 +6,8 @@ data/processed/
 data/raw/provenance.json
 models/
 results/metrics.csv
+# Third-party datasets, fetched with SHA-256 pins (scripts/00b_fetch_csic2010.py)
+data/external/
 
 # Intermediate/old experiment runs
 results/audit/
