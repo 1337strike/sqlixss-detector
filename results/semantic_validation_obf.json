@@ -1,0 +1,18 @@
+{
+  "config": {
+    "label": "sqli",
+    "obfuscated": true,
+    "seed": 42
+  },
+  "summary": {
+    "sqli": {
+      "total": 84,
+      "outcomes": {
+        "invalid": 66,
+        "error": 16,
+        "uncertain": 2
+      },
+      "unchanged": 0
+    }
+  }
+}

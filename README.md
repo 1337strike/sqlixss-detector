@@ -9,10 +9,13 @@
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+# 1. Install the pinned paper environment (Python 3.12)
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.lock
 
-# 2. Download corpus (307 SQLi + 135 XSS from InfoSecWarrior/Offensive-Payloads)
+# 2. Corpus (307 SQLi + 135 XSS from InfoSecWarrior/Offensive-Payloads) is
+#    committed in data/raw/. Optional re-download, pinned to the paper's
+#    upstream commit and SHA-256-verified:
 python scripts/00_download_payloads.py
 
 # 3. Build group-aware 749/263 split (seed 42)
@@ -26,7 +29,7 @@ python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
 ```
 
 Results land in `results/definitive_<timestamp>_42/`.
-Reference run: `results/definitive_20260923T094339Z_42/`
+Reference run: `results/definitive_20260923T094339Z_42/` (see its `NOTE.md`)
 
 ---
 
@@ -38,15 +41,18 @@ data/
   processed/    ← split CSVs (01c_build_grouped_dataset.py)
 models/         ← trained joblib files (02_train_models.py)
 results/
-  definitive_20260923T094339Z_42/   ← authoritative run
+  definitive_20260923T094339Z_42/   ← authoritative run (paper §III-E)
+    NOTE.md                 how to read this run's files; bit-exact reproduction
     manifest.json           experiment metadata + technique list
-    single_split.json       Tables II & V (263-sample split)
-    fold_scores.json        15×8 fold-level F1 (Tables I & III)
-    cv_stats.json           CV means, SDs, CIs, NB-corrected p-values
-    full_statistics.json    complete stats: mean_diff, SD, SE, t, df, p_raw, p_holm
-    per_technique.csv       Table IV (7 techniques, 5 seeds)
-    predictions.csv         per-prediction audit trail
-    tables.md               all 5 paper tables in Markdown
+    single_split.json       Tables II & V (263-sample split, confusion matrices, timing)
+    fold_scores.json        240 fold-level F1 scores: 8 configs × 15 folds × 2 (Tables I & IV)
+    full_statistics.json    Table I statistics at full precision (authoritative)
+    cv_stats.json           CV means/SDs; tests from rounded inputs (see NOTE.md)
+    per_technique.csv       Table III (7 techniques, 5 seeds)
+    predictions.csv         per-sample clean ML predictions
+    tables.md               paper tables in Markdown
+  semantic_validation_clean.json    §IV-E SQLi oracle, before obfuscation
+  semantic_validation_obf.json      §IV-E SQLi oracle, after obfuscation
 docs/
   paper_method_mapping.md   every §III claim → code location → status
   paper_reconciliation.md   every table value → actual vs paper → diff
@@ -110,7 +116,7 @@ All numbers below come from `results/definitive_20260923T094339Z_42/`.
 - Benign corpus from narrow templates; 5 edge-case inputs (apostrophe, SQL tutorial text, HTML) produce false positives outside the test set (documented as `xfailed` tests)
 - 7 obfuscation techniques in code; paper covers all 7 including `partial_url_encode`
 - SQLi oracle limited to single equality-template context
-- Live WAF benchmark (E7) not completed (aiohttp not installed on WAF VM)
+- No end-to-end proxy benchmark (throughput, sustained-load memory) yet
 - No independent benchmark (CSIC 2010) yet integrated
 
 ---
@@ -118,14 +124,22 @@ All numbers below come from `results/definitive_20260923T094339Z_42/`.
 ## Reproduce from Scratch
 
 ```bash
-git clone https://github.com/1337strike/sqlixss-detector
+git clone --branch v1.1.0 https://github.com/1337strike/sqlixss-detector
 cd sqlixss-detector
-pip install -r requirements.txt
-python scripts/00_download_payloads.py
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.lock
 python scripts/01c_build_grouped_dataset.py
 python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
 python -m pytest tests/ -q   # all pass; documented FP edge cases report as xfailed
 ```
 
-Experiment ID: `definitive_20260923T094339Z_42`  
-Head commit at reference run: `ff88291`
+With `requirements.lock` (Python 3.12.3, scikit-learn 1.8.0, NumPy 2.4.4,
+SciPy 1.17.1), the run reproduces the reference run **bit-for-bit**: all 240
+fold-level F1 scores, 16 single-split confusion matrices and 35 per-technique
+drops are identical. Latency (Table V) is wall-clock and varies by machine.
+
+- Experiment ID: `definitive_20260923T094339Z_42`
+- Citable snapshot: release tag **`v1.1.0`**. The commit that originally
+  produced the run (`ff88291`) was never pushed; `v1.1.0` reproduces it exactly.
+- Corpus: InfoSecWarrior/Offensive-Payloads @ `9e67029a`, SHA-256 in
+  `data/raw/provenance.json`

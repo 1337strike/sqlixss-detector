@@ -20,14 +20,17 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt pytest scipy
+      - name: Install pinned paper environment
+        run: pip install -r requirements.lock
 
-      - name: Download corpus
+      - name: Download corpus (pinned upstream commit, SHA-256 verified)
         run: python scripts/00_download_payloads.py
 
       - name: Build grouped dataset
         run: python scripts/01c_build_grouped_dataset.py
+
+      - name: Corpus and split identical to committed paper data
+        run: git diff --exit-code -- data/raw/*.txt data/processed/
 
       - name: Split integrity tests
         run: python -m pytest tests/test_split_integrity.py -v
@@ -47,8 +50,11 @@ jobs:
       - name: Offline evaluation
         run: python scripts/03_evaluate_offline.py
 
-      - name: Definitive experiment smoke run (paper tables)
-        run: python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 1
+      - name: Definitive experiment (all paper tables)
+        run: python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
+
+      - name: Bit-exact reproduction of the paper's reference run
+        run: python scripts/verify_reference_run.py
 
       - name: All tests summary
         run: |

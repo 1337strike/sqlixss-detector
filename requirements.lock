@@ -1,0 +1,33 @@
+# requirements.lock -- pinned environment for reproducing the paper.
+#
+# Core numerical stack matches the reference run
+# results/definitive_20260923T094339Z_42/environment.json
+# (Python 3.12.3, scikit-learn 1.8.0, NumPy 2.4.4, SciPy 1.17.1).
+# The committed models/*.joblib were also pickled with scikit-learn 1.8.0.
+# Remaining packages are the versions this lock was verified with.
+#
+#   python3.12 -m venv .venv && .venv/bin/pip install -r requirements.lock
+#
+# requirements.txt keeps loose lower bounds for general development.
+
+# numerical / ML (reference run)
+scikit-learn==1.8.0
+numpy==2.4.4
+scipy==1.17.1
+
+# data / model I/O
+pandas==3.0.6
+joblib==1.6.0
+threadpoolctl==3.7.0
+
+# WAF, sniffer, test target
+aiohttp==3.14.3
+flask==3.1.3
+gunicorn==26.2.0
+pyyaml==6.0.3
+redis==8.1.0
+scapy==2.7.0
+psutil==7.2.2
+
+# testing
+pytest==9.1.1
