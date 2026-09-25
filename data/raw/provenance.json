@@ -1,14 +1,18 @@
 {
   "real_sqli_payloads.txt": {
-    "url": "https://raw.githubusercontent.com/InfoSecWarrior/Offensive-Payloads/main/SQL-Injection-Payloads.txt",
+    "url": "https://raw.githubusercontent.com/InfoSecWarrior/Offensive-Payloads/9e67029a4fa4bfd6a2776f99d2df9c1e660abcab/SQL-Injection-Payloads.txt",
+    "upstream_commit": "9e67029a4fa4bfd6a2776f99d2df9c1e660abcab",
     "category": "sqli",
     "count": 307,
-    "downloaded_at": "2026-09-24T11:51:39Z"
+    "sha256": "01c4ddf71c865791175436cabbc7b81772e1e0c82061da788475c68b5c5eadc3",
+    "downloaded_at": "2026-09-25T09:05:03Z"
   },
   "real_xss_payloads.txt": {
-    "url": "https://raw.githubusercontent.com/InfoSecWarrior/Offensive-Payloads/main/Cross-Site-Scripting-XSS-Payloads.txt",
+    "url": "https://raw.githubusercontent.com/InfoSecWarrior/Offensive-Payloads/9e67029a4fa4bfd6a2776f99d2df9c1e660abcab/Cross-Site-Scripting-XSS-Payloads.txt",
+    "upstream_commit": "9e67029a4fa4bfd6a2776f99d2df9c1e660abcab",
     "category": "xss",
     "count": 135,
-    "downloaded_at": "2026-09-24T11:51:39Z"
+    "sha256": "4910570126f9ce1afea38880c2cf1fd105e6a9a61690dc87f8cbd0cc4587cebb",
+    "downloaded_at": "2026-09-25T09:05:03Z"
   }
 }

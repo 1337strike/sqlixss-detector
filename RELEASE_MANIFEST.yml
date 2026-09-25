@@ -1,17 +1,18 @@
 # Release Manifest — v1.1.0
 # ICITDA 2026 Camera-ready / GitHub release
-# Generated: 2026-09-23
+# Generated: 2026-09-25
 
 release:
   version:    "1.1.0"
   tag:        "v1.1.0"
-  paper:      "ICITDA 2026 — Input Canonicalization as the Decisive Factor..."
-  timestamp:  "2026-09-23T00:00:00Z"
+  paper:      "ICITDA 2026 — Evaluating Input Canonicalization for SQLi and XSS Detection Using Lightweight Machine Learning"
+  timestamp:  "2026-09-25T00:00:00Z"
 
 ## reproducibility
 
 corpus:
   source:     "https://github.com/InfoSecWarrior/Offensive-Payloads"
+  upstream_commit: "9e67029a4fa4bfd6a2776f99d2df9c1e660abcab"   # sha256 per file in data/raw/provenance.json
   sqli:       307          # unique payloads after de-duplication
   xss:        135
   benign:     570          # generated from parameterized templates
@@ -62,10 +63,11 @@ canonicalization_effect:
 ## environment
 
 environment:
-  python:      "3.12"
-  sklearn:     ">=1.3"
-  scipy:       ">=1.10"
-  numpy:       ">=1.24"
+  lockfile:    "requirements.lock"   # reproduces the reference run bit-for-bit
+  python:      "3.12.3"
+  sklearn:     "1.8.0"
+  scipy:       "1.17.1"
+  numpy:       "2.4.4"
   os:          "Linux x86-64"
   seed:        42
 
@@ -91,4 +93,5 @@ key_files:
   - tests/test_pipeline_regression.py
   - tests/test_split_integrity.py
   - tests/integration/test_end_to_end.py
+  - requirements.lock
   - .github/workflows/ci.yml

@@ -10,7 +10,8 @@ penetration-testing payload repository. These are real attack strings
 documented and used in security assessments.
 
 Run:
-    python scripts/00_download_payloads.py
+    python scripts/00_download_payloads.py                  # pinned paper corpus
+    python scripts/00_download_payloads.py --upstream-main  # latest upstream
 
 Writes:
     data/raw/real_sqli_payloads.txt   (307 unique payloads)
@@ -20,6 +21,7 @@ Writes:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 import time
@@ -28,17 +30,23 @@ from pathlib import Path
 
 RAW_DIR = Path(__file__).resolve().parent.parent / "data" / "raw"
 
+# Pinned upstream commit. The source repository is actively maintained, so
+# fetching `main` would silently change the corpus (and every paper number)
+# whenever upstream edits these files. This commit reproduces the committed
+# data/raw/*.txt byte-for-byte; pass --upstream-main to fetch the latest
+# revision instead (checksums are then not enforced).
+UPSTREAM_COMMIT = "9e67029a4fa4bfd6a2776f99d2df9c1e660abcab"
+_BASE = "https://raw.githubusercontent.com/InfoSecWarrior/Offensive-Payloads/{ref}/"
+
 SOURCES = {
-    "real_sqli_payloads.txt": (
-        "https://raw.githubusercontent.com/InfoSecWarrior/Offensive-Payloads/"
-        "main/SQL-Injection-Payloads.txt",
-        "sqli",
-    ),
-    "real_xss_payloads.txt": (
-        "https://raw.githubusercontent.com/InfoSecWarrior/Offensive-Payloads/"
-        "main/Cross-Site-Scripting-XSS-Payloads.txt",
-        "xss",
-    ),
+    "real_sqli_payloads.txt": ("SQL-Injection-Payloads.txt", "sqli"),
+    "real_xss_payloads.txt": ("Cross-Site-Scripting-XSS-Payloads.txt", "xss"),
+}
+
+# SHA-256 of the processed (filtered, de-duplicated) files used in the paper.
+EXPECTED_SHA256 = {
+    "real_sqli_payloads.txt": "01c4ddf71c865791175436cabbc7b81772e1e0c82061da788475c68b5c5eadc3",
+    "real_xss_payloads.txt": "4910570126f9ce1afea38880c2cf1fd105e6a9a61690dc87f8cbd0cc4587cebb",
 }
 
 # Lines in the SQLi file that are prose annotations rather than payloads.
@@ -81,28 +89,44 @@ def download(url: str, dest: Path) -> list[str]:
 
 
 if __name__ == "__main__":
-    print("[00] Downloading real payload corpora ...\n")
+    use_main = "--upstream-main" in sys.argv[1:]
+    ref = "main" if use_main else UPSTREAM_COMMIT
+    print(f"[00] Downloading real payload corpora (upstream ref {ref}) ...\n")
     RAW_DIR.mkdir(parents=True, exist_ok=True)
 
     provenance = {}
     total = 0
     failed = []
+    mismatched = []
 
-    for filename, (url, category) in SOURCES.items():
+    for filename, (upstream_name, category) in SOURCES.items():
         dest = RAW_DIR / filename
+        url = _BASE.format(ref=ref) + upstream_name
         try:
             payloads = download(url, dest)
             total += len(payloads)
+            digest = hashlib.sha256(dest.read_bytes()).hexdigest()
             provenance[filename] = {
                 "url": url,
+                "upstream_commit": ref,
                 "category": category,
                 "count": len(payloads),
+                "sha256": digest,
                 "downloaded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             }
-            print(f"  OK    {filename:32} {len(payloads):>4} unique payloads")
+            if not use_main and digest != EXPECTED_SHA256[filename]:
+                mismatched.append(filename)
+                print(f"  FAIL  {filename:32} sha256 {digest[:16]}… != paper corpus")
+            else:
+                print(f"  OK    {filename:32} {len(payloads):>4} unique payloads")
         except Exception as e:
             failed.append(filename)
             print(f"  FAIL  {filename:32} {type(e).__name__}: {e}")
+
+    if mismatched:
+        print(f"\n[00] {len(mismatched)} file(s) differ from the paper corpus; "
+              f"results will not match the paper. Restore with: git checkout data/raw")
+        sys.exit(1)
 
     # write provenance record for reproducibility section
     (RAW_DIR / "provenance.json").write_text(
@@ -113,7 +137,7 @@ if __name__ == "__main__":
         print(f"\n[00] {len(failed)} download(s) failed.")
         print("     Download manually from:")
         for f in failed:
-            print(f"       {SOURCES[f][0]}")
+            print(f"       {_BASE.format(ref=ref) + SOURCES[f][0]}")
         print(f"     and save into {RAW_DIR}")
         sys.exit(1)
 
