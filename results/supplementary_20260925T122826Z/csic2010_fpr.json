@@ -1,0 +1,474 @@
+{
+  "run_id": "supplementary_20260925T122826Z",
+  "description": "False-positive rate of the paper's 8 detector configurations on CSIC 2010 normal test traffic (classifier level, no WAF layers).",
+  "environment": {
+    "timestamp": "2026-09-25T12:28:26.040930+00:00",
+    "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "scikit-learn": "1.8.0",
+    "numpy": "2.4.4",
+    "scipy": "1.17.1",
+    "pandas": "3.0.6",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.7.0"
+  },
+  "models": {
+    "source": "scripts/definitive_experiment.py::run_single_split",
+    "seed": 42,
+    "n_train": 749,
+    "class_dist_train": {
+      "benign": 425,
+      "sqli": 223,
+      "xss": 101
+    },
+    "reference_run": "definitive_20260923T094339Z_42",
+    "confusion_matrices_verified_identical": 16
+  },
+  "dataset": {
+    "name": "CSIC 2010 HTTP dataset, normalTrafficTest.txt",
+    "path": "data/external/csic2010/normalTrafficTest.txt",
+    "mirror_repo": "msudol/Web-Application-Attack-Datasets",
+    "mirror_commit": "424c6e1c1951570473d9d6c0227eaaac6fdd6d02",
+    "sha256": "f05dfc312d5d14fd1ed8371de27a9e4deab3dc09265f5d7f9df2643df8385089",
+    "n_requests": 36000,
+    "by_method": {
+      "GET": 28000,
+      "POST": 8000
+    },
+    "input_definition": "GET: query string after '?'; POST: request body; as on the wire (percent-encoded)",
+    "n_without_parameters": 20000,
+    "without_parameters_by_method": {
+      "GET": 20000
+    },
+    "n_with_parameters": 16000,
+    "n_distinct_inputs": 4802,
+    "post_requests_with_url_query": 0
+  },
+  "false_positive_definition": "any prediction other than 'benign'",
+  "results": {
+    "logistic_regression_raw": {
+      "label": "LR (raw)",
+      "input_routing": "raw",
+      "all_requests": {
+        "n": 36000,
+        "fp": 20000,
+        "fp_rate": 0.5555555555555556,
+        "fp_rate_wilson95": [
+          0.550416921301784,
+          0.5606823347199656
+        ],
+        "pred_sqli": 20000,
+        "pred_xss": 0
+      },
+      "parameterized_requests": {
+        "n": 16000,
+        "fp": 0,
+        "fp_rate": 0.0,
+        "fp_rate_wilson95": [
+          0.0,
+          0.00024003354635688813
+        ],
+        "pred_sqli": 0,
+        "pred_xss": 0
+      },
+      "by_method": {
+        "GET": {
+          "n": 28000,
+          "fp": 20000,
+          "fp_rate": 0.7142857142857143,
+          "fp_rate_wilson95": [
+            0.7089651952967903,
+            0.7195474435012067
+          ],
+          "pred_sqli": 20000,
+          "pred_xss": 0
+        },
+        "POST": {
+          "n": 8000,
+          "fp": 0,
+          "fp_rate": 0.0,
+          "fp_rate_wilson95": [
+            0.0,
+            0.0004799518881599805
+          ],
+          "pred_sqli": 0,
+          "pred_xss": 0
+        }
+      },
+      "empty_input_prediction": "sqli",
+      "distinct_inputs_flagged": 1,
+      "distinct_inputs_total": 4802
+    },
+    "logistic_regression_normalized": {
+      "label": "LR (canon.)",
+      "input_routing": "canonicalize(input)",
+      "all_requests": {
+        "n": 36000,
+        "fp": 20000,
+        "fp_rate": 0.5555555555555556,
+        "fp_rate_wilson95": [
+          0.550416921301784,
+          0.5606823347199656
+        ],
+        "pred_sqli": 20000,
+        "pred_xss": 0
+      },
+      "parameterized_requests": {
+        "n": 16000,
+        "fp": 0,
+        "fp_rate": 0.0,
+        "fp_rate_wilson95": [
+          0.0,
+          0.00024003354635688813
+        ],
+        "pred_sqli": 0,
+        "pred_xss": 0
+      },
+      "by_method": {
+        "GET": {
+          "n": 28000,
+          "fp": 20000,
+          "fp_rate": 0.7142857142857143,
+          "fp_rate_wilson95": [
+            0.7089651952967903,
+            0.7195474435012067
+          ],
+          "pred_sqli": 20000,
+          "pred_xss": 0
+        },
+        "POST": {
+          "n": 8000,
+          "fp": 0,
+          "fp_rate": 0.0,
+          "fp_rate_wilson95": [
+            0.0,
+            0.0004799518881599805
+          ],
+          "pred_sqli": 0,
+          "pred_xss": 0
+        }
+      },
+      "empty_input_prediction": "sqli",
+      "distinct_inputs_flagged": 1,
+      "distinct_inputs_total": 4802
+    },
+    "naive_bayes_raw": {
+      "label": "MNB (raw)",
+      "input_routing": "raw",
+      "all_requests": {
+        "n": 36000,
+        "fp": 112,
+        "fp_rate": 0.003111111111111111,
+        "fp_rate_wilson95": [
+          0.0025864416164507534,
+          0.003741812525021545
+        ],
+        "pred_sqli": 112,
+        "pred_xss": 0
+      },
+      "parameterized_requests": {
+        "n": 16000,
+        "fp": 112,
+        "fp_rate": 0.007,
+        "fp_rate_wilson95": [
+          0.005821233336200653,
+          0.008415439740507237
+        ],
+        "pred_sqli": 112,
+        "pred_xss": 0
+      },
+      "by_method": {
+        "GET": {
+          "n": 28000,
+          "fp": 56,
+          "fp_rate": 0.002,
+          "fp_rate_wilson95": [
+            0.00154061083123623,
+            0.0025960166022191973
+          ],
+          "pred_sqli": 56,
+          "pred_xss": 0
+        },
+        "POST": {
+          "n": 8000,
+          "fp": 56,
+          "fp_rate": 0.007,
+          "fp_rate_wilson95": [
+            0.0053948419084248675,
+            0.009078390653300874
+          ],
+          "pred_sqli": 56,
+          "pred_xss": 0
+        }
+      },
+      "empty_input_prediction": "benign",
+      "distinct_inputs_flagged": 56,
+      "distinct_inputs_total": 4802
+    },
+    "naive_bayes_normalized": {
+      "label": "MNB (canon.)",
+      "input_routing": "canonicalize(input)",
+      "all_requests": {
+        "n": 36000,
+        "fp": 116,
+        "fp_rate": 0.0032222222222222222,
+        "fp_rate_wilson95": [
+          0.0026874344976682476,
+          0.0038630181558475503
+        ],
+        "pred_sqli": 116,
+        "pred_xss": 0
+      },
+      "parameterized_requests": {
+        "n": 16000,
+        "fp": 116,
+        "fp_rate": 0.00725,
+        "fp_rate_wilson95": [
+          0.006048573614403337,
+          0.008687979445531376
+        ],
+        "pred_sqli": 116,
+        "pred_xss": 0
+      },
+      "by_method": {
+        "GET": {
+          "n": 28000,
+          "fp": 58,
+          "fp_rate": 0.0020714285714285713,
+          "fp_rate_wilson95": [
+            0.001602864350325979,
+            0.0026766006293954467
+          ],
+          "pred_sqli": 58,
+          "pred_xss": 0
+        },
+        "POST": {
+          "n": 8000,
+          "fp": 58,
+          "fp_rate": 0.00725,
+          "fp_rate_wilson95": [
+            0.005612902362875696,
+            0.009360090222905964
+          ],
+          "pred_sqli": 58,
+          "pred_xss": 0
+        }
+      },
+      "empty_input_prediction": "benign",
+      "distinct_inputs_flagged": 58,
+      "distinct_inputs_total": 4802
+    },
+    "svm_raw": {
+      "label": "SVM (raw)",
+      "input_routing": "raw",
+      "all_requests": {
+        "n": 36000,
+        "fp": 20000,
+        "fp_rate": 0.5555555555555556,
+        "fp_rate_wilson95": [
+          0.550416921301784,
+          0.5606823347199656
+        ],
+        "pred_sqli": 20000,
+        "pred_xss": 0
+      },
+      "parameterized_requests": {
+        "n": 16000,
+        "fp": 0,
+        "fp_rate": 0.0,
+        "fp_rate_wilson95": [
+          0.0,
+          0.00024003354635688813
+        ],
+        "pred_sqli": 0,
+        "pred_xss": 0
+      },
+      "by_method": {
+        "GET": {
+          "n": 28000,
+          "fp": 20000,
+          "fp_rate": 0.7142857142857143,
+          "fp_rate_wilson95": [
+            0.7089651952967903,
+            0.7195474435012067
+          ],
+          "pred_sqli": 20000,
+          "pred_xss": 0
+        },
+        "POST": {
+          "n": 8000,
+          "fp": 0,
+          "fp_rate": 0.0,
+          "fp_rate_wilson95": [
+            0.0,
+            0.0004799518881599805
+          ],
+          "pred_sqli": 0,
+          "pred_xss": 0
+        }
+      },
+      "empty_input_prediction": "sqli",
+      "distinct_inputs_flagged": 1,
+      "distinct_inputs_total": 4802
+    },
+    "svm_normalized": {
+      "label": "SVM (canon.)",
+      "input_routing": "canonicalize(input)",
+      "all_requests": {
+        "n": 36000,
+        "fp": 20000,
+        "fp_rate": 0.5555555555555556,
+        "fp_rate_wilson95": [
+          0.550416921301784,
+          0.5606823347199656
+        ],
+        "pred_sqli": 20000,
+        "pred_xss": 0
+      },
+      "parameterized_requests": {
+        "n": 16000,
+        "fp": 0,
+        "fp_rate": 0.0,
+        "fp_rate_wilson95": [
+          0.0,
+          0.00024003354635688813
+        ],
+        "pred_sqli": 0,
+        "pred_xss": 0
+      },
+      "by_method": {
+        "GET": {
+          "n": 28000,
+          "fp": 20000,
+          "fp_rate": 0.7142857142857143,
+          "fp_rate_wilson95": [
+            0.7089651952967903,
+            0.7195474435012067
+          ],
+          "pred_sqli": 20000,
+          "pred_xss": 0
+        },
+        "POST": {
+          "n": 8000,
+          "fp": 0,
+          "fp_rate": 0.0,
+          "fp_rate_wilson95": [
+            0.0,
+            0.0004799518881599805
+          ],
+          "pred_sqli": 0,
+          "pred_xss": 0
+        }
+      },
+      "empty_input_prediction": "sqli",
+      "distinct_inputs_flagged": 1,
+      "distinct_inputs_total": 4802
+    },
+    "signature_raw": {
+      "label": "Sig (raw)",
+      "input_routing": "raw",
+      "all_requests": {
+        "n": 36000,
+        "fp": 0,
+        "fp_rate": 0.0,
+        "fp_rate_wilson95": [
+          0.0,
+          0.00010669580425432615
+        ],
+        "pred_sqli": 0,
+        "pred_xss": 0
+      },
+      "parameterized_requests": {
+        "n": 16000,
+        "fp": 0,
+        "fp_rate": 0.0,
+        "fp_rate_wilson95": [
+          0.0,
+          0.00024003354635688813
+        ],
+        "pred_sqli": 0,
+        "pred_xss": 0
+      },
+      "by_method": {
+        "GET": {
+          "n": 28000,
+          "fp": 0,
+          "fp_rate": 0.0,
+          "fp_rate_wilson95": [
+            0.0,
+            0.0001371761380074567
+          ],
+          "pred_sqli": 0,
+          "pred_xss": 0
+        },
+        "POST": {
+          "n": 8000,
+          "fp": 0,
+          "fp_rate": 0.0,
+          "fp_rate_wilson95": [
+            0.0,
+            0.0004799518881599805
+          ],
+          "pred_sqli": 0,
+          "pred_xss": 0
+        }
+      },
+      "empty_input_prediction": "benign",
+      "distinct_inputs_flagged": 0,
+      "distinct_inputs_total": 4802
+    },
+    "signature_normalized": {
+      "label": "Sig (canon.)",
+      "input_routing": "raw; canonicalizes internally",
+      "all_requests": {
+        "n": 36000,
+        "fp": 0,
+        "fp_rate": 0.0,
+        "fp_rate_wilson95": [
+          0.0,
+          0.00010669580425432615
+        ],
+        "pred_sqli": 0,
+        "pred_xss": 0
+      },
+      "parameterized_requests": {
+        "n": 16000,
+        "fp": 0,
+        "fp_rate": 0.0,
+        "fp_rate_wilson95": [
+          0.0,
+          0.00024003354635688813
+        ],
+        "pred_sqli": 0,
+        "pred_xss": 0
+      },
+      "by_method": {
+        "GET": {
+          "n": 28000,
+          "fp": 0,
+          "fp_rate": 0.0,
+          "fp_rate_wilson95": [
+            0.0,
+            0.0001371761380074567
+          ],
+          "pred_sqli": 0,
+          "pred_xss": 0
+        },
+        "POST": {
+          "n": 8000,
+          "fp": 0,
+          "fp_rate": 0.0,
+          "fp_rate_wilson95": [
+            0.0,
+            0.0004799518881599805
+          ],
+          "pred_sqli": 0,
+          "pred_xss": 0
+        }
+      },
+      "empty_input_prediction": "benign",
+      "distinct_inputs_flagged": 0,
+      "distinct_inputs_total": 4802
+    }
+  }
+}

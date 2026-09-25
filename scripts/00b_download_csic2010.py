@@ -30,8 +30,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.csic2010 import CSIC_DIR
 
+MIRROR_REPO = "msudol/Web-Application-Attack-Datasets"
 MIRROR_COMMIT = "424c6e1c1951570473d9d6c0227eaaac6fdd6d02"
-_BASE = (f"https://raw.githubusercontent.com/msudol/Web-Application-Attack-Datasets/"
+_BASE = (f"https://raw.githubusercontent.com/{MIRROR_REPO}/"
          f"{MIRROR_COMMIT}/OriginalDataSets/csic_2010/")
 
 EXPECTED_SHA256 = {

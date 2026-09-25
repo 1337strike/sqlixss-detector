@@ -227,7 +227,10 @@ CSIC run).
 - 7 obfuscation techniques in code; paper covers all 7 including `partial_url_encode`
 - SQLi oracle limited to single equality-template context
 - No end-to-end proxy benchmark (throughput, sustained-load memory) yet
-- No independent benchmark (CSIC 2010) yet integrated
+- CSIC 2010 is evaluated for false positives only (36,000 normal requests, classifier level):
+  `scripts/00b_download_csic2010.py` + `scripts/supplementary_csic.py`, results in
+  `results/supplementary_20260925T122826Z/`, write-up in `docs/supplementary_csic2010_IV-F.md`.
+  LR/SVM label empty input (20,000 parameterless GETs) as SQLi; no CSIC attack-traffic evaluation yet
 
 ---
 
