@@ -41,6 +41,7 @@ class Verdict:
     final_label: str                 # "benign" | "sqli" | "xss"
     votes: dict[str, str]             # {detector_name: predicted_label}
     triggered_by: list[str] = field(default_factory=list)  # detectors that voted malicious
+    matched_text: str | None = None  # WAF only: the request part that was refused
 
 
 class EnsembleDetector:

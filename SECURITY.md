@@ -40,6 +40,12 @@ end.
   `scripts/09_csic_rate_limit_validation.py`).
 - Request-smuggling-class header ambiguity (conflicting/malformed
   Content-Length and Transfer-Encoding).
+- AI-driven adaptive attackers (LLM agents such as HexStrike AI that spoof
+  User-Agents, mutate payloads against the WAF's responses, rotate source
+  IPs, and read backend errors): probation after repeated distinct refused
+  payloads, cross-client near-duplicate payload memory, honeypot /
+  enumeration / fingerprint suspicion scoring, and removal of leaked DB
+  errors / stack traces from responses (`src/agent_defense.py`).
 - A non-ML statistical anomaly check as a second, independent signal
   against adversarial payloads crafted specifically to sit outside the
   ML models' training distribution.
@@ -146,6 +152,13 @@ Additional hardening applied during self-review (not bugs in the sense of
   "normal-looking" statistics can still potentially evade both it and the
   trained models. This is inherent to the approach, not a bug to be
   patched.
+- **AI-agent defense raises cost; it is not immunity.** Probation needs a
+  client to have 3 distinct payloads refused first; a mutation that shares
+  no injection syntax and < 80% similarity with anything refused before is
+  judged by the models alone; the fingerprint signals are spoofable by an
+  agent driving a real browser; per-IP state is reset by an attacker with
+  fresh IPs *and* fresh payloads. Blind time-based oracles (response
+  latency) are not normalized.
 - **HTTP/2/3 and WebSocket support are deliberately incomplete**, not
   because they're impossible to add, but because doing so correctly is a
   substantial amount of additional work with its own attack surface;

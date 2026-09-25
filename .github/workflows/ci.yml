@@ -81,6 +81,9 @@ jobs:
       - name: Rate limiter unit + live tests (both backends; CSIC 2010 normal traffic -> 0 bans)
         run: python -m pytest tests/test_rate_limiter.py tests/integration/test_rate_limiter_live.py -v -p no:logging
 
+      - name: AI-agent defense tests (both backends; live agent scenarios over HTTP)
+        run: python -m pytest tests/test_agent_defense.py tests/integration/test_waf_agent_defense.py -v -p no:logging
+
       - name: All tests summary
         # The ~3-minute CSIC 2010 no-ban replay already ran in the rate-limiter
         # step above; don't run it twice.

@@ -75,6 +75,19 @@ _SCANNER_UA_PATTERNS = [
     r"OpenVAS",
     r"acunetix",
     r"Qualys",
+    r"Nmap Scripting Engine",
+    r"zgrab",
+    r"Wfuzz",
+    r"Arachni",
+    r"w3af\.org",
+    r"skipfish",
+    r"commix",
+    r"tplmap",
+    r"SSTImap",
+    r"NoSQLMap",
+    r"jaeles",
+    r"katana",
+    r"hakrawler",
     r"^python-requests",             # default python-requests UA -- flagged but scored low, see NOTE below
     r"^curl/",                       # default curl UA -- flagged but scored low, see NOTE below
 ]

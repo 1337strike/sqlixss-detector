@@ -67,6 +67,7 @@ src/
   statistics.py             Nadeau-Bengio t-test + Holm correction
   tokenizer.py              security-aware tokenizer
   rate_limiter.py           WAF behavioral rate limiting (memory / Redis)
+  agent_defense.py          WAF AI-agent defense: probation, payload families, honeypots, error scrubbing
   csic2010.py, waf_replay.py  CSIC 2010 parser + live WAF replay harness
 scripts/
   definitive_experiment.py  ← MAIN: reproduces all paper tables
@@ -83,11 +84,13 @@ tests/
   test_pipeline_regression.py   G1/M2 canonicalization + vocabulary isolation
   test_split_integrity.py       G4 family leakage checks
   test_rate_limiter.py          behavioral rate limiter, both backends
+  test_agent_defense.py         AI-agent defense layer, both backends
   integration/
     test_end_to_end.py          pipeline + WAF extraction path; FP edge cases are xfail
     test_waf_deployment.py      evasion views, WAF rules, block/monitor, uniform refusals (in-process HTTP)
     test_proxy_live.py          real processes: single-process WAF and gunicorn + Redis shared bans
     test_rate_limiter_live.py   live WAF bans/escalation; CSIC 2010 normal traffic → 0 bans
+    test_waf_agent_defense.py   AI-agent scenarios: mutation, IP rotation, honeypot, error oracle, fuzzing
 AUDIT_REPORT.md             full audit findings
 ```
 
@@ -209,6 +212,47 @@ Full output: `results/waf_csic2010_rate_limit.json`. Tests:
 `tests/test_rate_limiter.py` (unit, both backends) and
 `tests/integration/test_rate_limiter_live.py` (live WAF over HTTP, includes the
 CSIC run).
+
+### AI-agent defense (`src/agent_defense.py`)
+
+LLM-driven attack agents (HexStrike AI, PentestGPT, custom MCP/tool loops)
+swap out tool User-Agents after the first 403 and then run
+*payload → response → mutate → retry*, rotating IPs when banned and reading
+backend errors as an oracle. The recon filter's tool signatures cannot stop
+that; this layer targets the loop itself (config section `agent_defense`):
+
+- **Probation.** After 3 *distinct* refused payloads, a client's inputs with
+  any injection syntax (quote, comment, `;`, tag, SQL/JS keyword, `or true`,
+  …), or similar to its refused payloads, are refused for an hour — past the
+  first bans. The model bypass a mutation search finds (e.g. `1 AnD 2>1`,
+  `admin'`, `<b onclick`, all passed by the ensemble) is refused.
+- **Cross-client payload families.** Refused payloads are indexed with
+  MinHash-LSH; a near-duplicate with injection syntax is refused from *any*
+  IP for an hour (`-1 UNION SELECT 1 INTO @,@,@` blocked → the bypass
+  `-1 UNION SELxECT 1 INTO @,@,@` is refused from a fresh IP).
+- **Suspicion score.** Decoy `honeypot_paths` (list them under `Disallow:` in
+  robots.txt), forced browsing (30 distinct 401/403/404/405 in 10 min),
+  provoked backend errors, and client fingerprint (pasted browser UA without
+  `Accept-Language`, HTTP-library/headless UAs, self-declared AI agents).
+  The fingerprint signals alone add up to 95 points, under the threshold of 100, so they never block anyone by themselves.
+- **Error-oracle removal.** Backend responses leaking DB errors or stack
+  traces become a generic 500 when the status is ≥ 500 or the request
+  carried injection syntax (a page quoting a MySQL error is untouched).
+
+All refusals are the uniform 403; state is shared through Redis whenever the
+rate limiter uses it. Measured with the shipped config:
+
+| CSIC 2010, live through the WAF, clients of 100 requests | Layer off | Layer on |
+|---|---|---|
+| Normal traffic (72,000): refused / bans | 0 / 0 | **0 / 0** |
+| Anomalous traffic (25,065): forwarded to backend | 11,573 | **8,495** |
+| Anomalous traffic: clients banned | 159 / 251 | **239 / 251** |
+| Added latency per request (in-process) | — | 0.04–0.10 ms |
+
+Tests: `tests/test_agent_defense.py` (unit, both backends) and
+`tests/integration/test_waf_agent_defense.py` (agent scenarios over HTTP).
+This raises the cost of automated adaptive attacks; it cannot stop a patient
+human who never trips a detector.
 
 ### Recommended rollout
 1. Deploy behind Caddy (`deploy/Caddyfile`) with `deploy/waf.service`; set

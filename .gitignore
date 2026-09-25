@@ -32,3 +32,6 @@ config/certs/
 config/*.prod.yaml
 logs/
 *.log
+
+# Redis snapshot written when tests run a local redis-server
+dump.rdb

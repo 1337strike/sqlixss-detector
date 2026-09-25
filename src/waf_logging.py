@@ -83,6 +83,9 @@ class WafLogger:
                 "allowed_websocket_passthrough": "\033[96mWS-OK\033[0m",
                 "note_malformed_json": "\033[93mJSON?\033[0m",
                 "blocked_ratelimit": "\033[93mBAN  \033[0m",
+                "blocked_agent": "\033[95mAGENT\033[0m",
+                "blocked_agent_content": "\033[95mPROBE\033[0m",
+                "scrubbed_error_leak": "\033[93mSCRUB\033[0m",
             }.get(decision, decision)
             print(f"{tag} {client_ip:>15} {method:6} {path[:60]:60} "
                   f"label={label:8} latency={latency_ms:6.2f}ms")

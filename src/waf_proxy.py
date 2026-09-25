@@ -80,6 +80,7 @@ from src.request_validation import validate_request_integrity, is_websocket_upgr
 from src.json_extraction import extract_json_string_values
 from src.waf_canonical import waf_views
 from src.anomaly_detection import AnomalyDetector
+from src.agent_defense import agent_config_from_dict, build_agent_defense
 
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "waf_config.yaml"
 
@@ -126,6 +127,11 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict:
 
     if config.get("mode", "block") not in ("block", "monitor"):
         raise SystemExit(f"[waf] config.mode must be 'block' or 'monitor', got {config.get('mode')!r}")
+
+    try:
+        agent_config_from_dict(config.get("agent_defense"))
+    except (TypeError, ValueError) as e:
+        raise SystemExit(f"[waf] invalid agent_defense section: {e}")
 
     return config
 
@@ -266,6 +272,11 @@ class WafProxy:
                                                             extra_xss_patterns=WAF_EXTRA_XSS_PATTERNS)
 
         self.rate_limiter = build_rate_limiter(config.get("rate_limit", {}))
+        # AI-agent defense (src/agent_defense.py): probation for clients that
+        # showed attack intent, cross-client payload-family memory, suspicion
+        # score (honeypots, enumeration, fingerprint), error-oracle removal.
+        self.agent = build_agent_defense(config.get("agent_defense"), self.rate_limiter)
+        self.deny_notice = (config.get("agent_defense") or {}).get("deny_notice")
 
         self.trusted_proxies = config.get("trusted_proxies", [])
         self.static_allow = set(config.get("static_allow_ips", []))
@@ -344,15 +355,39 @@ class WafProxy:
         ]
         return "\n".join(lines) + "\n"
 
-    @staticmethod
-    def _deny(request_id: str) -> web.Response:
+    def _deny(self, request_id: str) -> web.Response:
         """The single response for every detection-based refusal (payload,
-        recon, ban, static deny, inspection limit). Identical bodies and
-        status deny an adaptive attacker the feedback of which layer fired
-        or whether it is banned: once banned, every probe looks blocked.
-        request_id lets a legitimate user report a false positive; it is
-        logged with the full reason."""
-        return web.json_response({"error": "Forbidden", "request_id": request_id}, status=403)
+        recon, agent, ban, static deny, inspection limit). Identical bodies
+        and status deny an adaptive attacker the feedback of which layer
+        fired or whether it is banned: once banned, every probe looks
+        blocked. request_id lets a legitimate user report a false positive;
+        it is logged with the full reason. The optional deny_notice (same on
+        every refusal) is text addressed to LLM agents reading the response."""
+        body = {"error": "Forbidden", "request_id": request_id}
+        if self.deny_notice:
+            body["notice"] = self.deny_notice
+        return web.json_response(body, status=403)
+
+    @staticmethod
+    def inspection_texts(path_qs: str, headers, body_bytes: bytes, content_type: str,
+                         json_result=None) -> tuple[list[str], list[str], list[str]]:
+        """Splits a request into (ml_texts, signature_texts, header_texts):
+        query/form/JSON "key=value" leaves for the ML ensemble; URL path,
+        bare JSON strings and headers for the signature rules only (the
+        last also returned separately)."""
+        if "application/json" in content_type:
+            if json_result is None:
+                json_result = extract_json_string_values(body_bytes)
+            # ML sees "key=value" leaves (its training shape); every bare key
+            # and value still goes through the signature rules below.
+            ml_texts = extract_inspectable_texts(path_qs, b"", "") + json_result.pairs
+            json_signature_texts = json_result.string_values
+        else:
+            ml_texts = extract_inspectable_texts(path_qs, body_bytes, content_type)
+            json_signature_texts = []
+        header_texts = extract_header_texts(headers)
+        signature_texts = [extract_url_path(path_qs)] + json_signature_texts + header_texts
+        return ml_texts, signature_texts, header_texts
 
     def classify_payload(self, path_qs: str, headers, body_bytes: bytes, content_type: str,
                          json_result=None) -> Verdict | None:
@@ -360,20 +395,8 @@ class WafProxy:
         or None. Pure (no I/O, logging or rate limiting), so offline
         evaluation (scripts/evaluate_waf_realworld.py) runs exactly the
         decision the live proxy makes."""
-        if "application/json" in content_type:
-            if json_result is None:
-                json_result = extract_json_string_values(body_bytes)
-            # ML sees "key=value" leaves (its training shape); every bare key
-            # and value still goes through the signature rules below.
-            body_texts = extract_inspectable_texts(path_qs, b"", "") + json_result.pairs
-            json_signature_texts = json_result.string_values
-        else:
-            body_texts = extract_inspectable_texts(path_qs, body_bytes, content_type)
-            json_signature_texts = []
-
-        signature_only_texts = ([extract_url_path(path_qs)]
-                                + json_signature_texts
-                                + extract_header_texts(headers))
+        body_texts, signature_only_texts, _ = self.inspection_texts(path_qs, headers, body_bytes,
+                                                                    content_type, json_result)
 
         for text in body_texts:
             if not text:
@@ -384,6 +407,7 @@ class WafProxy:
             for view in waf_views(text):
                 verdict = self.ensemble.classify(view)
                 if verdict.blocked:
+                    verdict.matched_text = text
                     return verdict
 
         for text in signature_only_texts:
@@ -393,7 +417,7 @@ class WafProxy:
                 label = self._header_detector.predict([view])[0]
                 if label != "benign":
                     return Verdict(blocked=True, final_label=label, votes={"signature_baseline": label},
-                                   triggered_by=["signature_baseline"])
+                                   triggered_by=["signature_baseline"], matched_text=text)
         return None
 
     @web.middleware
@@ -472,6 +496,19 @@ class WafProxy:
                 latency_ms=(time.perf_counter() - t0) * 1000, request_id=request_id,
             )
             return self._deny(request_id)
+
+        # 1.4. AI-agent client assessment -- decoy (honeypot) paths, client
+        #      fingerprint, and the client's accumulated suspicion score
+        #      (enumeration, backend error leaks it provoked, probation
+        #      refusals). See src/agent_defense.py.
+        assessment = None
+        if self.agent is not None:
+            assessment = self.agent.assess(client_ip, extract_url_path(str(request.rel_url)), request.headers)
+            if assessment.flagged:
+                blocked = self._refuse_or_note(client_ip, request, "agent", assessment.reasons,
+                                               request_id, t0, weight=2)
+                if blocked is not None:
+                    return blocked
 
         # 1.5. Recon/scanner pre-filter -- cheap (no body read needed),
         #      catches known pentest-tool signatures, sensitive-path
@@ -579,6 +616,26 @@ class WafProxy:
 
         worst_verdict = self.classify_payload(str(request.rel_url), request.headers,
                                               body_bytes, content_type, json_result)
+        ml_texts, _, header_texts = self.inspection_texts(str(request.rel_url), request.headers,
+                                                          body_bytes, content_type, json_result)
+        strict_texts = ml_texts + [extract_url_path(str(request.rel_url))]
+
+        if self.agent is not None:
+            if worst_verdict is not None:
+                self.agent.remember_block(client_ip, worst_verdict.matched_text)
+            else:
+                # Content the ensemble passed: probation rules for clients
+                # that showed attack intent, and the cross-client payload-
+                # family memory (catches the bypass an agent found by
+                # mutating, even from a fresh IP).
+                agent_reasons, offending = self.agent.check_content(client_ip, assessment,
+                                                                    strict_texts, header_texts)
+                if agent_reasons:
+                    self.agent.remember_block(client_ip, offending)
+                    blocked = self._refuse_or_note(client_ip, request, "agent_content", agent_reasons,
+                                                   request_id, t0, weight=1)
+                    if blocked is not None:
+                        return blocked
 
         latency_ms = (time.perf_counter() - t0) * 1000
 
@@ -589,7 +646,7 @@ class WafProxy:
                 path=str(request.rel_url), label=worst_verdict.final_label,
                 triggered_by=worst_verdict.triggered_by, latency_ms=latency_ms,
             )
-            return await self._proxy_to_backend(request, body_bytes)
+            return await self._proxy_to_backend(request, body_bytes, client_ip, strict_texts)
 
         if worst_verdict is not None:
             self.stats.increment("blocked")
@@ -608,7 +665,29 @@ class WafProxy:
             decision="allowed", client_ip=client_ip, method=request.method,
             path=str(request.rel_url), label="benign", triggered_by=[], latency_ms=latency_ms,
         )
-        return await self._proxy_to_backend(request, body_bytes)
+        return await self._proxy_to_backend(request, body_bytes, client_ip, strict_texts)
+
+    def _refuse_or_note(self, client_ip: str, request: web.Request, label: str, reasons: list[str],
+                        request_id: str, t0: float, weight: int) -> web.Response | None:
+        """Agent-defense refusal: the uniform 403 in block mode (recorded
+        as a refusal for the rate limiter), or only a would_block log line
+        in monitor mode (returns None; the caller carries on)."""
+        latency_ms = (time.perf_counter() - t0) * 1000
+        if self.monitor:
+            self.stats.increment("would_block")
+            self.logger.log_event(
+                decision=f"would_block_{label}", client_ip=client_ip, method=request.method,
+                path=str(request.rel_url), label=label, triggered_by=reasons, latency_ms=latency_ms,
+            )
+            return None
+        self.stats.increment("blocked")
+        self._record_behavior(client_ip, refused=True, weight=weight)
+        self.logger.log_event(
+            decision=f"blocked_{label}", client_ip=client_ip, method=request.method,
+            path=str(request.rel_url), label=label, triggered_by=reasons, latency_ms=latency_ms,
+            request_id=request_id,
+        )
+        return self._deny(request_id)
 
     async def _relay_websocket(self, request: web.Request) -> web.WebSocketResponse:
         """Two-way WebSocket relay for allow-listed paths (R4 fix).
@@ -659,7 +738,9 @@ class WafProxy:
                 await ws_client.close()
         return ws_client
 
-    async def _proxy_to_backend(self, request: web.Request, body_bytes: bytes) -> web.Response:
+    async def _proxy_to_backend(self, request: web.Request, body_bytes: bytes,
+                                client_ip: str | None = None,
+                                request_texts: list[str] | None = None) -> web.Response:
         target_url = f"{self.backend_url}{request.rel_url}"
         # R3 FIX: strip hop-by-hop and encoding headers that must be
         # rebuilt from the actual body sent.  aiohttp reads the full body
@@ -683,6 +764,19 @@ class WafProxy:
                 allow_redirects=False,   # R4 FIX: pass 3xx to client, don't follow
             ) as backend_resp:
                 body = await backend_resp.read()
+                if self.agent is not None and client_ip is not None and self.agent.observe_response(
+                        client_ip, request.path, backend_resp.status,
+                        backend_resp.headers.get("Content-Type", ""), body, request_texts or []):
+                    # The backend leaked a DB error / stack trace: the
+                    # feedback error-based SQLi and agent reasoning run on.
+                    decision = "would_scrub_error_leak" if self.monitor else "scrubbed_error_leak"
+                    self.logger.log_event(
+                        decision=decision, client_ip=client_ip, method=request.method,
+                        path=str(request.rel_url), label="error_leak",
+                        triggered_by=[f"backend_status={backend_resp.status}"], latency_ms=0.0,
+                    )
+                    if not self.monitor:
+                        return web.json_response({"error": "Internal error"}, status=500)
                 # R3 FIX: preserve multi-value response headers (e.g. Set-Cookie)
                 # and strip hop-by-hop + encoding headers from the response too.
                 _RESP_HOP_BY_HOP = _HOP_BY_HOP | {"content-encoding", "content-length"}
@@ -786,6 +880,8 @@ def main():
     print(f"[waf] forwarding clean traffic to {config['backend_url']}")
     print(f"[waf] detectors: {list(waf.detectors.keys())}  policy={waf.policy}")
     print(f"[waf] rate limiter backend: {waf.rate_limiter.stats()['backend']}")
+    print(f"[waf] AI-agent defense: "
+          f"{'on (' + waf.agent.store.backend + ')' if waf.agent else 'off'}")
     if waf.trusted_proxies:
         print(f"[waf] trusting X-Forwarded-For from: {waf.trusted_proxies}")
     print(f"[waf] admin endpoints: /__waf/health /__waf/stats /__waf/metrics "
