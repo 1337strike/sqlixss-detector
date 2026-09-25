@@ -9,9 +9,9 @@ proxy, produce consistent decisions and that the decision boundary is
 not degraded by the canonicalization step.
 
 These tests do NOT start a network proxy; they test the pipeline
-components directly in the same way the proxy would call them.  Network
-proxy tests belong in tests/integration/test_proxy_live.py (written
-separately, requires a running WAF instance).
+components directly in the same way the proxy would call them. Proxy tests
+over real HTTP are in tests/integration/test_waf_deployment.py (in-process)
+and tests/integration/test_proxy_live.py (real processes, gunicorn + Redis).
 
 Run:
     python -m pytest tests/integration/test_end_to_end.py -v
@@ -276,12 +276,15 @@ class TestWafDetectors:
         ("javascript:alert(1)", "xss"),
     ]
 
-    @pytest.fixture(scope="class")
-    def ensemble(self):
+    @pytest.fixture(scope="class", params=["deploy", "paper"])
+    def ensemble(self, request):
+        # The shipped config's detectors, with both model sets: the live
+        # default (deploy) and the paper's models (model_set: paper).
         from src.ensemble import EnsembleDetector
-        from src.waf_proxy import build_detectors
-        names = ["logistic_regression", "naive_bayes", "svm", "signature_baseline"]
-        return EnsembleDetector(build_detectors(names), policy="any")
+        from src.waf_proxy import build_detectors, load_config
+        config = load_config()
+        return EnsembleDetector(build_detectors(config["models"], request.param),
+                                policy=config.get("voting_policy", "any"))
 
     @pytest.fixture(scope="class")
     def signature_only(self):

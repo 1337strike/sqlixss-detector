@@ -35,6 +35,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import numpy as np
 import pandas as pd
@@ -668,6 +669,12 @@ def main():
         fold_meta=cv_out["fold_meta"])
     (out_dir/"cv_stats.json").write_text(json.dumps(stats_out, indent=2))
 
+    # Table I CIs of gain and §IV-B pairwise tests, at full precision
+    # (the paper's authoritative statistics; see scripts/export_statistics.py)
+    from export_statistics import export as export_full_statistics
+    (out_dir/"full_statistics.json").write_text(
+        json.dumps(export_full_statistics(out_dir), indent=2) + "\n")
+
     print("\n=== TABLE I — CANONICALIZATION EFFECTS ===")
     for m, e in stats_out["canon_effects"].items():
         tri = "OK" if e["triangle_ok"] else "VIOLATION"
@@ -745,6 +752,7 @@ def main():
             "fold_scores":   rel("fold_scores.json"),
             "predictions":   rel("predictions.csv"),
             "cv_stats":      rel("cv_stats.json"),
+            "full_statistics": rel("full_statistics.json"),
             "per_technique": rel("per_technique.csv"),
             "tables_json":   rel("tables.json"),
             "tables_md":     rel("tables.md"),

@@ -5,7 +5,9 @@ Checks that a fresh definitive_experiment.py run reproduces the paper's
 reference run (results/definitive_20260923T094339Z_42) exactly.
 
 Compared: all 240 fold-level F1 scores (Tables I, IV), the 16 single-split
-confusion matrices (Table II) and the 35 per-technique drops (Table III).
+confusion matrices (Table II), the 35 per-technique drops (Table III), and
+the inferential statistics (Table I gains, 95% CIs and p_Holm; §IV-B pairwise
+tests) against the archived full_statistics.json and the paper's printed values.
 Latency (Table V) is wall-clock and is not compared.
 
 Run (pinned environment from requirements.lock):
@@ -33,6 +35,52 @@ def _per_technique(run: Path) -> dict[tuple[str, str], float]:
         # the reference run labels one technique "..._UNDISCLOSED" (see its NOTE.md)
         return {(r["technique"].replace("_UNDISCLOSED", ""), r["detector"]): float(r["f1_drop"])
                 for r in csv.DictReader(f)}
+
+
+# Inferential statistics as printed in the paper (PDF v17, Table I and §IV-B).
+PAPER_TABLE_I = {  # label: (gain, CI low, CI high, p_holm)
+    "logistic_regression": (0.2029, 0.1597, 0.2461, 3.42e-7),
+    "naive_bayes": (0.1717, 0.1291, 0.2142, 1.65e-6),
+    "svm": (0.1327, 0.0892, 0.1762, 1.30e-5),
+    "signature": (0.2527, 0.1896, 0.3158, 1.65e-6),
+}
+PAPER_PAIRWISE = {  # label: (mean difference, p_holm)
+    "LR-MNB": (0.0096, 0.2784), "LR-SVM": (0.0015, 0.5154), "SVM-MNB": (0.0081, 0.4091),
+}
+PAPER_SVM_MNB_CI = (-0.0050, 0.0213)
+
+
+def _sig3(x: float) -> float:
+    return float(f"{x:.3g}")
+
+
+def verify_statistics(run: Path) -> list[str]:
+    """full_statistics.json of the new run vs the archived reference file
+    (full precision) and vs every value printed in the paper."""
+    errors = []
+    path = run / "full_statistics.json"
+    if not path.exists():
+        return [f"{path.name} missing (scripts/export_statistics.py)"]
+    new = json.loads(path.read_text())
+    ref = json.loads((REFERENCE / "full_statistics.json").read_text())
+    for a, b in zip(ref["comparisons"], new["comparisons"]):
+        for k in ("mean_diff", "sd_diff", "se_corr", "t", "p_raw", "p_holm"):
+            if abs(a[k] - b[k]) > 1e-9 * max(abs(a[k]), 1e-300):
+                errors.append(f"full_statistics {a['label']}.{k}: {b[k]} != archived {a[k]}")
+    for c in new["comparisons"]:
+        gain, lo, hi, ph = PAPER_TABLE_I[c["label"]]
+        got = (round(c["mean_diff"], 4), round(c["ci95_gain"][0], 4), round(c["ci95_gain"][1], 4), _sig3(c["p_holm"]))
+        if got != (gain, lo, hi, ph):
+            errors.append(f"Table I {c['label']}: {got} != paper {(gain, lo, hi, ph)}")
+    for c in new["pairwise_canonicalized_ml"]:
+        diff, ph = PAPER_PAIRWISE[c["label"]]
+        if (round(c["mean_diff"], 4), round(c["p_holm"], 4)) != (diff, ph):
+            errors.append(f"pairwise {c['label']}: {c['mean_diff']:.4f}/{c['p_holm']:.4f} != paper {diff}/{ph}")
+        if c["label"] == "SVM-MNB" and tuple(round(x, 4) for x in c["ci95_diff"]) != PAPER_SVM_MNB_CI:
+            errors.append(f"SVM-MNB CI {c['ci95_diff']} != paper {PAPER_SVM_MNB_CI}")
+    print(f"  statistics compared:           {len(new['comparisons'])} Table I rows (gain, CI, p_Holm), "
+          f"{len(new['pairwise_canonicalized_ml'])} pairwise tests")
+    return errors
 
 
 def verify(run: Path) -> list[str]:
@@ -71,7 +119,7 @@ def verify(run: Path) -> list[str]:
             errors.append(f"per_technique {key}: {new[key]} != {a}")
     print(f"  per-technique drops compared:  {len(ref)}")
 
-    return errors
+    return errors + verify_statistics(run)
 
 
 if __name__ == "__main__":

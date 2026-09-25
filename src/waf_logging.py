@@ -34,7 +34,10 @@ class WafLogger:
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         self.also_print = also_print
 
-        self._logger = logging.getLogger("waf")
+        # One logger per log file: a shared "waf" logger kept the first
+        # instance's handler, so a second WafProxy in the same process
+        # (tests, offline evaluation) wrote into the first one's file.
+        self._logger = logging.getLogger(f"waf.{self.log_path.resolve()}")
         self._logger.setLevel(logging.INFO)
         self._logger.propagate = False
         if not self._logger.handlers:
@@ -53,6 +56,7 @@ class WafLogger:
         label: str,
         triggered_by: list[str],
         latency_ms: float,
+        request_id: str | None = None,
     ) -> None:
         event = {
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()),
@@ -64,6 +68,8 @@ class WafLogger:
             "triggered_by": triggered_by,
             "latency_ms": round(latency_ms, 3),
         }
+        if request_id:
+            event["request_id"] = request_id
         line = json.dumps(event, ensure_ascii=False)
         self._logger.info(line)
         if self.also_print:

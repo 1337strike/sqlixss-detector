@@ -16,6 +16,8 @@ final manuscript.
 ## Which statistics file is authoritative
 
 `full_statistics.json` computes every test at full floating-point precision.
+`scripts/export_statistics.py` regenerates it exactly from `fold_scores.json`
+(new runs also get the Table I 95% CIs and the §IV-B pairwise tests).
 The paper's Table I (t, p_raw, p_Holm, CIs) matches it exactly.
 
 `cv_stats.json` computes the same tests from means and SDs that were rounded
@@ -41,7 +43,7 @@ them:
     python3.12 -m venv .venv && .venv/bin/pip install -r requirements.lock
     .venv/bin/python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
 
-This was verified at release tag `v1.1.0` in a clean Python 3.12.3 environment
+This was verified at commit `4b45d4a` (release `v1.1.0`) in a clean Python 3.12.3 environment
 with scikit-learn 1.8.0, NumPy 2.4.4 and SciPy 1.17.1. The new run's 240
 fold-level F1 scores, 16 single-split confusion matrices and 35 per-technique
 drops are identical to this folder (max absolute difference 0.0). The latency
@@ -49,4 +51,4 @@ columns (Table V) are wall-clock measurements, so they vary between machines
 and sessions.
 
 The commit that originally produced this run (`ff88291`) was never pushed to
-this repository. `v1.1.0` is the citable snapshot that reproduces it.
+this repository. Commit `4b45d4a` (release `v1.1.0`) is the citable snapshot that reproduces it.

@@ -14,6 +14,17 @@ backend_url: "http://127.0.0.1:8080"   # the REAL application this WAF protects
 backend_timeout_seconds: 10
 max_request_size_bytes: 10485760   # 10 MB cap on request bodies the WAF will buffer/inspect
 
+# --- Enforcement mode ------------------------------------------------------
+# "block"   : malicious requests get 403 (normal operation).
+# "monitor" : detection verdicts are only LOGGED (decision "would_block" /
+#             "would_block_recon") and the request is forwarded; no ban
+#             strikes are recorded. Run this first on real traffic to
+#             measure false positives before switching to "block" -- the
+#             same approach as ModSecurity's DetectionOnly. Protocol-safety
+#             rejections (request-smuggling ambiguity, WebSocket, static
+#             deny list) are enforced in both modes.
+mode: "block"
+
 # --- TLS -----------------------------------------------------------------
 # Only used by scripts/05_run_waf.py's single-process mode. In the
 # gunicorn/production mode, TLS is terminated by Caddy/nginx in front, and
@@ -42,11 +53,25 @@ trusted_proxies: []
 # check against adversarial payloads specifically crafted to evade the
 # trained ML models -- add it to the list below for that extra layer of
 # defense-in-depth (see README "Recon/scanner defense").
+# Default chosen from scripts/evaluate_waf_realworld.py (CSIC 2010 normal
+# traffic + PayloadsAllTheThings holdout): LR+SVM+Sig had 0 false positives
+# on 36,000 real requests and the highest detection. naive_bayes caused all
+# 112 false positives (it flags short-password login forms as SQLi), so it
+# is off by default.
 models:
   - logistic_regression
-  - naive_bayes
+  - svm
   - signature_baseline
+  # - naive_bayes
   # - anomaly   # uncomment to add the non-ML statistical anomaly check
+
+# Which trained models the ML detectors load:
+#   "deploy": models/deploy/ (scripts/train_deploy_models.py) -- the paper's
+#             training split plus diverse real-world benign inputs. On unseen
+#             parameter names: 0% false positives on ordinary values and 0.1%
+#             on apostrophes ("it's", "O'Neil"), vs 6.9% / 99.4% for "paper".
+#   "paper" : models/*.joblib exactly as evaluated in the paper.
+model_set: "deploy"
 
 # Voting policy across the models above: "any" | "majority" | "all"
 # "any" = block if ANY detector flags it (security-first, recommended default)
@@ -80,9 +105,24 @@ rate_limit:
   backend: "memory"
   redis_url: "redis://127.0.0.1:6379/0"
   key_prefix: "waf:"
-  offense_window_seconds: 60     # sliding window to count malicious requests in
-  offense_threshold: 5           # this many malicious requests within the window...
-  ban_duration_seconds: 300      # ...triggers a temporary ban of this length
+  # Behavioral banning: every request is recorded per IP as allowed or
+  # refused, and an IP is banned on the RATIO of refused requests over a
+  # sliding window -- so a client that trips an occasional detector false
+  # positive is never banned, however busy it is (validated: 0 bans on all
+  # 72,000 CSIC 2010 normal requests, scripts/09_csic_rate_limit_validation.py).
+  offense_window_seconds: 60     # sliding window to measure each IP's behavior over
+  offense_threshold: 5           # ban when at least this many refused requests in the window...
+  refusal_ratio_threshold: 0.2   # ...make up at least this fraction of the IP's requests,
+  hard_offense_threshold: 60     # or on this many refused regardless of ratio (anti-dilution; 0 = off)
+  window_buckets: 12             # sub-buckets approximating the sliding window
+  # Escalating bans for repeat offenders: the n-th ban lasts
+  # ban_duration_seconds * ban_escalation_factor^(n-1), capped at
+  # max_ban_duration_seconds; strikes are forgotten offender_memory_seconds
+  # after an IP's last ban ends. Defaults: 5 min -> 20 min -> 80 min -> ... -> 24 h.
+  ban_duration_seconds: 300
+  ban_escalation_factor: 4
+  max_ban_duration_seconds: 86400
+  offender_memory_seconds: 86400
 
 # --- Admin API -------------------------------------------------------------
 # /__waf/health, /__waf/stats, /__waf/metrics are only served to these

@@ -1,166 +1,106 @@
 # Paper Method Mapping
-# ICITDA_REVISED.pdf → Code → Evidence
+# PDF v17 → Code → Evidence
 
-**Reference paper:** ICITDA_REVISED.pdf (Sep 18 2026, 5 pages, citations show as [?] — not compiled with BibTeX)  
-**Repository HEAD at mapping time:** `f7e922b`
+**Paper:** "Evaluating Input Canonicalization for SQLi and XSS Detection Using
+Lightweight Machine Learning" (ICITDA 2026), revision PDF v17.
+**Reference run:** `results/definitive_20260923T094339Z_42/` (paper §III-E).
+**Automated check:** `scripts/verify_reference_run.py` (run by CI on every push)
+compares a fresh run against the reference run and against the values printed
+in the paper.
+
+Section numbers follow PDF v17. For the numbers themselves, see
+`docs/paper_reconciliation.md`.
 
 ---
 
-## §III.B Dataset Construction
+## §III-A Experimental Design and Data
 
-| Paper claim | Implementation | File | Status |
+| Paper claim | Implementation | Evidence | Status |
 |---|---|---|---|
-| 307 unique SQLi payloads | `scripts/00_download_payloads.py` → InfoSecWarrior/Offensive-Payloads | `data/raw/real_sqli_payloads.txt` | ✅ MATCH |
-| 135 unique XSS payloads | same downloader | `data/raw/real_xss_payloads.txt` | ✅ MATCH |
-| 570 benign from parameterized templates | `src/dataset.py: _BENIGN_TEMPLATES` | `scripts/01c_build_grouped_dataset.py` | ✅ MATCH |
-| 1,012 total samples | 307+135+570 | dataset_manifest.json | ✅ MATCH |
-| 815 distinct payload families | `family_key()` in split builder | audit artefact | ✅ MATCH |
-| Group-aware stratified 5-fold k=5 seed=42 | `StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)` | `scripts/audit_run.py` | ✅ IMPLEMENTED |
-| Family groups never cross train/test | assertion every fold | `audit_run.py` run_cv() | ✅ VERIFIED |
-| Single-split test set 263 samples (145/84/34) | `train_test_split(test_size=0.25, stratify=y, random_state=42)` | `audit_run.py` run_single_split() | ⚠️ DISCREPANCY: actual=253 (see below) |
+| 8 configurations: LR, MNB, SVM, signature × raw / canonicalized | `run_single_split()`, `run_cv()` | `scripts/definitive_experiment.py` | ✅ |
+| 307 SQLi + 135 XSS from InfoSecWarrior/Offensive-Payloads [8] | download pinned to upstream commit `9e67029a`, SHA-256 checked | `scripts/00_download_payloads.py`, `data/raw/provenance.json` | ✅ |
+| 570 benign strings from parameterized query templates | `_BENIGN_TEMPLATES` | `src/dataset.py` | ✅ |
+| Duplicates removed, shuffle with seed 42 | de-duplication in downloader; `df.sample(random_state=seed)` | `00_download_payloads.py`, `definitive_experiment.py` | ✅ |
+| 1,012 sample IDs, 815 heuristic families | `family_key()`: digits→N, quoted literals→placeholder, whitespace collapsed, lowercased | `predictions.csv` (1,012 IDs / 815 families) | ✅ |
+| Stratified group-aware 5-fold CV × 3, split seeds 42/43/44 | `StratifiedGroupKFold(shuffle=True, random_state=seed+rep)` | `fold_scores.json: fold_meta` | ✅ |
+| Mean train/test sizes 809.6 / 202.4 | from fold sizes | `fold_scores.json` | ✅ |
+| Script asserts disjoint train/test families | `assert not overlap` per fold | `definitive_experiment.py` | ✅ |
+| No family shared between test folds within a repetition | exported IDs | `predictions.csv` (checked: 0 families span >1 test fold) | ✅ |
+| Supplementary 749/263 split: test 145/84/34, train 425/223/101 | group-aware builder | `scripts/01c_build_grouped_dataset.py`, `single_split.json` | ✅ |
+| No payload string or family shared between 749 and 263 | leakage tests | `tests/test_split_integrity.py` (CI) | ✅ |
 
-**Discrepancy note (single split):** Paper claims 263 samples (145 benign, 84 SQLi, 34 XSS). `audit_run.py` with `train_test_split(0.25, stratify, seed=42)` yields 253. The pre-built CSVs in `data/processed/` (from `01c_build_grouped_dataset.py`) contain 263 — this script uses a group-based split that happens to yield 263. The paper's single-split table likely used `01c_build_grouped_dataset.py` output directly. These are two different protocols; the 263-sample split is the historically used one.
+## §III-B Canonicalization and Detector Configuration
 
----
-
-## §III.C Canonicalization Pipeline
-
-| Paper step | Implementation | File | Status |
+| Paper claim | Implementation | Evidence | Status |
 |---|---|---|---|
-| 1. Repeated percent-decoding (≤3 rounds) | `for _ in range(max_decode_rounds=3)` | `src/baseline_normalized.py: canonicalize()` | ✅ MATCH |
-| 2. HTML entity + \\uXXXX unescaping | `html.unescape()` + `_UNICODE_ESC_RE.sub()` | same | ✅ MATCH |
-| 3. SQL comment removal | `_COMMENT_RE.sub("")` | same | ✅ MATCH |
-| 4. Whitespace compression | `re.sub(r"\s+", " ", text)` | same | ✅ MATCH |
-| 5. Case folding | `.strip().lower()` | same | ✅ MATCH |
-| Applied to train AND test (both arms) | ML: `Xtr_n = [canonicalize(p) for p in Xtr]`; Sig: internally in `NormalizedSignatureBaseline._classify_one()` | `audit_run.py` | ✅ CORRECT |
-| **BUG (fixed):** `08_final_experiment.py` L164 passed pre-canonicalized `Xte_obf_n` to `NormalizedSignatureBaseline` causing double canonicalization | Fixed: `audit_run.py` passes raw `Xte_obf` to sig_norm | commit f7e922b | ✅ FIXED |
+| (1) percent-decoding to a fixed point, ≤3 rounds | `for _ in range(max_decode_rounds=3)` | `src/baseline_normalized.py: canonicalize()` | ✅ |
+| (2) HTML entity and Unicode-escape decoding | `html.unescape()`, `_UNICODE_ESC_RE` | same | ✅ |
+| (3) SQL comment removal | `_COMMENT_RE.sub("")` | same | ✅ |
+| (4) whitespace compression, (5) lowercasing | `re.sub(r"\s+", " ")`, `.lower()` | same | ✅ |
+| Learned canonicalized configs: train and test transformed before vectorization | `Xtr_n`, `Xc_n`, `Xo_n` | `definitive_experiment.py` | ✅ |
+| Normalizing signature receives raw strings, canonicalizes once | `NormalizedSignatureBaseline._classify_one()` | `src/baseline_normalized.py` | ✅ (double-canonicalization bug of `08_final_experiment.py` fixed; see `AUDIT_REPORT.md` B1) |
+| 11 SQLi + 8 XSS regular expressions, same for both signature baselines | `_SQLI_PATTERNS`, `_XSS_PATTERNS` | `src/baseline_signature.py` | ✅ (WAF-only rules live in separate `WAF_EXTRA_*` lists and are never used by the experiment) |
+| Custom tokenizer retaining security-relevant punctuation | `_TOKEN_PATTERN` | `src/tokenizer.py` | ✅ |
+| TF-IDF uni+bigrams, 4,000 features, sublinear TF | `build_vectorizer()` | `src/features.py` | ✅ |
+| LR L2, C = 10; MNB Laplace smoothing; SVM linear, C = 1, 3-fold calibration | `get_model_definitions()` | `src/models.py` | ✅ |
+| Models fitted inside each outer training fold | pipelines fitted per fold | `run_cv()` | ✅ |
 
----
+## §III-C Obfuscation Protocol
 
-## §III.D Feature Extraction and Classifiers
-
-| Paper claim | Implementation | File | Status |
+| Paper claim | Implementation | Evidence | Status |
 |---|---|---|---|
-| Custom tokenizer preserving `' = < > / --` | `_TOKEN_PATTERN` regex | `src/tokenizer.py` | ✅ MATCH |
-| TF-IDF unigrams + bigrams | `ngram_range=(1,2)` | `src/features.py: build_vectorizer()` | ✅ MATCH |
-| 4,000-feature cap | `max_features=4000` | same | ✅ MATCH |
-| Sub-linear TF scaling | `sublinear_tf=True` | same | ✅ MATCH |
-| LR L2 regularization C=10 | `LogisticRegression(C=10.0)` | `src/models.py` | ✅ MATCH |
-| MNB Laplace smoothing | `MultinomialNB()` (default alpha=1.0) | same | ✅ MATCH |
-| Linear SVM 3-fold calibration | `CalibratedClassifierCV(LinearSVC(C=1.0), cv=3)` | same | ✅ MATCH |
-| SVM C=1.0 | `LinearSVC(C=1.0)` | same | ✅ MATCH — not stated explicitly in paper but `C=1.0` is default |
-| "Lightweight" ≤2.5ms p95 | measured on THIS machine: LR=0.41ms, MNB=0.42ms, SVM=1.50ms | single_split.json | ⚠️ SVM within budget; paper claims 2.50ms but this machine gives 1.50ms |
-| Footprints 129–179 KB (LR/MNB) | model file sizes differ by machine; not verified yet | — | 🔲 NOT YET MEASURED |
+| Seven transformations (incl. partial URL encoding) | `_TECHNIQUES` (7 entries) | `src/obfuscation.py` | ✅ |
+| Only malicious test strings transformed | obfuscation applied to attack rows of the test fold | `run_cv()`, `run_single_split()` | ✅ |
+| Aggregate: 1–3 operations; fold seed 42 + 1000·j, per-sample seed drawn from it | `random.Random(seed + fold_id * 1000)` | `run_cv()` | ✅ |
+| Per-technique: supplementary split, seeds 42 + 1000·s, s = 0..4 | `seed_offset=s*1000` | `run_per_technique()` | ✅ |
+| Transformation exception → original string retained; no exception counter | as described | `src/obfuscation.py` | ✅ (limitation stated in paper) |
+| Zero unchanged malicious strings out of 118 (supplementary) | `unchanged_malicious` | `single_split.json` | ✅ |
 
----
+## §III-D Metrics and Statistical Comparisons
 
-## §III.E Signature Baselines
-
-| Paper claim | Implementation | File | Status |
+| Paper claim | Implementation | Evidence | Status |
 |---|---|---|---|
-| 11 SQLi rules | `_SQLI_PATTERNS` has 11 entries | `src/baseline_signature.py` | ✅ MATCH |
-| 8 XSS rules | `_XSS_PATTERNS` has 8 entries | same | ✅ MATCH |
-| Naive baseline matches raw bytes | `SignatureBaseline._classify_one()` no preprocessing | same | ✅ MATCH |
-| Normalizing baseline applies canonicalization | `NormalizedSignatureBaseline._classify_one()` calls `canonicalize()` | `src/baseline_normalized.py` | ✅ MATCH |
-| Same rule set for both baselines | both import `_SQLI_PATTERNS, _XSS_PATTERNS` | same | ✅ MATCH |
+| Macro-F1 over benign/SQLi/XSS; per-class analysis from confusion matrices | `full_metrics()` | `single_split.json` | ✅ |
+| Malicious-to-benign vs. cross-attack errors reported separately | `errors` dict | `single_split.json`, Table II | ✅ |
+| Eq. (1) corrected SE, n = 15, correction factor ≈ 0.316667 | `1/n + n_test_mean/n_train_mean` | `scripts/export_statistics.py` → `full_statistics.json` | ✅ |
+| Sample variance, two-sided tests, df = 14, Holm across 4 comparisons | `corrected_test()`, `holm_correct()` | `export_statistics.py`, `src/statistics.py` | ✅ |
+| Unadjusted 95% CI of gain, d̄ ± t(0.975,14)·SE_c (Table I) | `ci95_gain` | `full_statistics.json` | ✅ generated automatically |
+| Exploratory pairwise tests of canonicalized ML models, separate Holm family of 3 (§IV-B) | `pairwise_canonicalized_ml` | `full_statistics.json` | ✅ generated automatically |
 
----
+## §III-E Timing and Evidence Traceability
 
-## §III.F Obfuscation Protocol
-
-| Paper claim | Implementation | File | Status |
+| Paper claim | Implementation | Evidence | Status |
 |---|---|---|---|
-| **6 techniques** | `_TECHNIQUES` dict has **7 entries** | `src/obfuscation.py` | ❌ MISMATCH |
-| URL encoding | `url_encode(double=False)` | same | ✅ |
-| Double URL encoding | `url_encode(double=True)` | same | ✅ |
-| Whitespace manipulation | `whitespace_manipulation()` | same | ✅ |
-| Case toggling | `keyword_case_toggle()` | same | ✅ |
-| SQL comment insertion | `comment_insertion()` | same | ✅ |
-| Unicode/HTML-entity substitution | `unicode_substitution()` | same | ✅ |
-| Partial URL encoding | `partial_url_encode()` | same | ✅ DISCLOSED in PDF v17 §III-C |
-| Random combinations 1–3 per payload | `rng.randint(1, 3)` in `random_obfuscate()` | same | ✅ MATCH |
-| Fold-specific seed | `rng.randint(0, 10**6)` per sample, deterministic per fold | `audit_run.py` | ✅ MATCH |
-| Determinism: every obfuscated sample differs from clean | fallback to `partial_url_encode(probability=1.0)` | `obfuscation.py` | ✅ MATCH |
-| Unchanged count in this run | 0/253 malicious | single_split.json | ✅ |
+| All classification results from `definitive_20260923T094339Z_42` | archived run folder | `results/definitive_20260923T094339Z_42/` | ✅ |
+| Environment: Python 3.12.3, scikit-learn 1.8.0, NumPy 2.4.4, SciPy 1.17.1, 1 logical CPU; CPU model/RAM not recorded | `env_info()` | `environment.json` | ✅ (pinned in `requirements.lock`) |
+| 5 warm-up calls, then one predict per sample for 263 clean inputs | `measure_latency()` | `single_split.json: latency` | ✅ |
+| Canonicalization outside timing for canonicalized ML, inside for normalizing signature | as described | `run_single_split()` | ✅ |
+| 240 fold-level F1 scores reproduce from `fold_scores.json` | 8 configs × 15 folds × 2 conditions | `verify_reference_run.py` (CI) | ✅ bit-exact |
+| 16 single-split confusion matrices reproduce reported metrics | confusion matrices | `verify_reference_run.py` (CI) | ✅ identical |
+| Per-sample predictions exported for clean ML configurations only | `predictions.csv` | reference run | ✅ (limitation stated in paper) |
+| Repository identified in [10] | citable snapshot: release tag `v1.1.0` (commit `4b45d4a`) | `README.md` | ✅ once the release is published |
 
-**Action required on paper:** Add `partial_url_encode` as a 7th technique, or explicitly exclude it from `_TECHNIQUES` with justification.
+## §IV-E Semantic Validity and WAF Prototype
 
----
-
-## §III.G Evaluation Protocol
-
-| Paper claim | Implementation | File | Status |
+| Paper claim | Implementation | Evidence | Status |
 |---|---|---|---|
-| 5-fold × 3 repeats = 15 fits | implemented | `audit_run.py: run_cv()` | ✅ |
-| Mean ± SD with 95% CI | computed | `audit_run.py: compute_stats()` | ✅ |
-| Paired t-test per-fold scores | Nadeau-Bengio corrected (more rigorous than stated) | `src/statistics.py` | ✅ BETTER THAN PAPER |
-| Seed 42 | `seed=42` | all scripts | ✅ |
-| Python 3.12, scikit-learn 1.8 | verified | environment.json | ✅ |
-| 300 predictions after 5 warmup | implemented | `audit_run.py: measure()` | ✅ |
-| p95 latency reported | yes | single_split.json | ✅ |
-| TF-IDF fit only on training partition | fit inside CV loop on Xtr/Xtr_n only | `audit_run.py` | ✅ |
-| SVM calibration does not see outer test | `CalibratedClassifierCV(cv=3)` uses internal CV within training fold | sklearn | ✅ |
+| SQLi oracle, 84 test strings, single SQLite login-query context: 66 baseline / 16 syntax errors / 2 other errors, before and after obfuscation | `oracle_sqli()` | `results/semantic_validation_clean.json`, `results/semantic_validation_obf.json` | ✅ |
+| Failed positive-control checks; outcomes treated as inconclusive | audit oracle controls | `results/audit/audit_20260923T050848Z_42_semantic_validation.json` | ✅ |
+| XSS pattern matching is not a browser-execution test | static oracle | `scripts/validate_semantics.py` | ✅ (limitation stated) |
+| Prototype: payload inspection, scanner fingerprinting, path checks, header handling, shared rate limiting | proxy | `src/waf_proxy.py`, `src/recon_detection.py`, `src/rate_limiter.py` | ✅ (the deployment layers added after the reference run, listed in README "Real-World Deployment", are not part of the paper's evaluation) |
 
 ---
 
-## §IV Tables — Claims vs Verified
+## Resolved Issues From Earlier Drafts
 
-### Table I — Effect of Canonicalization on Obfuscated Macro-F1 (15 fits)
+All issues raised against earlier drafts are resolved in PDF v17 or the
+repository. Details are in `AUDIT_REPORT.md` and `docs/paper_reconciliation.md` §3.
 
-Paper values vs `audit_20260923T050848Z_42`:
-
-| Detector | Paper Raw F1 | Actual Raw F1 | Paper Canon F1 | Actual Canon F1 | Paper Gain | Actual Gain |
-|---|---|---|---|---|---|---|
-| LR | 0.778±0.043 | 0.7905±0.0394 | 0.993±0.007 | 0.9934±0.0068 | +0.216 | +0.2029 |
-| MNB | 0.812±0.046 | 0.8121±0.0380 | 0.984±0.010 | 0.9838±0.0101 | +0.172 | +0.1717 |
-| SVM | 0.855±0.049 | 0.8592±0.0381 | 0.992±0.008 | 0.9919±0.0077 | +0.136 | +0.1327 |
-| Sig (naive) | 0.580±0.103 | 0.5893±0.1059 | — | — | — | — |
-| Sig (canon) | — | — | 0.843±0.073 | **0.8420±0.0723** | +0.263 | +0.2527 |
-
-**Key SD discrepancy:** Paper claims LR SD_raw=0.043. Actual: 0.0394. Paper claims LR SD_canon=0.007. Actual: 0.0068. These are consistent with the same experiment but different seeds/splits producing slightly different variance. The **triangle inequality violation** (SD_raw=0.046, SD_norm=0.008, SD_diff=0.027 from paper Table I header) does not appear — the paper's exact table header numbers don't match Table I body. *The body is self-consistent; the header SD numbers are suspect.*
-
-### Table II — Single-Split Performance
-
-Paper test set: 263 samples (145/84/34). Using `data/processed/` CSVs:
-
-| Detector | Paper Clean Acc | Paper Clean F1 | Paper Obf Acc | Paper Obf F1 | Paper Drop | Paper Lat |
-|---|---|---|---|---|---|---|
-| LR (canon) | 1.000 | 1.000 | 0.996 | 0.993 | 0.007 | 0.70 |
-| MNB (canon) | 0.996 | 0.994 | 0.992 | 0.987 | 0.007 | 0.35 |
-| SVM (canon) | 1.000 | 1.000 | 0.996 | 0.993 | 0.007 | 2.50 |
-| Sig (canon) | 0.875 | 0.846 | 0.868 | 0.840 | 0.006 | 0.015 |
-| Sig (naive) | 0.857 | 0.836 | 0.660 | 0.580 | 0.256 | 0.009 |
-
-Status: **NEEDS FULL RERUN ON 263-SAMPLE SPLIT** (see reconciliation doc).
-
-### Table III — Cross-Validated Canonicalized (15 fits)
-
-Paper vs actual (from fold_scores.json):
-
-| Detector | Paper F1_clean | Actual F1_clean | Paper F1_obf | Actual F1_obf | Paper Drop | Actual Drop |
-|---|---|---|---|---|---|---|
-| LR | 0.994±0.007 | 0.9937±0.0070 | 0.993±0.007 | 0.9934±0.0068 | 0.000 | 0.0003 |
-| SVM | 0.992±0.008 | 0.9919±0.0077 | 0.992±0.008 | 0.9919±0.0077 | 0.000 | 0.0000 |
-| MNB | 0.984±0.010 | 0.9843±0.0097 | 0.984±0.010 | 0.9838±0.0101 | 0.001 | 0.0006 |
-| Sig (canon) | 0.846±0.071 | 0.8460±0.0712 | 0.843±0.073 | **0.8420±0.0723** | 0.003 | 0.0040 |
-
-**Sig (canon) discrepancy 0.843→0.8420:** Caused by double-canonicalization bug in `08_final_experiment.py`. Fixed in `audit_run.py`.
-
-### Table IV — Per-Technique F1 Drop
-
-Status: **NEEDS RERUN** with 7-technique disclosure. See reconciliation doc.
-
----
-
-## Open Issues
-
-| ID | Issue | Severity | Action |
-|---|---|---|---|
-| O1 | 7th obfuscation technique `partial_url_encode` undisclosed in paper | HIGH | Update paper §III.F |
-| O2 | Single-split test set 263 vs 253 (different protocol) | MEDIUM | Clarify which split generated Table II |
-| O3 | Double canonicalization bug in `08_final_experiment.py` (not `audit_run.py`) | HIGH | Fixed; `08_final_experiment.py` needs patch |
-| O4 | Paper Table I SD header values (0.046/0.008/0.027) triangle violation | HIGH | Replace with actual values |
-| O5 | Latency hardware-dependent; paper says 2.50ms SVM, this machine gives 1.50ms | LOW | State machine specs in paper |
-| O6 | SQLi semantic oracle: only 3/307 confirmed valid in single-template context | MEDIUM | Expand oracle contexts |
-| O7 | XSS: structural pattern only, no browser execution | LOW | Documented limitation |
-| O8 | Independent test set (CSIC 2010) not integrated | LOW | Future work |
+| Earlier issue | Resolution |
+|---|---|
+| 7th technique (`partial_url_encode`) undisclosed | Disclosed in §III-C; included in Table III |
+| Double canonicalization in `08_final_experiment.py` | Fixed in `definitive_experiment.py`; paper cites only the fixed run |
+| Table I SD values from a different run (triangle violation) | Table I now from the reference run; triangle check passes for all rows |
+| Single-split protocol ambiguity (263 vs 253 samples) | §III-A names the group-aware 749/263 builder explicitly |
+| Latency from undocumented hardware | §III-E states what the run's environment record does and does not contain |
+| Independent benchmark (CSIC 2010) | Stated as future work (§V, ref. [11]); not part of the paper's evaluation |

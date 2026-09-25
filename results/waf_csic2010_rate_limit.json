@@ -1,0 +1,322 @@
+{
+  "dataset": "CSIC 2010 HTTP dataset (normalTrafficTraining + normalTrafficTest)",
+  "rate_limit_config": {
+    "offense_window_seconds": 60,
+    "offense_threshold": 5,
+    "refusal_ratio_threshold": 0.2,
+    "hard_offense_threshold": 60,
+    "ban_duration_seconds": 300,
+    "ban_escalation_factor": 4.0,
+    "max_ban_duration_seconds": 86400,
+    "offender_memory_seconds": 86400,
+    "window_buckets": 12
+  },
+  "normal_shipped": {
+    "live": {
+      "backend": "redis",
+      "detectors": [
+        "logistic_regression",
+        "svm",
+        "signature_baseline"
+      ],
+      "model_set": "deploy",
+      "requests": 72000,
+      "clients": 720,
+      "client_size": 100,
+      "seconds": 231.4,
+      "forwarded": 72000,
+      "refused": 0,
+      "ban_rejected_requests": 0,
+      "client_errors": 0,
+      "bans_triggered": 0,
+      "banned_clients": 0
+    },
+    "max_weighted_refusals_in_consecutive_requests": {
+      "10": 0,
+      "30": 0,
+      "100": 0,
+      "1000": 0,
+      "6000": 0
+    },
+    "max_single_ip_rate_below_hard_cap_rps": null,
+    "offline": [
+      {
+        "backend": "memory",
+        "scenario": "single_ip_1rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "single_ip_10rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "single_ip_100rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "burst_clients_of_10",
+        "clients": 7200,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "burst_clients_of_50",
+        "clients": 1440,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "burst_clients_of_500",
+        "clients": 144,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "burst_clients_of_5000",
+        "clients": 15,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "single_ip_1rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "single_ip_10rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "single_ip_100rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "burst_clients_of_10",
+        "clients": 7200,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "burst_clients_of_50",
+        "clients": 1440,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "burst_clients_of_500",
+        "clients": 144,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "burst_clients_of_5000",
+        "clients": 15,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      }
+    ]
+  },
+  "normal_stress": {
+    "live": {
+      "backend": "redis",
+      "detectors": [
+        "logistic_regression",
+        "naive_bayes",
+        "signature_baseline"
+      ],
+      "model_set": "paper",
+      "requests": 72000,
+      "clients": 720,
+      "client_size": 100,
+      "seconds": 183.7,
+      "forwarded": 71770,
+      "refused": 230,
+      "ban_rejected_requests": 0,
+      "client_errors": 0,
+      "bans_triggered": 0,
+      "banned_clients": 0
+    },
+    "max_weighted_refusals_in_consecutive_requests": {
+      "10": 2,
+      "30": 2,
+      "100": 4,
+      "1000": 14,
+      "6000": 34
+    },
+    "max_single_ip_rate_below_hard_cap_rps": 228.4,
+    "offline": [
+      {
+        "backend": "memory",
+        "scenario": "single_ip_1rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "single_ip_10rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "single_ip_100rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "burst_clients_of_10",
+        "clients": 7200,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "burst_clients_of_50",
+        "clients": 1440,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "burst_clients_of_500",
+        "clients": 144,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "memory",
+        "scenario": "burst_clients_of_5000",
+        "clients": 15,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "single_ip_1rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "single_ip_10rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "single_ip_100rps",
+        "clients": 1,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "burst_clients_of_10",
+        "clients": 7200,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "burst_clients_of_50",
+        "clients": 1440,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "burst_clients_of_500",
+        "clients": 144,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      },
+      {
+        "backend": "redis",
+        "scenario": "burst_clients_of_5000",
+        "clients": 15,
+        "bans": 0,
+        "banned_ips": 0,
+        "ban_rejected_requests": 0
+      }
+    ]
+  },
+  "anomalous_shipped": {
+    "live": {
+      "backend": "redis",
+      "detectors": [
+        "logistic_regression",
+        "svm",
+        "signature_baseline"
+      ],
+      "model_set": "deploy",
+      "requests": 25065,
+      "clients": 251,
+      "client_size": 100,
+      "seconds": 69.9,
+      "forwarded": 11573,
+      "refused": 2309,
+      "ban_rejected_requests": 11183,
+      "client_errors": 0,
+      "bans_triggered": 159,
+      "banned_clients": 159
+    }
+  },
+  "normal_traffic_false_bans": 0
+}

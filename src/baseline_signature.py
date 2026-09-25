@@ -39,6 +39,26 @@ _SQLI_PATTERNS = [
 WAF_EXTRA_SQLI_PATTERNS = [
     # tautology with identical operands, quoted or not: ' OR '1'='1 / or a=a
     r"\bor\b\s+['\"]?(\w+)['\"]?\s*=\s*['\"]?\1\b",
+    # MSSQL command execution, any qualifier: exec master..xp_cmdshell
+    r"\bxp_cmdshell\b",
+    # server fingerprinting via system variables: select @@version
+    r"@@(version|servername|hostname|datadir|basedir|spid|language)\b",
+    # string break followed by a comment opener: admin'/*  admin"/*
+    r"['\"]\s*/\*",
+    # boolean probe on numeric operands: 1 AND 2726=5917 / 1 OR 3=3
+    r"\b(and|or)\s+\d+\s*=\s*\d+\b",
+    # blind-inference probes: IIF(1=1,1,1/0)  (CASE WHEN 1=1 THEN 1 ELSE NULL END)
+    r"\biif\s*\(",
+    r"\(\s*case\s+when\b",
+]
+
+WAF_EXTRA_XSS_PATTERNS = [
+    # any tag carrying an event handler: <x onfoo=1>, <details open ontoggle=...>
+    r"<\s*[a-z][\w:-]*\b[^>]*?\bon[a-z]+\s*=",
+    # dialog call without parentheses: alert`1`
+    r"\b(alert|prompt|confirm)\s*`",
+    # UTF-7 encoded "<" (legacy charset-sniffing bypass): +ADw-
+    r"\+ADw-",
 ]
 
 _XSS_PATTERNS = [
@@ -56,10 +76,11 @@ _XSS_PATTERNS = [
 class SignatureBaseline:
     """Drop-in-compatible with the ML pipelines: exposes .predict(list[str])."""
 
-    def __init__(self, extra_sqli_patterns: list[str] = ()):
+    def __init__(self, extra_sqli_patterns: list[str] = (), extra_xss_patterns: list[str] = ()):
         self._sqli_re = [re.compile(p, re.IGNORECASE)
                          for p in [*_SQLI_PATTERNS, *extra_sqli_patterns]]
-        self._xss_re = [re.compile(p, re.IGNORECASE) for p in _XSS_PATTERNS]
+        self._xss_re = [re.compile(p, re.IGNORECASE)
+                        for p in [*_XSS_PATTERNS, *extra_xss_patterns]]
 
     def _classify_one(self, payload: str) -> str:
         if any(p.search(payload) for p in self._sqli_re):

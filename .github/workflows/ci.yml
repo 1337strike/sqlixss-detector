@@ -11,6 +11,19 @@ jobs:
     name: Tests & Reproducibility
     runs-on: ubuntu-latest
 
+    # Redis for the live multi-worker proxy test (shared ban state);
+    # REQUIRE_REDIS makes that test fail instead of skip if Redis is missing.
+    services:
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      REQUIRE_REDIS: "1"
+      REDIS_URL: redis://127.0.0.1:6379/0
+
     steps:
       - uses: actions/checkout@v4
 
@@ -53,10 +66,26 @@ jobs:
       - name: Definitive experiment (all paper tables)
         run: python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
 
-      - name: Bit-exact reproduction of the paper's reference run
+      - name: Bit-exact reproduction of the paper's reference run (data + statistics)
         run: python scripts/verify_reference_run.py
 
+      - name: WAF deployment tests (in-process HTTP)
+        run: python -m pytest tests/integration/test_waf_deployment.py -v
+
+      - name: Live proxy tests (real processes; gunicorn + Redis)
+        run: python -m pytest tests/integration/test_proxy_live.py -v
+
+      - name: Download CSIC 2010 (pinned mirror commit, SHA-256 verified)
+        run: python scripts/00b_download_csic2010.py
+
+      - name: Rate limiter unit + live tests (both backends; CSIC 2010 normal traffic -> 0 bans)
+        run: python -m pytest tests/test_rate_limiter.py tests/integration/test_rate_limiter_live.py -v -p no:logging
+
       - name: All tests summary
+        # The ~3-minute CSIC 2010 no-ban replay already ran in the rate-limiter
+        # step above; don't run it twice.
         run: |
           set -o pipefail
-          python -m pytest tests/ -v --tb=short 2>&1 | tail -20
+          python -m pytest tests/ -v --tb=short \
+            --deselect tests/integration/test_rate_limiter_live.py::test_csic2010_normal_traffic_triggers_no_bans \
+            2>&1 | tail -20
