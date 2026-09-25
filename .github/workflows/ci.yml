@@ -82,6 +82,10 @@ jobs:
         run: python -m pytest tests/test_rate_limiter.py tests/integration/test_rate_limiter_live.py -v -p no:logging
 
       - name: All tests summary
+        # The ~3-minute CSIC 2010 no-ban replay already ran in the rate-limiter
+        # step above; don't run it twice.
         run: |
           set -o pipefail
-          python -m pytest tests/ -v --tb=short 2>&1 | tail -20
+          python -m pytest tests/ -v --tb=short \
+            --deselect tests/integration/test_rate_limiter_live.py::test_csic2010_normal_traffic_triggers_no_bans \
+            2>&1 | tail -20
