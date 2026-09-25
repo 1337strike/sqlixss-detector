@@ -4,7 +4,8 @@ __pycache__/
 # Generated data - reproducible via scripts
 data/processed/
 data/raw/provenance.json
-# CSIC 2010, fetched by scripts/00b_download_csic2010.py
+# External datasets: CSIC 2010 (scripts/00b_download_csic2010.py),
+# HttpParamsDataset (scripts/00c_download_httpparams.py)
 data/external/
 models/
 results/metrics.csv

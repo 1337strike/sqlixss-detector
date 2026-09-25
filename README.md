@@ -78,6 +78,7 @@ scripts/
   03_evaluate_offline.py
   05_run_waf.py             reverse-proxy WAF
   00b_download_csic2010.py  CSIC 2010 (rate-limit validation only)
+  00c_download_httpparams.py  HttpParamsDataset (supplementary detection benchmark only)
   09_csic_rate_limit_validation.py  0-false-ban check on CSIC 2010 normal traffic
 tests/
   test_pipeline_regression.py   G1/M2 canonicalization + vocabulary isolation
@@ -231,6 +232,12 @@ CSIC run).
   `scripts/00b_download_csic2010.py` + `scripts/supplementary_csic.py`, results in
   `results/supplementary_20260925T122826Z/`, write-up in `docs/supplementary_csic2010.md`.
   LR/SVM label empty input (20,000 parameterless GETs) as SQLi; no CSIC attack-traffic evaluation yet
+- Independent SQLi/XSS benchmark (HttpParamsDataset: sqlmap SQLi, XSSYA/FuzzDB XSS; paper-corpus
+  strings removed; classifier level): `scripts/00c_download_httpparams.py` +
+  `scripts/supplementary_httpparams.py`, results in `results/supplementary_20260925T144247Z/`,
+  write-up in `docs/supplementary_httpparams.md`. Detection is 99.4–100% for all ML configs and
+  76–77% for the signatures, but LR/SVM also flag ~97% of the benchmark's benign parameter
+  values (MNB 6%, signatures 0%): benign training samples are all `k=v&k=v` strings
 
 ---
 
