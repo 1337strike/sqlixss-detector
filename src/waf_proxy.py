@@ -65,6 +65,7 @@ from aiohttp import web, ClientSession, ClientTimeout
 
 from src.models import load_model
 from src.baseline_signature import SignatureBaseline
+from src.baseline_normalized import NormalizedSignatureBaseline
 from src.ensemble import EnsembleDetector, Verdict
 from src.rate_limiter import build_rate_limiter
 from src.waf_stats import build_stats
@@ -218,8 +219,10 @@ class WafProxy:
         # matches actual injection syntax (UNION SELECT, <script>, sleep(),
         # etc.) regardless of what kind of string it's embedded in, so it's
         # the safe, false-positive-resistant choice specifically for
-        # inspecting header values.
-        self._header_detector = SignatureBaseline()
+        # R5 FIX: use NormalizedSignatureBaseline so encoded header values
+        # (e.g. URL-encoded SQLi) are canonicalized before rule matching.
+        # Raw strings are passed in; canonicalization happens once inside.
+        self._header_detector = NormalizedSignatureBaseline()
 
         self.rate_limiter = build_rate_limiter(config.get("rate_limit", {}))
 
@@ -310,6 +313,11 @@ class WafProxy:
 
         try:
             return await self._handle_request_inner(request)
+        except web.HTTPRequestEntityTooLarge:
+            # R4 FIX (proper location): body read at line 420 raises this
+            # before reaching _proxy_to_backend; catch it here so the client
+            # gets 413, not 500 from the generic handler below.
+            return web.Response(status=413, text="Request body too large")
         except Exception as e:
             # Safety net for any unexpected bug in the classification/proxy
             # path: never let a Python traceback or exception string reach
@@ -407,15 +415,15 @@ class WafProxy:
                 return web.json_response(
                     {"error": "WebSocket not supported on this path"}, status=400
                 )
-            # Explicitly allow-listed: proxy through untouched, no
-            # payload inspection (documented gap, operator opt-in only).
+            # R4 FIX: implement proper two-way WebSocket relay instead of
+            # routing through HTTP proxy (which strips Upgrade headers).
             self.stats.increment("allowed")
             self.logger.log_event(
-                decision="allowed_websocket_passthrough", client_ip=client_ip, method=request.method,
+                decision="allowed_websocket_relay", client_ip=client_ip, method=request.method,
                 path=path, label="benign", triggered_by=[],
                 latency_ms=(time.perf_counter() - t0) * 1000,
             )
-            return await self._proxy_to_backend(request, b"")
+            return await self._relay_websocket(request)
 
         body_bytes = await request.read()
         content_type = request.headers.get("Content-Type", "")
@@ -491,6 +499,55 @@ class WafProxy:
             path=str(request.rel_url), label="benign", triggered_by=[], latency_ms=latency_ms,
         )
         return await self._proxy_to_backend(request, body_bytes)
+
+    async def _relay_websocket(self, request: web.Request) -> web.WebSocketResponse:
+        """Two-way WebSocket relay for allow-listed paths (R4 fix).
+
+        Opens a server-side WebSocket to the client and a client-side
+        WebSocket to the backend, then relays frames in both directions
+        until either side closes.
+        """
+        import aiohttp
+        ws_client = web.WebSocketResponse()
+        await ws_client.prepare(request)
+
+        backend_ws_url = self.backend_url.replace("http://", "ws://").replace("https://", "wss://")
+        backend_ws_url += str(request.rel_url)
+
+        try:
+            async with self._session.ws_connect(backend_ws_url) as ws_backend:
+                async def client_to_backend():
+                    async for msg in ws_client:
+                        if msg.type == aiohttp.WSMsgType.TEXT:
+                            await ws_backend.send_str(msg.data)
+                        elif msg.type == aiohttp.WSMsgType.BINARY:
+                            await ws_backend.send_bytes(msg.data)
+                        elif msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.ERROR):
+                            break
+
+                async def backend_to_client():
+                    async for msg in ws_backend:
+                        if msg.type == aiohttp.WSMsgType.TEXT:
+                            await ws_client.send_str(msg.data)
+                        elif msg.type == aiohttp.WSMsgType.BINARY:
+                            await ws_client.send_bytes(msg.data)
+                        elif msg.type in (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.ERROR):
+                            break
+
+                import asyncio
+                done, pending = await asyncio.wait(
+                    [asyncio.ensure_future(client_to_backend()),
+                     asyncio.ensure_future(backend_to_client())],
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                for task in pending:
+                    task.cancel()
+        except Exception as e:
+            print(f"[waf] WebSocket relay error: {type(e).__name__}: {e}")
+        finally:
+            if not ws_client.closed:
+                await ws_client.close()
+        return ws_client
 
     async def _proxy_to_backend(self, request: web.Request, body_bytes: bytes) -> web.Response:
         target_url = f"{self.backend_url}{request.rel_url}"

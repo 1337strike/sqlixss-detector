@@ -1,0 +1,966 @@
+{
+  "run_id": "definitive_20260925T052540Z_42",
+  "protocol": "01c_grouped_split",
+  "n_train": 749,
+  "n_test": 263,
+  "class_dist_train": {
+    "benign": 425,
+    "sqli": 223,
+    "xss": 101
+  },
+  "class_dist_test": {
+    "benign": 145,
+    "sqli": 84,
+    "xss": 34
+  },
+  "unchanged_malicious": 0,
+  "n_obf_techniques_in_code": 7,
+  "obf_technique_names": [
+    "case_toggle",
+    "comment_insertion",
+    "double_url_encode",
+    "partial_url_encode",
+    "unicode_substitution",
+    "url_encode",
+    "whitespace"
+  ],
+  "detectors": {
+    "logistic_regression_raw": {
+      "clean": {
+        "n": 263,
+        "n_correct": 263,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            0,
+            84,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_current_run": {
+          "n": 263,
+          "mean_ms": 0.2687,
+          "median_ms": 0.2634,
+          "p95_ms": 0.3363,
+          "p99_ms": 0.3586,
+          "note": "Hardware-dependent. Paper Table V uses archived run definitive_20260923T094339Z_42 per \u00a7III-E."
+        },
+        "latency_paper_table_v": {}
+      },
+      "obf": {
+        "n": 263,
+        "n_correct": 240,
+        "accuracy": 0.912548,
+        "macro_f1": 0.78949,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 0.785047,
+            "recall": 1.0,
+            "f1": 0.879581,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.323529,
+            "f1": 0.488889,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            0,
+            84,
+            0
+          ],
+          [
+            0,
+            23,
+            11
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 23
+        }
+      },
+      "obf_drop": 0.21051
+    },
+    "logistic_regression_normalized": {
+      "clean": {
+        "n": 263,
+        "n_correct": 263,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            0,
+            84,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_current_run": {
+          "n": 263,
+          "mean_ms": 0.2757,
+          "median_ms": 0.274,
+          "p95_ms": 0.3224,
+          "p99_ms": 0.3416,
+          "note": "Hardware-dependent. Paper Table V uses archived run definitive_20260923T094339Z_42 per \u00a7III-E."
+        },
+        "latency_paper_table_v": {
+          "n": 263,
+          "median_ms": 0.2731,
+          "p95_ms": 0.3548,
+          "p99_ms": 0.375
+        }
+      },
+      "obf": {
+        "n": 263,
+        "n_correct": 262,
+        "accuracy": 0.996198,
+        "macro_f1": 0.993052,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 0.988235,
+            "recall": 1.0,
+            "f1": 0.994083,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.970588,
+            "f1": 0.985075,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            0,
+            84,
+            0
+          ],
+          [
+            0,
+            1,
+            33
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 1
+        }
+      },
+      "obf_drop": 0.006948
+    },
+    "naive_bayes_raw": {
+      "clean": {
+        "n": 263,
+        "n_correct": 261,
+        "accuracy": 0.992395,
+        "macro_f1": 0.993701,
+        "per_class": {
+          "benign": {
+            "precision": 0.986395,
+            "recall": 1.0,
+            "f1": 0.993151,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.97619,
+            "f1": 0.987952,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            2,
+            82,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 2,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_current_run": {
+          "n": 263,
+          "mean_ms": 0.2905,
+          "median_ms": 0.2836,
+          "p95_ms": 0.3609,
+          "p99_ms": 0.4532,
+          "note": "Hardware-dependent. Paper Table V uses archived run definitive_20260923T094339Z_42 per \u00a7III-E."
+        },
+        "latency_paper_table_v": {}
+      },
+      "obf": {
+        "n": 263,
+        "n_correct": 238,
+        "accuracy": 0.904943,
+        "macro_f1": 0.795001,
+        "per_class": {
+          "benign": {
+            "precision": 0.947712,
+            "recall": 1.0,
+            "f1": 0.973154,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 0.826531,
+            "recall": 0.964286,
+            "f1": 0.89011,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.352941,
+            "f1": 0.521739,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            3,
+            81,
+            0
+          ],
+          [
+            5,
+            17,
+            12
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 3,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 5,
+          "xss_to_sqli": 17
+        }
+      },
+      "obf_drop": 0.1987
+    },
+    "naive_bayes_normalized": {
+      "clean": {
+        "n": 263,
+        "n_correct": 261,
+        "accuracy": 0.992395,
+        "macro_f1": 0.993701,
+        "per_class": {
+          "benign": {
+            "precision": 0.986395,
+            "recall": 1.0,
+            "f1": 0.993151,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.97619,
+            "f1": 0.987952,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            2,
+            82,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 2,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_current_run": {
+          "n": 263,
+          "mean_ms": 0.2766,
+          "median_ms": 0.2753,
+          "p95_ms": 0.3183,
+          "p99_ms": 0.336,
+          "note": "Hardware-dependent. Paper Table V uses archived run definitive_20260923T094339Z_42 per \u00a7III-E."
+        },
+        "latency_paper_table_v": {
+          "n": 263,
+          "median_ms": 0.2579,
+          "p95_ms": 0.3242,
+          "p99_ms": 0.3783
+        }
+      },
+      "obf": {
+        "n": 263,
+        "n_correct": 260,
+        "accuracy": 0.988593,
+        "macro_f1": 0.986754,
+        "per_class": {
+          "benign": {
+            "precision": 0.986395,
+            "recall": 1.0,
+            "f1": 0.993151,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 0.987952,
+            "recall": 0.97619,
+            "f1": 0.982036,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.970588,
+            "f1": 0.985075,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            2,
+            82,
+            0
+          ],
+          [
+            0,
+            1,
+            33
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 2,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 1
+        }
+      },
+      "obf_drop": 0.006947
+    },
+    "svm_raw": {
+      "clean": {
+        "n": 263,
+        "n_correct": 263,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            0,
+            84,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_current_run": {
+          "n": 263,
+          "mean_ms": 1.1938,
+          "median_ms": 1.1749,
+          "p95_ms": 1.346,
+          "p99_ms": 1.4213,
+          "note": "Hardware-dependent. Paper Table V uses archived run definitive_20260923T094339Z_42 per \u00a7III-E."
+        },
+        "latency_paper_table_v": {}
+      },
+      "obf": {
+        "n": 263,
+        "n_correct": 244,
+        "accuracy": 0.927757,
+        "macro_f1": 0.83688,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 0.815534,
+            "recall": 1.0,
+            "f1": 0.898396,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.441176,
+            "f1": 0.612245,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            0,
+            84,
+            0
+          ],
+          [
+            0,
+            19,
+            15
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 19
+        }
+      },
+      "obf_drop": 0.16312
+    },
+    "svm_normalized": {
+      "clean": {
+        "n": 263,
+        "n_correct": 263,
+        "accuracy": 1.0,
+        "macro_f1": 1.0,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            0,
+            84,
+            0
+          ],
+          [
+            0,
+            0,
+            34
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 0
+        },
+        "latency_current_run": {
+          "n": 263,
+          "mean_ms": 1.2349,
+          "median_ms": 1.2039,
+          "p95_ms": 1.3881,
+          "p99_ms": 1.9306,
+          "note": "Hardware-dependent. Paper Table V uses archived run definitive_20260923T094339Z_42 per \u00a7III-E."
+        },
+        "latency_paper_table_v": {
+          "n": 263,
+          "median_ms": 1.2457,
+          "p95_ms": 1.3864,
+          "p99_ms": 1.5812
+        }
+      },
+      "obf": {
+        "n": 263,
+        "n_correct": 262,
+        "accuracy": 0.996198,
+        "macro_f1": 0.993052,
+        "per_class": {
+          "benign": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 0.988235,
+            "recall": 1.0,
+            "f1": 0.994083,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.970588,
+            "f1": 0.985075,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            0,
+            84,
+            0
+          ],
+          [
+            0,
+            1,
+            33
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 0,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 0,
+          "xss_to_sqli": 1
+        }
+      },
+      "obf_drop": 0.006948
+    },
+    "signature_raw": {
+      "clean": {
+        "n": 263,
+        "n_correct": 203,
+        "accuracy": 0.771863,
+        "macro_f1": 0.746711,
+        "per_class": {
+          "benign": {
+            "precision": 0.707317,
+            "recall": 1.0,
+            "f1": 0.828571,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.392857,
+            "f1": 0.564103,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.735294,
+            "f1": 0.847458,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            51,
+            33,
+            0
+          ],
+          [
+            9,
+            0,
+            25
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 51,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 9,
+          "xss_to_sqli": 0
+        },
+        "latency_current_run": {
+          "n": 263,
+          "mean_ms": 0.0048,
+          "median_ms": 0.0046,
+          "p95_ms": 0.009,
+          "p99_ms": 0.0165,
+          "note": "Hardware-dependent. Paper Table V uses archived run definitive_20260923T094339Z_42 per \u00a7III-E."
+        },
+        "latency_paper_table_v": {
+          "n": 263,
+          "median_ms": 0.0046,
+          "p95_ms": 0.0091,
+          "p99_ms": 0.0167
+        }
+      },
+      "obf": {
+        "n": 263,
+        "n_correct": 173,
+        "accuracy": 0.657795,
+        "macro_f1": 0.492751,
+        "per_class": {
+          "benign": {
+            "precision": 0.617021,
+            "recall": 1.0,
+            "f1": 0.763158,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.261905,
+            "f1": 0.415094,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.176471,
+            "f1": 0.3,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            62,
+            22,
+            0
+          ],
+          [
+            28,
+            0,
+            6
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 62,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 28,
+          "xss_to_sqli": 0
+        }
+      },
+      "obf_drop": 0.25396
+    },
+    "signature_normalized": {
+      "clean": {
+        "n": 263,
+        "n_correct": 205,
+        "accuracy": 0.779468,
+        "macro_f1": 0.756342,
+        "per_class": {
+          "benign": {
+            "precision": 0.714286,
+            "recall": 1.0,
+            "f1": 0.833333,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.416667,
+            "f1": 0.588235,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.735294,
+            "f1": 0.847458,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            49,
+            35,
+            0
+          ],
+          [
+            9,
+            0,
+            25
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 49,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 9,
+          "xss_to_sqli": 0
+        },
+        "latency_current_run": {
+          "n": 263,
+          "mean_ms": 0.0086,
+          "median_ms": 0.0078,
+          "p95_ms": 0.017,
+          "p99_ms": 0.0232,
+          "note": "Hardware-dependent. Paper Table V uses archived run definitive_20260923T094339Z_42 per \u00a7III-E."
+        },
+        "latency_paper_table_v": {
+          "n": 263,
+          "median_ms": 0.0082,
+          "p95_ms": 0.019,
+          "p99_ms": 0.0323
+        }
+      },
+      "obf": {
+        "n": 263,
+        "n_correct": 204,
+        "accuracy": 0.775665,
+        "macro_f1": 0.751558,
+        "per_class": {
+          "benign": {
+            "precision": 0.710784,
+            "recall": 1.0,
+            "f1": 0.830946,
+            "support": 145
+          },
+          "sqli": {
+            "precision": 1.0,
+            "recall": 0.404762,
+            "f1": 0.576271,
+            "support": 84
+          },
+          "xss": {
+            "precision": 1.0,
+            "recall": 0.735294,
+            "f1": 0.847458,
+            "support": 34
+          }
+        },
+        "confusion_matrix": [
+          [
+            145,
+            0,
+            0
+          ],
+          [
+            50,
+            34,
+            0
+          ],
+          [
+            9,
+            0,
+            25
+          ]
+        ],
+        "errors": {
+          "benign_to_sqli": 0,
+          "benign_to_xss": 0,
+          "sqli_to_benign": 50,
+          "sqli_to_xss": 0,
+          "xss_to_benign": 9,
+          "xss_to_sqli": 0
+        }
+      },
+      "obf_drop": 0.004784
+    }
+  }
+}

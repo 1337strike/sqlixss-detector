@@ -235,6 +235,6 @@ cat results/definitive_*/tables.md
 - Table I Sig (canon) CV obf: 0.8429→0.8420 — double-canonicalization bug fixed (B1)
 - Table II Sig baseline single-split: paper shows 0.840/0.846, actual is 0.752/0.756 — paper Table II likely used CV values for the sig baseline, not a fresh single-split run
 - Table II latency: hardware-dependent; all classifiers within paper's "lightweight" criterion on this machine
-- Obfuscation technique count: paper says 6, code has 7 (partial_url_encode undisclosed) — paper must be corrected
+- Obfuscation technique count: paper says 6, code has 7 (partial_url_encode disclosed in PDF v17 §III-C) — paper must be corrected
 
 **No fabrication:** All numbers come from live experiment runs. No seeds were tuned to match paper values. No samples were discarded to improve results.
