@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -54,6 +55,37 @@ def _sig3(x: float) -> float:
     return float(f"{x:.3g}")
 
 
+def _statistics_structure_errors(data: object) -> list[str]:
+    """Reject incomplete results before any numerical comparison can pass."""
+    if not isinstance(data, dict):
+        return ["full_statistics must be a JSON object"]
+    errors = []
+    for section, expected, ci_key in (
+        ("comparisons", PAPER_TABLE_I, "ci95_gain"),
+        ("pairwise_canonicalized_ml", PAPER_PAIRWISE, "ci95_diff"),
+    ):
+        rows = data.get(section)
+        if not isinstance(rows, list):
+            errors.append(f"{section} must be a list with {len(expected)} rows")
+            continue
+        labels = [r.get("label") for r in rows if isinstance(r, dict)]
+        if (len(rows) != len(expected) or len(labels) != len(rows)
+                or any(labels.count(label) != 1 for label in expected)):
+            errors.append(f"{section} must contain each expected label exactly once: {list(expected)}")
+        for i, row in enumerate(rows):
+            if not isinstance(row, dict):
+                continue
+            for key in ("mean_diff", "sd_diff", "se_corr", "t", "p_raw", "p_holm"):
+                value = row.get(key)
+                if type(value) not in (int, float) or not math.isfinite(value):
+                    errors.append(f"{section}[{i}].{key} must be a finite number")
+            ci = row.get(ci_key)
+            if (not isinstance(ci, list) or len(ci) != 2
+                    or any(type(x) not in (int, float) or not math.isfinite(x) for x in ci)):
+                errors.append(f"{section}[{i}].{ci_key} must contain two finite numbers")
+    return errors
+
+
 def verify_statistics(run: Path) -> list[str]:
     """full_statistics.json of the new run vs the archived reference file
     (full precision) and vs every value printed in the paper."""
@@ -61,9 +93,17 @@ def verify_statistics(run: Path) -> list[str]:
     path = run / "full_statistics.json"
     if not path.exists():
         return [f"{path.name} missing (scripts/export_statistics.py)"]
-    new = json.loads(path.read_text())
+    try:
+        new = json.loads(path.read_text())
+    except (ValueError, UnicodeError) as exc:
+        return [f"{path.name} invalid JSON: {exc}"]
+    errors = _statistics_structure_errors(new)
+    if errors:
+        return errors
     ref = json.loads((REFERENCE / "full_statistics.json").read_text())
-    for a, b in zip(ref["comparisons"], new["comparisons"]):
+    by_label = {row["label"]: row for row in new["comparisons"]}
+    for a in ref["comparisons"]:
+        b = by_label[a["label"]]
         for k in ("mean_diff", "sd_diff", "se_corr", "t", "p_raw", "p_holm"):
             if abs(a[k] - b[k]) > 1e-9 * max(abs(a[k]), 1e-300):
                 errors.append(f"full_statistics {a['label']}.{k}: {b[k]} != archived {a[k]}")
