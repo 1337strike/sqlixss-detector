@@ -6,8 +6,6 @@ The repository includes the paper experiments, supplementary benchmarks, and a r
 
 **Accompanying paper:** *Evaluating Input Canonicalization for SQLi and XSS Detection Using Lightweight Machine Learning*
 
-**Authors:** Ahsani Taufiq Khawarizmi and Yudi Prayudi
-
 ## Run the paper experiments
 
 Use Python 3.12 and the pinned dependencies in `requirements.lock`. The reference experiment used Python 3.12.3, scikit-learn 1.8.0, NumPy 2.4.4, and SciPy 1.17.1.
