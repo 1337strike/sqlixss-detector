@@ -1,311 +1,192 @@
-# SQLi/XSS Detector — sqlixss-detector
+# SQLi/XSS Detector
 
-**"Evaluating Input Canonicalization for SQLi and XSS Detection Using Lightweight Machine Learning"**
----
+A Python project for studying SQL injection and cross-site scripting detection with lightweight machine learning. It compares Logistic Regression, Multinomial Naive Bayes, a calibrated linear SVM, and a local signature baseline, with and without input canonicalization.
 
-## Quick Start
+The repository includes the paper experiments, supplementary benchmarks, and a reverse-proxy WAF prototype. The experiments measure how preprocessing changes classification results. The prototype explores how those detectors behave alongside request inspection and rate limiting.
+
+**Accompanying paper:** *Evaluating Input Canonicalization for SQLi and XSS Detection Using Lightweight Machine Learning*
+
+**Authors:** Ahsani Taufiq Khawarizmi and Yudi Prayudi
+
+## Run the paper experiments
+
+Use Python 3.12 and the pinned dependencies in `requirements.lock`. The reference experiment used Python 3.12.3, scikit-learn 1.8.0, NumPy 2.4.4, and SciPy 1.17.1.
 
 ```bash
-# 1. Install the pinned paper environment (Python 3.12)
-python3.12 -m venv .venv && source .venv/bin/activate
+git clone https://github.com/1337strike/sqlixss-detector.git
+cd sqlixss-detector
+python3.12 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.lock
 
-# 2. Corpus (307 SQLi + 135 XSS from InfoSecWarrior/Offensive-Payloads) is
-#    committed in data/raw/. Optional re-download, pinned to the paper's
-#    upstream commit and SHA-256-verified:
 python scripts/00_download_payloads.py
-
-# 3. Build group-aware 749/263 split (seed 42)
 python scripts/01c_build_grouped_dataset.py
-
-# 4. Train models
 python scripts/02_train_models.py
-
-# 5. Run the definitive experiment — reproduces all paper tables
 python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
+python scripts/verify_reference_run.py
 ```
 
-Results land in `results/definitive_<timestamp>_42/`.
-Reference run: `results/definitive_20260923T094339Z_42/` (see its `NOTE.md`)
+The raw corpus is already included in `data/raw/`. The download step retrieves it from the pinned upstream revision and checks its SHA-256 hashes.
 
----
+Each experiment writes to `results/definitive_<timestamp>_42/`. The verifier compares the new classification results with the [reference run](results/definitive_20260923T094339Z_42/) and checks the statistics against the paper. Timing varies with the machine and is not part of that equality check.
 
-## Repository Structure
+This workflow reproduces the main experiments in Tables I–V. The external benchmarks and repeated timing measurements use the separate commands below.
 
-```
-data/
-  raw/          ← downloaded corpus (00_download_payloads.py)
-  processed/    ← split CSVs (01c_build_grouped_dataset.py)
-models/         ← trained joblib files (02_train_models.py)
-results/
-  definitive_20260923T094339Z_42/   ← authoritative run (paper §III-E)
-    NOTE.md                 how to read this run's files; bit-exact reproduction
-    manifest.json           experiment metadata + technique list
-    single_split.json       Tables II & V (263-sample split, confusion matrices, timing)
-    fold_scores.json        240 fold-level F1 scores: 8 configs × 15 folds × 2 (Tables I & IV)
-    full_statistics.json    Table I gains/CIs/p_Holm + §IV-B pairwise tests (scripts/export_statistics.py)
-    cv_stats.json           CV means/SDs; tests from rounded inputs (see NOTE.md)
-    per_technique.csv       Table III (7 techniques, 5 seeds)
-    predictions.csv         per-sample clean ML predictions
-    tables.md               paper tables in Markdown
-  semantic_validation_clean.json    §IV-E SQLi oracle, before obfuscation
-  semantic_validation_obf.json      §IV-E SQLi oracle, after obfuscation
-docs/
-  paper_method_mapping.md   every PDF v17 method claim → code → evidence
-  paper_reconciliation.md   every PDF v17 number → reference-run value → check
-  latex_tables.tex          copy-paste LaTeX for paper/thesis
-src/
-  baseline_normalized.py    canonicalization pipeline + normalizing signature
-  baseline_signature.py     11 SQLi + 8 XSS regex rules
-  dataset.py                benign template generator
-  features.py               TF-IDF build_vectorizer()
-  models.py                 LR / MNB / SVM pipelines
-  obfuscation.py            7 transformation techniques
-  statistics.py             Nadeau-Bengio t-test + Holm correction
-  tokenizer.py              security-aware tokenizer
-  rate_limiter.py           WAF behavioral rate limiting (memory / Redis)
-  agent_defense.py          WAF AI-agent defense: probation, payload families, honeypots, error scrubbing
-  csic2010.py, waf_replay.py  CSIC 2010 parser + live WAF replay harness
-scripts/
-  definitive_experiment.py  ← MAIN: reproduces all paper tables
-  export_statistics.py      Table I CIs/p_Holm + §IV-B pairwise tests → full_statistics.json
-  verify_reference_run.py   fresh run vs reference run and paper values (CI)
-  00_download_payloads.py
-  01c_build_grouped_dataset.py
-  02_train_models.py
-  03_evaluate_offline.py
-  05_run_waf.py             reverse-proxy WAF
-  00b_download_csic2010.py  CSIC 2010 (rate-limit validation only)
-  00c_download_httpparams.py  HttpParamsDataset (supplementary detection benchmark only)
-  09_csic_rate_limit_validation.py  0-false-ban check on CSIC 2010 normal traffic
-tests/
-  test_pipeline_regression.py   G1/M2 canonicalization + vocabulary isolation
-  test_split_integrity.py       G4 family leakage checks
-  test_rate_limiter.py          behavioral rate limiter, both backends
-  test_agent_defense.py         AI-agent defense layer, both backends
-  integration/
-    test_end_to_end.py          pipeline + WAF extraction path; FP edge cases are xfail
-    test_waf_deployment.py      evasion views, WAF rules, block/monitor, uniform refusals (in-process HTTP)
-    test_proxy_live.py          real processes: single-process WAF and gunicorn + Redis shared bans
-    test_rate_limiter_live.py   live WAF bans/escalation; CSIC 2010 normal traffic → 0 bans
-    test_waf_agent_defense.py   AI-agent scenarios: mutation, IP rotation, honeypot, error oracle, fuzzing
-AUDIT_REPORT.md             full audit findings
-```
+## What the experiments show
 
----
+The main corpus contains **1,012 strings**: 307 SQLi, 135 XSS, and 570 template-generated benign inputs. Evaluation uses five-fold cross-validation repeated three times, with heuristic payload families kept apart between training and test folds. A separate split contains 749 training and 263 test samples.
 
-## Paper Numbers
+Canonicalization improves obfuscated macro-F1 for all four detector families on this corpus:
 
-All numbers below come from `results/definitive_20260923T094339Z_42/`.
+| Detector | Raw obfuscated F1 | Canonicalized obfuscated F1 | Gain | Holm-adjusted p |
+|---|---:|---:|---:|---:|
+| Logistic Regression | 0.7905 ± 0.0394 | 0.9934 ± 0.0068 | +0.2029 | 3.42 × 10⁻⁷ |
+| Multinomial Naive Bayes | 0.8121 ± 0.0380 | 0.9838 ± 0.0101 | +0.1717 | 1.65 × 10⁻⁶ |
+| Calibrated linear SVM | 0.8592 ± 0.0381 | 0.9919 ± 0.0077 | +0.1327 | 1.30 × 10⁻⁵ |
+| Local signatures | 0.5893 ± 0.1059 | 0.8420 ± 0.0723 | +0.2527 | 1.65 × 10⁻⁶ |
 
-### Table I — Canonicalization Effect (CV, 15 fits)
+These are means and marginal standard deviations across 15 folds. The paper also reports corrected confidence intervals for the paired gains.
 
-| Detector | Raw obf. F1 | Canon. obf. F1 | Gain | p_Holm |
-|---|---|---|---|---|
-| LR  | 0.7905 ± 0.0394 | 0.9934 ± 0.0068 | +0.2029 | 3.42×10⁻⁷ |
-| MNB | 0.8121 ± 0.0380 | 0.9838 ± 0.0101 | +0.1717 | 1.65×10⁻⁶ |
-| SVM | 0.8592 ± 0.0381 | 0.9919 ± 0.0077 | +0.1327 | 1.30×10⁻⁵ |
-| Sig | 0.5893 ± 0.1059 | 0.8420 ± 0.0723 | +0.2527 | 1.65×10⁻⁶ |
+The separate test split helps explain what those gains mean. Confusing SQLi with XSS is different from allowing an attack-labeled string through as benign:
 
-### Table II — Single Split (n=263)
+| Configuration | Clean F1 | Obfuscated F1 | Attacks predicted benign | SQLi/XSS confusions |
+|---|---:|---:|---:|---:|
+| LR, raw | 1.0000 | 0.7895 | 0 | 23 |
+| LR, canonicalized | 1.0000 | 0.9931 | 0 | 1 |
+| MNB, raw | 0.9937 | 0.7950 | 8 | 17 |
+| MNB, canonicalized | 0.9937 | 0.9868 | 2 | 1 |
+| SVM, raw | 1.0000 | 0.8369 | 0 | 19 |
+| SVM, canonicalized | 1.0000 | 0.9931 | 0 | 1 |
+| Signatures, raw | 0.7467 | 0.4928 | 90 | 0 |
+| Signatures, canonicalized | 0.7563 | 0.7516 | 59 | 0 |
 
-| Config | Clean F1 | Obf F1 | FN | Cross |
-|---|---|---|---|---|
-| LR (raw) | 1.0000 | 0.7895 | 0 | 23 |
-| LR (canon.) | 1.0000 | 0.9931 | 0 | 1 |
-| MNB (raw) | 0.9937 | 0.7950 | 8 | 17 |
-| MNB (canon.) | 0.9937 | 0.9868 | 2 | 1 |
-| SVM (raw) | 1.0000 | 0.8369 | 0 | 19 |
-| SVM (canon.) | 1.0000 | 0.9931 | 0 | 1 |
-| Sig (raw) | 0.7467 | 0.4928 | 90 | 0 |
-| Sig (canon.) | 0.7563 | 0.7516 | 59 | 0 |
+Error counts refer to the obfuscated condition and its 118 attack-labeled strings. For LR and SVM, the F1 improvement here comes from better attack-type recognition; neither configuration predicts an attack as benign on this split. These results describe string classification, not successful exploitation or blocking in a live application.
 
----
+## Results beyond the main corpus
 
-## Real-World Deployment
+The supplementary experiments test the paper classifiers on external data without adding WAF layers or retuning the models.
 
-The WAF (`src/waf_proxy.py`) adds deployment-only layers on top of the paper's
-pipeline. They do not change any paper number; CI re-verifies the reference
-run on every push.
-
-- **Evasion-aware canonicalization** (`src/waf_canonical.py`): decodes IIS
-  `%uXXXX`, unwraps MySQL versioned comments `/*!…*/` (nested too), and also
-  inspects a comments-as-spaces view.
-- **WAF-only signature rules** (`WAF_EXTRA_*_PATTERNS`): tautologies,
-  `xp_cmdshell`, `@@version`, quote+comment, `IIF(`/`(CASE WHEN`, numeric
-  boolean probes, generic `<tag on*=>`, `` alert` ``, UTF-7.
-- **Input-shape routing**: URL paths and headers → signature rules; query,
-  form and JSON (`key=value` leaves) → ML ensemble; ML abstains on inputs
-  with no known features.
-- **Monitor mode**: `mode: "monitor"` logs `would_block` and forwards the
-  request. Use it first on real traffic.
-
-### Measured on data the models never saw (`scripts/evaluate_waf_realworld.py`)
-
-Default: detectors LR + SVM + signature, `model_set: deploy` (models trained by
-`scripts/train_deploy_models.py`; the paper's models are available as
-`model_set: paper`).
-
-| Test | Deploy models (default) | Paper models |
+| Experiment | Finding | Details |
 |---|---|---|
-| False positives, CSIC 2010 normal traffic (36,000 real HTTP requests) | **0** | 0 |
-| False positives, ordinary values with unseen parameter names | **0%** | 6.9% |
-| False positives, values with apostrophes (`it's`, `O'Neil`) | **0.1%** | 99.4% |
-| SQLi holdout, PayloadsAllTheThings (879 complete payloads, not in training) | 99.1–99.4% | 99.2–99.8% |
-| XSS holdout, PayloadsAllTheThings (1,572 complete payloads) | 98.5–99.4% | 99.2–99.7% |
-| Paper test split, attacks detected at the WAF | 96.6% | 95.8% |
-| sqlmap 1.10.9 replay, 6 tamper configurations (10,252 attack requests) | 99.05% | 99.91% |
-| Latency (content inspection, in-process) | ~2.5 ms / request | ~2.4 ms / request |
+| CSIC 2010 normal traffic | On 16,000 requests with parameters, LR, SVM, and signatures have no false positives. MNB flags 0.70–0.73%. LR and SVM classify the other 20,000 empty inputs as SQLi. | [CSIC evaluation](docs/supplementary_csic2010.md) |
+| HttpParamsDataset | After overlap removal, evaluation covers 10,849 SQLi and 529 XSS strings, plus 19,304 benign values. ML detection is 99.4–100%, but LR/SVM also flag 96.9–97.5% of the benign values. | [External detection benchmark](docs/supplementary_httpparams.md) |
+| SVM calibration and timing | Removing the calibration wrapper preserves the reported clean/obfuscated macro-F1 while reducing median prediction time from 1.604 to 0.381 ms on the supplementary host. Five timing sessions are recorded. | [Timing and calibration](docs/supplementary_measurements.md) |
 
-The deployment models trade 0.9 points of sqlmap detection for far fewer
-false positives on real-world inputs; signature rules and repeat-offender bans
-remain behind them. Most sqlmap requests that pass are arithmetic probes
-(`5602-5601`) and single encoded digits, which are not injections.
-`naive_bayes` is off by default: on CSIC it caused all 112 false positives
-(it flags short-password login forms as SQLi).
+The benign control is central to interpreting the external detection rates. The paper's benign training examples are query strings such as `key=value`, while HttpParamsDataset supplies bare values. LR and SVM respond poorly to that change in input shape, so their high attack detection rate alone does not demonstrate useful separation from benign input.
 
-Every detection-based refusal (payload, scanner, ban, deny list) returns the
-same `403 {"error": "Forbidden", "request_id": ...}`; the reason is recorded
-in `logs/waf.log` under that `request_id`.
-
-### Repeat-offender bans (behavioral rate limiting)
-
-`src/rate_limiter.py` bans source IPs on behavior, not on single detections:
-
-- **Refusal ratio over a sliding window.** Every request is recorded per IP
-  as allowed or refused. An IP is banned when, within `offense_window_seconds`,
-  it has at least `offense_threshold` refused requests **and** they make up at
-  least `refusal_ratio_threshold` of its traffic. A scanner is refused on most
-  of what it sends; a busy legitimate client that trips an occasional false
-  positive is not banned.
-- **Anti-dilution cap.** `hard_offense_threshold` refusals in the window ban
-  regardless of ratio, so padding payloads with benign requests doesn't work.
-- **Escalating bans.** The n-th ban issued within `offender_memory_seconds`
-  of the previous one ending lasts
-  `ban_duration_seconds × ban_escalation_factor^(n-1)`, capped at
-  `max_ban_duration_seconds` (defaults: 5 min → 20 min → 80 min → … → 24 h).
-  A banned IP gets the same uniform 403 as any other refusal.
-- **Redis backend.** With `backend: redis`, each request is one atomic Lua
-  call, so state is shared correctly across gunicorn workers and replicas.
-
-Validated on all 72,000 CSIC 2010 normal requests (training + test files):
+To reproduce these measurements in the environment above:
 
 ```bash
-redis-server --daemonize yes                      # optional; else in-memory backend
-python scripts/00b_download_csic2010.py            # pinned mirror, SHA-256-verified
+python scripts/00b_download_csic2010.py
+python scripts/supplementary_csic.py
+python scripts/00c_download_httpparams.py
+python scripts/supplementary_httpparams.py
+python scripts/supplementary_measurements.py --sessions 5
+```
+
+The scripts write separate `results/supplementary_<timestamp>/` folders. Their timings come from different runs and do not replace the archived values in Table V.
+
+## Try the WAF prototype
+
+The WAF sits between a client and a backend application. Set `backend_url`, the listening address, and the inspection options in [config/waf_config.yaml](config/waf_config.yaml), start your backend, then run:
+
+```bash
+python scripts/05_run_waf.py --config config/waf_config.yaml
+```
+
+The default configuration listens on `http://127.0.0.1:8443` and forwards allowed requests to `http://127.0.0.1:8080`. TLS is disabled in this local configuration.
+
+The prototype adds several layers around the classifiers:
+
+- Additional decoding and signature checks for paths, headers, query parameters, forms, and JSON.
+- Input routing that sends `key=value` inputs to the ML ensemble and uses signatures for paths and headers. ML abstains when an input has no known features.
+- Behavioral rate limiting with temporary bans and escalation for repeat offenders.
+- Optional Redis state shared across workers.
+- A uniform `403` response for detection-based refusals, with a request ID that can be traced in `logs/waf.log`.
+
+The default detectors are LR, SVM, and signatures, using `model_set: deploy`. Deployment models are trained with [scripts/train_deploy_models.py](scripts/train_deploy_models.py). Set `model_set: paper` to use the paper models instead. This choice changes the prototype's behavior; it does not change the archived paper experiments.
+
+### Inspect traffic before enabling blocking
+
+Set `mode: "monitor"` to log detection decisions as `would_block` while forwarding those requests. Protocol-safety checks and static deny rules still apply. Review the logs for false positives before choosing `mode: "block"`.
+
+The repository also includes a [Caddy configuration](deploy/Caddyfile) and a [service definition](deploy/waf.service). The service uses multiple workers, so configure the Redis backend when using it. The prototype has not been validated as a replacement for a production WAF.
+
+### Deployment measurements
+
+The following results were reported for the deployment configuration using [scripts/evaluate_waf_realworld.py](scripts/evaluate_waf_realworld.py). They include WAF content inspection and should be read separately from the classifier-only tables above.
+
+| Evaluation | Deployment models | Paper models |
+|---|---:|---:|
+| False positives on 36,000 CSIC normal requests | 0 | 0 |
+| False positives with unseen parameter names | 0% | 6.9% |
+| False positives on values with apostrophes | 0.1% | 99.4% |
+| Detection on 879 SQLi payloads from PayloadsAllTheThings | 99.1–99.4% | 99.2–99.8% |
+| Detection on 1,572 XSS payloads from PayloadsAllTheThings | 98.5–99.4% | 99.2–99.7% |
+| Attack detection on the paper test split | 96.6% | 95.8% |
+| Detection on 10,252 sqlmap replay requests, six tamper configurations | 99.05% | 99.91% |
+| Content-inspection latency, in process | ~2.5 ms/request | ~2.4 ms/request |
+
+The zero CSIC false-positive count here is a result of the WAF's routing and selected detectors. It is a different measurement from feeding all 36,000 inputs directly to each paper classifier. Replay detection also does not establish whether each request would successfully exploit a backend.
+
+### Behavioral rate limiting
+
+The limiter counts allowed and refused requests for each source IP over a sliding window. A ban requires both a minimum number of refusals and a minimum refusal ratio. An absolute refusal cap also applies, and repeated bans become longer. The defaults start at five minutes and cap at 24 hours.
+
+This policy is intended to tolerate occasional false positives, but its behavior still depends on traffic volume, thresholds, and whether legitimate users share an IP address.
+
+[The CSIC replay results](results/waf_csic2010_rate_limit.json) record zero bans on 72,000 normal requests for both the default detectors and a stress configuration that includes MNB. The stress configuration refuses 230 requests without banning a client under the evaluated traffic patterns.
+
+```bash
+python scripts/00b_download_csic2010.py
 python scripts/09_csic_rate_limit_validation.py --with-anomalous
 ```
 
-| CSIC 2010, live through the WAF (Redis), clients of 100 requests | Refused | Bans |
-|---|---|---|
-| Normal traffic, shipped detectors (LR + SVM + signature, deploy) | 0 / 72,000 | **0** |
-| Normal traffic, stress detectors (LR + NB + signature, paper models) | 230 / 72,000 (0.32%) | **0** |
-| Same recorded refusals, one IP at 1 / 10 / 100 req/s, and clients of 10 / 50 / 500 / 5,000 requests in one window (both backends) | — | **0** |
-| Anomalous traffic, shipped detectors, 251 clients | 2,309 / 25,065 | 159 of 251 clients banned; 11,183 later requests turned away |
+### Adaptive probing controls
 
-The stress configuration runs the ban layer against detectors that do
-misfire. They refuse at most 2 of any 30 consecutive normal requests. One IP
-sending that traffic would reach the anti-dilution cap only above ~228 req/s.
-Full output: `results/waf_csic2010_rate_limit.json`. Tests:
-`tests/test_rate_limiter.py` (unit, both backends) and
-`tests/integration/test_rate_limiter_live.py` (live WAF over HTTP, includes the
-CSIC run).
+The `agent_defense` configuration enables additional checks for repeated probing. After several distinct blocked payloads, a client can enter a stricter probation period. The module also remembers similar blocked payloads across clients, scores signals such as decoy-path access and repeated error responses, and can replace leaked backend errors with a generic response.
 
-### AI-agent defense (`src/agent_defense.py`)
+These controls target behaviors that automated tools and LLM-driven agents can share. They do not reliably identify every AI agent or guarantee resistance to adaptive attacks. The default fingerprint signals alone stay below the blocking threshold. With Redis enabled, the defense state is shared across workers.
 
-LLM-driven attack agents (HexStrike AI, PentestGPT, custom MCP/tool loops)
-swap out tool User-Agents after the first 403 and then run
-*payload → response → mutate → retry*, rotating IPs when banned and reading
-backend errors as an oracle. The recon filter's tool signatures cannot stop
-that; this layer targets the loop itself (config section `agent_defense`):
+The HTTP scenarios are in [tests/integration/test_waf_agent_defense.py](tests/integration/test_waf_agent_defense.py); store and decision tests are in [tests/test_agent_defense.py](tests/test_agent_defense.py).
 
-- **Probation.** After 3 *distinct* refused payloads, a client's inputs with
-  any injection syntax (quote, comment, `;`, tag, SQL/JS keyword, `or true`,
-  …), or similar to its refused payloads, are refused for an hour — past the
-  first bans. The model bypass a mutation search finds (e.g. `1 AnD 2>1`,
-  `admin'`, `<b onclick`, all passed by the ensemble) is refused.
-- **Cross-client payload families.** Refused payloads are indexed with
-  MinHash-LSH; a near-duplicate with injection syntax is refused from *any*
-  IP for an hour (`-1 UNION SELECT 1 INTO @,@,@` blocked → the bypass
-  `-1 UNION SELxECT 1 INTO @,@,@` is refused from a fresh IP).
-- **Suspicion score.** Decoy `honeypot_paths` (list them under `Disallow:` in
-  robots.txt), forced browsing (30 distinct 401/403/404/405 in 10 min),
-  provoked backend errors, and client fingerprint (pasted browser UA without
-  `Accept-Language`, HTTP-library/headless UAs, self-declared AI agents).
-  The fingerprint signals alone add up to 95 points, under the threshold of 100, so they never block anyone by themselves.
-- **Error-oracle removal.** Backend responses leaking DB errors or stack
-  traces become a generic 500 when the status is ≥ 500 or the request
-  carried injection syntax (a page quoting a MySQL error is untouched).
+## Checks and current limitations
 
-All refusals are the uniform 403; state is shared through Redis whenever the
-rate limiter uses it. Measured with the shipped config:
-
-| CSIC 2010, live through the WAF, clients of 100 requests | Layer off | Layer on |
-|---|---|---|
-| Normal traffic (72,000): refused / bans | 0 / 0 | **0 / 0** |
-| Anomalous traffic (25,065): forwarded to backend | 11,573 | **8,495** |
-| Anomalous traffic: clients banned | 159 / 251 | **239 / 251** |
-| Added latency per request (in-process) | — | 0.04–0.10 ms |
-
-Tests: `tests/test_agent_defense.py` (unit, both backends) and
-`tests/integration/test_waf_agent_defense.py` (agent scenarios over HTTP).
-This raises the cost of automated adaptive attacks; it cannot stop a patient
-human who never trips a detector.
-
-### Recommended rollout
-1. Deploy behind Caddy (`deploy/Caddyfile`) with `deploy/waf.service`; set
-   `rate_limit.backend: redis` (the service runs 4 workers).
-2. Run with `mode: "monitor"` on real traffic; review `would_block` entries in
-   `logs/waf.log` for false positives.
-3. Switch to `mode: "block"`. Keep a mature ruleset (e.g. ModSecurity + OWASP
-   CRS) in front for defense in depth: this WAF is not adversarially hardened
-   against attackers who adapt to it specifically.
-
----
-
-## Known Limitations
-
-- Benign corpus from narrow templates; 5 edge-case inputs (apostrophe, SQL tutorial text, HTML) produce false positives outside the test set (documented as `xfailed` tests)
-- 7 obfuscation techniques in code; paper covers all 7 including `partial_url_encode`
-- SQLi oracle limited to single equality-template context
-- No end-to-end proxy benchmark (throughput, sustained-load memory) yet
-- CSIC 2010 is evaluated for false positives only (36,000 normal requests, classifier level):
-  `scripts/00b_download_csic2010.py` + `scripts/supplementary_csic.py`, results in
-  `results/supplementary_20260925T122826Z/`, write-up in `docs/supplementary_csic2010.md`.
-  LR/SVM label empty input (20,000 parameterless GETs) as SQLi; no CSIC attack-traffic evaluation yet
-- Independent SQLi/XSS benchmark (HttpParamsDataset: sqlmap SQLi, XSSYA/FuzzDB XSS; paper-corpus
-  strings removed; classifier level): `scripts/00c_download_httpparams.py` +
-  `scripts/supplementary_httpparams.py`, results in `results/supplementary_20260925T144247Z/`,
-  write-up in `docs/supplementary_httpparams.md`. Detection is 99.4–100% for all ML configs and
-  76–77% for the signatures, but LR/SVM also flag ~97% of the benchmark's benign parameter
-  values (MNB 6%, signatures 0%): benign training samples are all `k=v&k=v` strings
-
----
-
-## Reproduce from Scratch
+Run the test suite from the project root:
 
 ```bash
-git clone https://github.com/1337strike/sqlixss-detector
-cd sqlixss-detector
-python3.12 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.lock
-python scripts/01c_build_grouped_dataset.py
-python scripts/definitive_experiment.py --seed 42 --folds 5 --repeats 3
-python scripts/verify_reference_run.py   # exits 1 on any mismatch
-python -m pytest tests/ -q   # all pass; documented FP edge cases report as xfailed
+python -m pytest tests/ -q
 ```
 
-With `requirements.lock` (Python 3.12.3, scikit-learn 1.8.0, NumPy 2.4.4,
-SciPy 1.17.1), the run reproduces the reference run **bit-for-bit**: all 240
-fold-level F1 scores, 16 single-split confusion matrices and 35 per-technique
-drops are identical. `full_statistics.json` (generated by
-`scripts/export_statistics.py`) reproduces every inferential statistic in the
-paper: Table I gains, 95% CIs and p_Holm, and the §IV-B pairwise tests.
-Latency (Table V) is wall-clock and varies by machine.
+Some tests require a running Redis server or the downloaded CSIC dataset and may be skipped locally. Known benign false-positive cases are marked `xfail`. The [CI workflow](.github/workflows/ci.yml) provisions Redis, downloads the datasets it needs, reproduces the main experiment, and exercises the proxy over HTTP. It also checks that incomplete or malformed statistics cannot pass the reference verifier.
 
-- Experiment ID: `definitive_20260923T094339Z_42`
-- Citable snapshot: commit **`4b45d4a`** (release `v1.1.0`); check it out with
-  `git checkout 4b45d4a`. The commit that originally produced the run
-  (`ff88291`) was never pushed; `4b45d4a` reproduces it exactly.
-- Corpus: InfoSecWarrior/Offensive-Payloads @ `9e67029a`, SHA-256 in
-  `data/raw/provenance.json`
+The main limitations are:
+
+- The training corpus is small and its benign examples come from narrow templates. External tests show why its results cannot be generalized to arbitrary legitimate input.
+- Family grouping is heuristic. It separates recorded families in the outer folds but does not establish semantic independence or grouped internal SVM calibration.
+- The seven transformations are not an adaptive attack benchmark. The SQLite oracle and XSS pattern checks do not establish preserved attack execution.
+- Prediction timing and in-process inspection timing do not measure sustained throughput, memory under load, or end-to-end service latency.
+
+## Find the code and evidence
+
+| Path | Contents |
+|---|---|
+| `data/raw/` and `data/processed/` | Source corpus, provenance, and train/test CSVs |
+| `src/` | Canonicalization, features, classifiers, obfuscation, and WAF components |
+| `scripts/definitive_experiment.py` | Main paper experiment |
+| `scripts/export_statistics.py` | Full-precision statistics for a run, including gain intervals and pairwise tests |
+| `scripts/verify_reference_run.py` | Classification and statistics verification |
+| `results/definitive_20260923T094339Z_42/` | Archived main experiment; read its `NOTE.md` for file history |
+| `results/supplementary_*/` | External evaluations, calibration ablation, and repeated timings |
+| [Method mapping](docs/paper_method_mapping.md) and [number reconciliation](docs/paper_reconciliation.md) | Detailed audit of the main Tables I–V, originally prepared for manuscript version 17 |
+| [AUDIT_REPORT.md](AUDIT_REPORT.md) | Historical findings from earlier development; not a list of current failures |
+
+Fresh runs export `full_statistics.json` automatically. The archived folder contains historical files with older schemas, so use its notes and the generated exports when following the statistical calculations.
+
+## Paper and data references
+
+The main experiment is identified by `definitive_20260923T094339Z_42`.
+
+The final manuscript cites [project commit 969efcd](https://github.com/1337strike/sqlixss-detector/tree/969efcdba2581243c398adcf26bc2a3e39ab56b3), which includes the supplementary experiments and verifier fixes. The earlier `v1.1.0` release points to `4b45d4a` and predates those additions.
+
+The malicious corpus comes from [InfoSecWarrior/Offensive-Payloads](https://github.com/InfoSecWarrior/Offensive-Payloads) at commit `9e67029a`. File hashes are recorded in [data/raw/provenance.json](data/raw/provenance.json). The supplementary documentation records the pinned CSIC mirror and HttpParamsDataset revisions used for those evaluations.
