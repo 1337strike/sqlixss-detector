@@ -1,9 +1,6 @@
 # SQLi/XSS Detector — sqlixss-detector
 
 **"Evaluating Input Canonicalization for SQLi and XSS Detection Using Lightweight Machine Learning"**
-
-> Ahsani Taufiq Khawarizmi · 
-
 ---
 
 ## Quick Start
