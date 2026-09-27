@@ -1,0 +1,7 @@
+config,sessions,calls_per_session,median_ms_min,median_ms_max,median_ms_median_of_sessions,p95_ms_min,p95_ms_max,p95_ms_median_of_sessions,p99_ms_min,p99_ms_max,p99_ms_median_of_sessions,archived_table_v_median_ms,archived_table_v_p95_ms,archived_table_v_p99_ms
+logistic_regression_normalized,5,263,0.6879,0.7578,0.7018,0.9739,1.0054,0.9797,0.9876,1.0263,0.9999,0.2731,0.3548,0.375
+naive_bayes_normalized,5,263,0.6542,0.6829,0.6576,0.6825,0.7493,0.6895,0.7005,0.7919,0.7058,0.2579,0.3242,0.3783
+svm_normalized,5,263,2.7269,2.7795,2.7746,2.821,3.2164,2.8395,2.8568,3.3768,2.8928,1.2457,1.3864,1.5812
+signature_raw,5,263,0.006,0.0064,0.0061,0.0115,0.0124,0.0116,0.0163,0.0179,0.0173,0.0046,0.0091,0.0167
+signature_normalized,5,263,0.0102,0.0108,0.0106,0.0198,0.0206,0.0201,0.0272,0.0285,0.0282,0.0082,0.019,0.0323
+svm_normalized_uncalibrated,5,263,0.659,0.6763,0.6653,0.6844,0.7113,0.6882,0.7004,0.7189,0.7027,,,
