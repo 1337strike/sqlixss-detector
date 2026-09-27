@@ -1,0 +1,31 @@
+{
+  "run_id": "definitive_20260927T094236Z_42",
+  "timestamp": "2026-09-27T09:42:36.451072+00:00",
+  "seed": 42,
+  "n_folds": 5,
+  "n_reps": 3,
+  "python": "3.12.10",
+  "sklearn": "1.8.0",
+  "n_obf_techniques": 7,
+  "obf_techniques": [
+    "case_toggle",
+    "comment_insertion",
+    "double_url_encode",
+    "partial_url_encode",
+    "unicode_substitution",
+    "url_encode",
+    "whitespace"
+  ],
+  "double_canonicalization_bug": "FIXED in this script (see audit_run.py)",
+  "output_files": {
+    "environment": "results/definitive_20260927T094236Z_42/environment.json",
+    "single_split": "results/definitive_20260927T094236Z_42/single_split.json",
+    "fold_scores": "results/definitive_20260927T094236Z_42/fold_scores.json",
+    "predictions": "results/definitive_20260927T094236Z_42/predictions.csv",
+    "cv_stats": "results/definitive_20260927T094236Z_42/cv_stats.json",
+    "full_statistics": "results/definitive_20260927T094236Z_42/full_statistics.json",
+    "per_technique": "results/definitive_20260927T094236Z_42/per_technique.csv",
+    "tables_json": "results/definitive_20260927T094236Z_42/tables.json",
+    "tables_md": "results/definitive_20260927T094236Z_42/tables.md"
+  }
+}
